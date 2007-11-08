@@ -1,0 +1,173 @@
+.\" $Id$
+.\"
+.TH RESOLVCONF 8 "1 Aug 2007" "resolvconf-1.4"
+.SH NAME
+resolvconf \- manage nameserver information
+.SH SYNOPSIS
+cat \fIFILE\fR |
+.B resolvconf
+\fB\-a\fR \fIINTERFACE\fR
+.PP
+.B resolvconf
+\fB\-d\fR \fIINTERFACE\fR
+.PP
+.B resolvconf
+\fB\-u\fR
+.PP
+.B resolvconf
+\fB\-l\fR \fIPATTERN\fR
+.PP
+.B resolvconf
+\fB\-i\fR \fIPATTERN\fR
+.PP
+.B resolvconf
+\fB\-v\fR \fIPATTERN\fr
+.SH DESCRIPTION
+Overwrite (\fB\-a\fR) or delete (\fB\-d\fR) the nameserver information
+record for network interface \fIINTERFACE\fR
+and run the update scripts in \fI/etc/resolvconf/update.d/\fR.
+.PP
+With \fB\-u\fR, just run the update scripts.
+.PP
+With \fB\-l\fR, list the resolv files for each interface, optionally
+with patterns to match interface names.
+.PP
+With \fB\-i\fR, list the interfaces we have resolv files for, optionally
+with patterns to match interface names.
+.PP
+With \fB\-v\fR, we echo variables NEWDOMAIN, NEWSEARCH and NEWNS to the
+console which can be used to make it easer writing scripts which configure
+DNS resolvers.
+.SH SERVERS
+Normally
+.B resolvconf
+is run only by hook scripts attached to network interface configurers
+such as
+.BR pppd (8) 
+(for ppp interfaces),
+to DHCP clients such as
+.BR dhclient (8),
+to
+.BR /etc/init.d/net.eth0 
+and
+.BR openvpn ,
+and
+to DNS caches such as
+.BR dnsmasq (8)
+(for the loopback interface).
+However, the administrator can also run
+.B resolvconf
+from the command line to add or delete auxiliary nameserver information.
+.SH CLIENTS
+Nameserver information provided to
+.B resolvconf
+is stored for use by subscribers to \fBresolvconf\fR's notification service.
+Subscribers that need to know when nameserver information has changed
+should install a script in \fI/etc/resolvconf/update.d/\fR
+(... or in \fI/etc/resolvconf/update-libc.d/\fR: see below).
+For example, DNS caches such as
+.BR dnsmasq (8)
+and
+.BR pdnsd (8)
+subscribe to the notification service so that they know
+whither to forward queries.
+.PP
+The most important piece of
+software that subscribes to the notification service is the set of functions
+that make up the GNU C Library
+.BR resolver (3).
+When nameserver information is updated the script
+\fI/etc/resolvconf/update.d/libc\fR writes a new resolver configuration
+file to \fI/etc/resolvconf/run/resolv.conf\fR and then runs the scripts in
+/etc/resolvconf/update-libc.d/.
+To make the resolver use the dynamically generated resolver configuration
+file the administrator should ensure that \fI/etc/resolv.conf\fR is a symbolic
+link to \fIresolvconf/run/resolv.conf\fR.
+This link is never modified by \fB/sbin/resolvconf\fR.
+If you find that \fI/etc/resolv.conf\fR is not being updated,
+check to see that the link is intact.
+.PP
+The GNU C Library resolver library isn't the only resolver library available.
+However, any resolver library that reads /etc/resolv.conf
+(and most of them do, in order to be compatible with the GNU C Library resolver)
+should work with
+.BR resolvconf .
+.PP
+Subscribers that need to know only when the resolver configuration file
+has changed should install a script in \fI/etc/resolvconf/update-libc.d/\fR
+rather than in \fI/etc/resolvconf/update.d/\fR.
+(This is important for synchronization purposes:
+scripts in \fIupdate-libc.d/\fR are run after resolv.conf has been updated;
+the same is not necessarily true of scripts in update.d/.)
+.SH OPTIONS
+.TP
+\fB\-a\fR \fIINTERFACE\fR
+Add or overwrite the record for network interface \fIINTERFACE\fR.
+When this option is used the information must be provided to
+.B resolvconf
+on its standard input in the format of the
+.BR resolv.conf (5)
+file.
+Each line in the file must be terminated by a newline.
+.TP
+\fB\-d\fR \fIINTERFACE\fR
+Delete the record for network interface \fIINTERFACE\fR.
+.PP
+The \fIINTERFACE\fR name may not contain spaces, slashes, asterisks or
+initial dots, hyphens or tildes.
+.PP
+Following the addition or deletion of the record, resolvconf runs
+the update scripts as described in the CLIENTS section.
+.TP
+\fB\-u\fR
+Just run the update scripts.
+.TP
+\fB\-l\fR \fIPATTERN\fR
+List the resolv.conf files for the interfaces that match the pattern,
+otherwise all the interfaces.
+.TP
+\fB\-i\fR \fIPATTERN\fR
+List the interfaces that match the pattern otherwise all the interfaces.
+.TP
+\fB\-v\fR \fIPATTERN\fR
+Echo variables NEWDOMAIN, NEWSEARCH and NEWNS to the console.
+.SH FILES
+.TP
+.I /etc/resolvconf/run
+This is either a directory where nameserver information can be stored
+or a symbolic link to such a directory.
+Clients should not make any assumptions about the canonical location
+of this directory or the hierarchy that is constructed under it.
+.TP
+.I /etc/resolvconf/interface-order
+Determines the order in which nameserver information records are processed
+by resolvconf -l.
+.TP
+.I /etc/resolvconf/resolv.conf.d/base
+File containing basic resolver information.
+The lines in this file are included in the resolver configuration file
+even when no interfaces are configured.
+.TP
+.I /etc/resolvconf/resolv.conf.d/head
+File to be prepended to the dynamically generated resolver configuration file.
+Normally this is just a comment line.
+.TP
+.I /etc/resolvconf/reslov.conf.d/tail
+File to be appended to the dynamically generated resolver configuration file.
+To append nothing, make this an empty file.
+.SH BUGS
+Currently
+.B resolvconf
+does not check the sanity of the information provided to it.
+.SH AUTHOR
+Written by Roy Marples <uberlord@gentoo.org>.
+.br
+Heavily based on Debians resolvconf by Thomas Hood <jdthood_AT_yahoo.co.uk>
+.SH COPYRIGHT
+Copyright \(co 2006-2007 Gentoo Foundation
+.br
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+.SH "SEE ALSO"
+.BR resolv.conf (5),
+.BR resolver (3).

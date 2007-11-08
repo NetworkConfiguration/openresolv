@@ -1,0 +1,235 @@
+#!/bin/sh
+# Copyright 2006 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+
+# Written by Roy Marples (uberlord@gentoo.org)
+# Heavily based on Debian resolvconf by Thomas Hood
+
+argv0="$0"
+
+VARDIR=/etc/resolvconf/run
+IFACEDIR="${VARDIR}/interfaces"
+
+error_exit() {
+	echo "$*" >&2
+	exit 1
+}
+
+usage() {
+	cat <<-EOF
+	Usage: ${argv0##*/} [options]
+
+	Inform the system about any DNS updates.
+
+	Options:
+	  -a \$INTERFACE    Add DNS information to the specified interface
+	                   (DNS supplied via stdin in resolv.conf format)
+	  -d \$INTERFACE    Delete DNS information from the specified interface
+	  -u               Run updates from our current DNS information
+	  -l [\$PATTERN]    Show DNS information, optionally from interfaces
+	                   that match the specified pattern
+	  -i [\$PATTERN]    Show interfaces that have supplied DNS information
+                   optionally from interfaces that match the specified
+                   pattern
+	  -v [\$PATTERN]    echo NEWDOMAIN, NEWSEARCH and NEWNS variables to
+	  		   the console
+	  -h               Show this help cruft
+	EOF
+	[ -z "$@" ] && exit 0
+	echo
+	error_exit "$*"
+}
+
+echo_resolv() {
+	[ -n "$1" -a -e "${IFACEDIR}/$1" ] || return 1
+	echo "# resolv.conf for interface $1"
+	grep "." "${IFACEDIR}/$1"
+	echo
+}
+
+uniqify() {
+    local result=
+    while [ -n "$1" ] ; do
+		case " ${result} " in
+			*" $1 "*) ;;
+			*) result="${result} $1" ;;
+		esac
+		shift
+	done
+    echo "${result# *}"
+}
+
+if [ -n "$1" ] ; then
+	CMD="$1"
+	shift
+fi
+if [ -n "$1" ] ; then
+	IFACE="$1"
+	shift
+fi
+
+# -l is a Gentoo option that lists our resolv files
+# optionally for a specific interface
+if [ "x${CMD}" = "x-l" -o "x${CMD}" = "x-i" ] ; then
+	[ ! -d "${IFACEDIR}" ] && exit 0
+	
+	# If we have an interface ordering list, then use that.
+	# It works by just using pathname expansion in the interface directory.
+	if [ -n "${IFACE}" ] ; then
+		LIST="${IFACE} $@"
+	elif [ -r /etc/resolvconf/interface-order ] ; then
+		LIST="$(cat /etc/resolvconf/interface-order)"
+	fi
+
+	# If we don't have a list then prefer lo, tunnels, ppp
+	# and then anything else.
+	if [ -z "${LIST}" ] ; then
+		LIST="lo lo[0-9]* tap[0-9]* tun[0-9]* vpn vpn[0-9]* ppp[0-9]* ippp[0-9]* *"
+	fi
+
+	cd "${IFACEDIR}"
+	for IFACE in $(uniqify ${LIST}) ; do
+		# Only list interfaces which we really have
+		[ -e "${IFACE}" ] || continue
+		
+		if [ "x${CMD}" = "x-i" ] ; then
+			printf "${IFACE} "
+		else
+			echo_resolv "${IFACE}"
+		fi
+	done
+	[ "x${CMD}" = "x-i" ] && echo
+	exit 0
+fi
+
+if [ "x${CMD}" = "x-v" ] ; then
+	NS=
+	DOMAIN=
+	SEARCH=
+	NEWSEARCH=
+	NEWNS=
+	NEWDOMAIN=
+	LINES="$("${argv0}" -l "${IFACE}" | sed -e "s/'/'\\\\''/g" -e "s/^/'/g" -e "s/$/'/g")"
+	eval set -- ${LINES}
+	for LINE in "$@" ; do
+		case "${LINE}" in
+			"nameserver "*)
+				case "${LINE#* }" in
+					127.*) continue ;;
+				esac
+				NS="${NS}${LINE#* } "
+				;;
+			"domain "*)
+				[ -z "${SEARCH}" ] && DOMAIN="${LINE#* }"
+				;;
+			"search "*)
+				SEARCH="${LINE#* }"
+				DOMAIN=
+				;;
+			*)
+				if [ -z "${LINE}" ] ; then
+					for N in ${NS} ; do
+						if [ -n "${DOMAIN}" ] ; then
+							NEWDOMAIN="${NEWDOMAIN} ${DOMAIN},${N}"
+						elif [ -n "${SEARCH}" ] ; then
+							for S in ${SEARCH} ; do
+								NEWSEARCH="${NEWSEARCH} ${S},${N}"
+							done
+						else
+							NEWNS="${NEWNS} ${N}"
+						fi
+					done
+					NS=
+					DOMAIN=
+					SEARCH=
+				fi
+				;;
+		esac
+	done
+
+	# Prefer DOMAIN nameservers over SEARCH nameservers
+	# if we are supplied both.
+	NEWDOMAIN="$(uniqify ${NEWDOMAIN})"
+	NEWSEARCH="$(uniqify ${NEWSEARCH})"
+	NEWNS="$(uniqify ${NEWNS})"
+	for S in ${NEWSEARCH} ; do
+		for DN in ${NEWDOMAIN} ; do
+			if [ "${S%,*}" = "${DN%,*}" ] ; then
+				NEWSEARCH="$(echo "${NEWSEARCH}" | sed -e "s/${S}/${DN}/g")"
+				NEWDOMAIN="$(echo "${NEWDOMAIN}" | sed -e "s/${DN}//g")"
+				break
+			fi
+		done
+	done
+
+	echo "NEWDOMAIN='${NEWDOMAIN}'"
+	echo "NEWSEARCH='${NEWSEARCH}'"
+	echo "NEWNS='${NEWNS}'"
+	exit 0
+fi
+
+# Only root can update resolv.conf
+if ! touch "${VARDIR}"/.test ; then
+	error_exit "You must be root to run ${argv0##*/}"
+fi
+rm "${VARDIR}"/.test
+
+# Test that we have valid options
+if [ "x${CMD}" = "x-a" -o "x${CMD}" = "x-d" ] ; then
+	if [ -z "${IFACE}" ] ; then
+		usage "Interface not specified"
+	fi
+elif [ "x${CMD}" != "x-u" ] ; then
+	[ -n "x${CMD}" -a "x${CMD}" != "x-h" ] && usage "Unknown option ${CMD}"
+	usage
+fi
+if [ "x${CMD}" = "x-a" ] ; then
+	q='\'
+	for x in '/' '\' ' ' '*' ; do
+		case "${IFACE}" in
+			*[${x}]*) error_exit "${x} not allowed in interface name" ;;
+		esac
+	done
+	for x in '.' '-' '~' ; do
+		case "${IFACE}" in
+			[${x}]*) error_exit "${x} not allowed at start of interface name" ;;
+		esac
+	done
+	[ "x${CMD}" = "x-a" -a -t 0 ] && error_exit "No file given via stdin"
+	IFACERESOLV="${IFACEDIR}/${IFACE}"
+fi
+
+# Ensure that libdir exists
+if [ ! -d "${IFACEDIR}" ] ; then
+	if [ ! -d "${VARDIR}" ] ; then
+		if [ -L "${VARDIR}" ] ; then
+			DIR="$(readlink -f "${VARDIR}")"
+			[ -z "${DIR}" ] && DIR="$(readlink "${VARDIR}")"
+		fi
+		# Change to /etc as link maybe relative
+		cd "${VARDIR%/*}"
+		mkdir -m 0755 -p "${DIR}" \
+			|| error_exit "Failed to create needed directory ${DIR}"
+	fi
+	mkdir -m 0755 -p "${IFACEDIR}" || \
+		error_exit "Failed to create needed directory ${IFACEDIR}"
+else
+	# Delete any existing information about the interface
+	if [ "x${CMD}" = "x-a" -o "x${CMD}" = "x-d" ] ; then
+		cd "${IFACEDIR}"
+		for iface in ${IFACE} ; do
+			rm -f "${iface}"
+		done
+	fi
+fi
+
+if [ "x${CMD}" = "x-a" ] ; then
+	# Create our resolv.conf file
+	cat >"${IFACEDIR}"/"${IFACE}"
+fi
+
+for x in /etc/resolvconf/update.d/* ; do
+	[ -e "${x}" ] && "${x}" "${CMD}" "${IFACE}"
+done
+
+# vim: set ts=4 :

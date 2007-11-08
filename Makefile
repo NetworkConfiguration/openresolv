@@ -13,7 +13,7 @@ install:
 	$(INSTALL) -d $(MANDIR)
 	$(INSTALL) -d $(BINDIR)
 	$(INSTALL) -d $(VARDIR)/resolvconf
-	$(INSTALL) bin/resolvconf $(BINDIR)
-	$(INSTALL) update.d/libc $(ETCDIR)/update.d
-	$(INSTALL) -m 644 man/resolvconf.8 $(MANDIR)
+	$(INSTALL) resolvconf $(BINDIR)
+	$(INSTALL) libc $(ETCDIR)/update.d
+	$(INSTALL) -m 644 resolvconf.8 $(MANDIR)
 	ln -snf ../../var/run/resolvconf $(ETCDIR)/run

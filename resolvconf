@@ -219,18 +219,24 @@ else
 	if [ "x${CMD}" = "x-a" -o "x${CMD}" = "x-d" ]; then
 		cd "${IFACEDIR}"
 		for iface in ${IFACE}; do
-			rm -f "${iface}"
+			rm -f "${iface}" || exit $?
 		done
 	fi
 fi
 
 if [ "x${CMD}" = "x-a" ]; then
 	# Create our resolv.conf file
-	cat >"${IFACEDIR}"/"${IFACE}"
+	cat >"${IFACEDIR}"/"${IFACE}" || exit $?
 fi
 
+retval=0
 for x in "${UPDATED}"/*; do
-	[ -e "${x}" ] && "${x}" "${CMD}" "${IFACE}"
+	if [ -e "${x}" ]; then
+		"${x}" "${CMD}" "${IFACE}"
+		retval=$((${retval} + $?))
+	fi
 done
+
+exit ${retval}
 
 # vim: set ts=4 :

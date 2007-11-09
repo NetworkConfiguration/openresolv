@@ -1,6 +1,6 @@
 .\" $Id$
 .\"
-.TH RESOLVCONF 8 "1 Aug 2007" "resolvconf-1.4"
+.TH RESOLVCONF 8 "9 Nov 2007" "openresolv"
 .SH NAME
 resolvconf \- manage nameserver information
 .SH SYNOPSIS
@@ -46,7 +46,7 @@ such as
 .BR pppd (8) 
 (for ppp interfaces),
 to DHCP clients such as
-.BR dhclient (8),
+.BR dhcpcd (8),
 to
 .BR /etc/init.d/net.eth0 
 and
@@ -87,11 +87,32 @@ This link is never modified by \fB/sbin/resolvconf\fR.
 If you find that \fI/etc/resolv.conf\fR is not being updated,
 check to see that the link is intact.
 .PP
-The GNU C Library resolver library isn't the only resolver library available.
+The C Library resolver library isn't the only resolver library available.
 However, any resolver library that reads /etc/resolv.conf
-(and most of them do, in order to be compatible with the GNU C Library resolver)
-should work with
-.BR resolvconf .
+(and most of them do, in order to be compatible with the C Library resolver)
+should work with \fBresolvconf\fR.
+.PP
+\fBopenresolv\fR ships with subscribers for
+.BR dnsmasq (8)
+and
+.BR named (8)
+wwhich handle resolv.conf a bit differently. If they handle search AND domain
+options then the nameservers listed with the domain are only used when
+querying for that domain.
+.TP
+Example
+.nf
+# resolv.conf from bge0
+# search foo.com
+# nameserver 1.2.3.4
+
+# resolv.conf from tap0
+# domain bar.org
+# nameserver 5.6.7.8
+.fi
+.PP
+In this instance, nameserver 5.6.7.8 will only handle requests for bar.org
+and nameserver 1.2.3.4 will handle everything else.
 .PP
 Subscribers that need to know only when the resolver configuration file
 has changed should install a script in \fI/etc/resolvconf/update-libc.d/\fR
@@ -160,14 +181,13 @@ Currently
 .B resolvconf
 does not check the sanity of the information provided to it.
 .SH AUTHOR
-Written by Roy Marples <uberlord@gentoo.org>.
+Written by Roy Marples <roy@marples.name>.
 .br
 Heavily based on Debians resolvconf by Thomas Hood <jdthood_AT_yahoo.co.uk>
 .SH COPYRIGHT
-Copyright \(co 2006-2007 Gentoo Foundation
+Copyright \(co 2006 Gentoo Foundation
 .br
-This is free software; see the source for copying conditions.  There is NO
-warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+Copyright \(co 2007 Roy Marples
 .SH "SEE ALSO"
 .BR resolv.conf (5),
 .BR resolver (3).

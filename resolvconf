@@ -1,13 +1,17 @@
 #!/bin/sh
 # Copyright 2006 Gentoo Foundation
+# Copyright 2007 Roy Marples
 # Distributed under the terms of the GNU General Public License v2
 
-# Written by Roy Marples (uberlord@gentoo.org)
-# Heavily based on Debian resolvconf by Thomas Hood
+# Written by Roy Marples (roy@marples.name)
+# Based on Debian resolvconf by Thomas Hood
 
 argv0="$0"
 
-VARDIR=/etc/resolvconf/run
+PREFIX=
+RESOLVCONF="${PREFIX}"/etc/resolvconf
+UPDATED="${RESOLVCONF}"/update.d
+VARDIR="${RESOLVCONF}"/run
 IFACEDIR="${VARDIR}/interfaces"
 
 error_exit() {
@@ -49,7 +53,7 @@ echo_resolv() {
 
 uniqify() {
     local result=
-    while [ -n "$1" ] ; do
+    while [ -n "$1" ]; do
 		case " ${result} " in
 			*" $1 "*) ;;
 			*) result="${result} $1" ;;
@@ -59,40 +63,40 @@ uniqify() {
     echo "${result# *}"
 }
 
-if [ -n "$1" ] ; then
+if [ -n "$1" ]; then
 	CMD="$1"
 	shift
 fi
-if [ -n "$1" ] ; then
+if [ -n "$1" ]; then
 	IFACE="$1"
 	shift
 fi
 
 # -l is a Gentoo option that lists our resolv files
 # optionally for a specific interface
-if [ "x${CMD}" = "x-l" -o "x${CMD}" = "x-i" ] ; then
-	[ ! -d "${IFACEDIR}" ] && exit 0
+if [ "x${CMD}" = "x-l" -o "x${CMD}" = "x-i" ]; then
+	[ -d "${IFACEDIR}" ] || exit 0
 	
 	# If we have an interface ordering list, then use that.
 	# It works by just using pathname expansion in the interface directory.
-	if [ -n "${IFACE}" ] ; then
+	if [ -n "${IFACE}" ]; then
 		LIST="${IFACE} $@"
-	elif [ -r /etc/resolvconf/interface-order ] ; then
-		LIST="$(cat /etc/resolvconf/interface-order)"
+	elif [ -r "${RESOLVCONF}"/interface-order ]; then
+		LIST="$(cat "${RESOLVCONF}"/interface-order)"
 	fi
 
 	# If we don't have a list then prefer lo, tunnels, ppp
 	# and then anything else.
-	if [ -z "${LIST}" ] ; then
+	if [ -z "${LIST}" ]; then
 		LIST="lo lo[0-9]* tap[0-9]* tun[0-9]* vpn vpn[0-9]* ppp[0-9]* ippp[0-9]* *"
 	fi
 
 	cd "${IFACEDIR}"
-	for IFACE in $(uniqify ${LIST}) ; do
+	for IFACE in $(uniqify ${LIST}); do
 		# Only list interfaces which we really have
 		[ -e "${IFACE}" ] || continue
 		
-		if [ "x${CMD}" = "x-i" ] ; then
+		if [ "x${CMD}" = "x-i" ]; then
 			printf "${IFACE} "
 		else
 			echo_resolv "${IFACE}"
@@ -102,7 +106,7 @@ if [ "x${CMD}" = "x-l" -o "x${CMD}" = "x-i" ] ; then
 	exit 0
 fi
 
-if [ "x${CMD}" = "x-v" ] ; then
+if [ "x${CMD}" = "x-v" ]; then
 	NS=
 	DOMAIN=
 	SEARCH=
@@ -111,7 +115,7 @@ if [ "x${CMD}" = "x-v" ] ; then
 	NEWDOMAIN=
 	LINES="$("${argv0}" -l "${IFACE}" | sed -e "s/'/'\\\\''/g" -e "s/^/'/g" -e "s/$/'/g")"
 	eval set -- ${LINES}
-	for LINE in "$@" ; do
+	for LINE in "$@"; do
 		case "${LINE}" in
 			"nameserver "*)
 				case "${LINE#* }" in
@@ -127,12 +131,12 @@ if [ "x${CMD}" = "x-v" ] ; then
 				DOMAIN=
 				;;
 			*)
-				if [ -z "${LINE}" ] ; then
-					for N in ${NS} ; do
-						if [ -n "${DOMAIN}" ] ; then
+				if [ -z "${LINE}" ]; then
+					for N in ${NS}; do
+						if [ -n "${DOMAIN}" ]; then
 							NEWDOMAIN="${NEWDOMAIN} ${DOMAIN},${N}"
-						elif [ -n "${SEARCH}" ] ; then
-							for S in ${SEARCH} ; do
+						elif [ -n "${SEARCH}" ]; then
+							for S in ${SEARCH}; do
 								NEWSEARCH="${NEWSEARCH} ${S},${N}"
 							done
 						else
@@ -152,9 +156,9 @@ if [ "x${CMD}" = "x-v" ] ; then
 	NEWDOMAIN="$(uniqify ${NEWDOMAIN})"
 	NEWSEARCH="$(uniqify ${NEWSEARCH})"
 	NEWNS="$(uniqify ${NEWNS})"
-	for S in ${NEWSEARCH} ; do
-		for DN in ${NEWDOMAIN} ; do
-			if [ "${S%,*}" = "${DN%,*}" ] ; then
+	for S in ${NEWSEARCH}; do
+		for DN in ${NEWDOMAIN}; do
+			if [ "${S%,*}" = "${DN%,*}" ]; then
 				NEWSEARCH="$(echo "${NEWSEARCH}" | sed -e "s/${S}/${DN}/g")"
 				NEWDOMAIN="$(echo "${NEWDOMAIN}" | sed -e "s/${DN}//g")"
 				break
@@ -169,28 +173,27 @@ if [ "x${CMD}" = "x-v" ] ; then
 fi
 
 # Only root can update resolv.conf
-if ! touch "${VARDIR}"/.test ; then
+if ! touch "${VARDIR}"/.test; then
 	error_exit "You must be root to run ${argv0##*/}"
 fi
 rm "${VARDIR}"/.test
 
 # Test that we have valid options
-if [ "x${CMD}" = "x-a" -o "x${CMD}" = "x-d" ] ; then
-	if [ -z "${IFACE}" ] ; then
+if [ "x${CMD}" = "x-a" -o "x${CMD}" = "x-d" ]; then
+	if [ -z "${IFACE}" ]; then
 		usage "Interface not specified"
 	fi
-elif [ "x${CMD}" != "x-u" ] ; then
+elif [ "x${CMD}" != "x-u" ]; then
 	[ -n "x${CMD}" -a "x${CMD}" != "x-h" ] && usage "Unknown option ${CMD}"
 	usage
 fi
-if [ "x${CMD}" = "x-a" ] ; then
-	q='\'
-	for x in '/' '\' ' ' '*' ; do
+if [ "x${CMD}" = "x-a" ]; then
+	for x in '/' \\ ' ' '*'; do
 		case "${IFACE}" in
 			*[${x}]*) error_exit "${x} not allowed in interface name" ;;
 		esac
 	done
-	for x in '.' '-' '~' ; do
+	for x in '.' '-' '~'; do
 		case "${IFACE}" in
 			[${x}]*) error_exit "${x} not allowed at start of interface name" ;;
 		esac
@@ -200,9 +203,9 @@ if [ "x${CMD}" = "x-a" ] ; then
 fi
 
 # Ensure that libdir exists
-if [ ! -d "${IFACEDIR}" ] ; then
-	if [ ! -d "${VARDIR}" ] ; then
-		if [ -L "${VARDIR}" ] ; then
+if [ ! -d "${IFACEDIR}" ]; then
+	if [ ! -d "${VARDIR}" ]; then
+		if [ -L "${VARDIR}" ]; then
 			DIR="$(readlink -f "${VARDIR}")"
 			[ -z "${DIR}" ] && DIR="$(readlink "${VARDIR}")"
 		fi
@@ -215,20 +218,20 @@ if [ ! -d "${IFACEDIR}" ] ; then
 		error_exit "Failed to create needed directory ${IFACEDIR}"
 else
 	# Delete any existing information about the interface
-	if [ "x${CMD}" = "x-a" -o "x${CMD}" = "x-d" ] ; then
+	if [ "x${CMD}" = "x-a" -o "x${CMD}" = "x-d" ]; then
 		cd "${IFACEDIR}"
-		for iface in ${IFACE} ; do
+		for iface in ${IFACE}; do
 			rm -f "${iface}"
 		done
 	fi
 fi
 
-if [ "x${CMD}" = "x-a" ] ; then
+if [ "x${CMD}" = "x-a" ]; then
 	# Create our resolv.conf file
 	cat >"${IFACEDIR}"/"${IFACE}"
 fi
 
-for x in /etc/resolvconf/update.d/* ; do
+for x in "${UPDATED}"/*; do
 	[ -e "${x}" ] && "${x}" "${CMD}" "${IFACE}"
 done
 

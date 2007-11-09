@@ -1,19 +1,29 @@
+DESTDIR =
+PREFIX = /
+ROOT = $(DESTDIR)$(PREFIX)
 INSTALL = install 
 ETCDIR = $(ROOT)/etc/resolvconf
-MANDIR = $(ROOT)/usr/share/man/man8
+SHAREDIR = $(ROOT)/usr/share/man
+MANDIR = $(SHAREDIR)/man8
 BINDIR = $(ROOT)/sbin
-VARDIR = $(ROOT)/var/run
+VARDIR = $(DESTDIR)/var/run
+UPDATEDIR = $(ETCDIR)/update.d
 
 default:
 
 install:
 	$(INSTALL) -d $(ETCDIR)/resolv.conf.d
-	$(INSTALL) -d $(ETCDIR)/update.d
+	$(INSTALL) -d $(UPDATEDIR)
 	$(INSTALL) -d $(ETCDIR)/update-libc.d
 	$(INSTALL) -d $(MANDIR)
 	$(INSTALL) -d $(BINDIR)
 	$(INSTALL) -d $(VARDIR)/resolvconf
 	$(INSTALL) resolvconf $(BINDIR)
-	$(INSTALL) libc $(ETCDIR)/update.d
+	$(INSTALL) libc $(UPDATEDIR)
+	if test "$(PREFIX)" "!=" "/"; then \
+		for x in $(BINDIR)/resolvconf $(UPDATEDIR)/libc; do \
+		sed -i.bak -e s':^PREFIX=.*:PREFIX="$(PREFIX)":' "$$x"; rm "$$x".bak; \
+		done; \
+		fi;
 	$(INSTALL) -m 644 resolvconf.8 $(MANDIR)
-	ln -snf ../../var/run/resolvconf $(ETCDIR)/run
+	ln -snf /var/run/resolvconf $(ETCDIR)/run

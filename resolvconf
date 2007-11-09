@@ -172,12 +172,6 @@ if [ "x${CMD}" = "x-v" ]; then
 	exit 0
 fi
 
-# Only root can update resolv.conf
-if ! touch "${VARDIR}"/.test; then
-	error_exit "You must be root to run ${argv0##*/}"
-fi
-rm "${VARDIR}"/.test
-
 # Test that we have valid options
 if [ "x${CMD}" = "x-a" -o "x${CMD}" = "x-d" ]; then
 	if [ -z "${IFACE}" ]; then

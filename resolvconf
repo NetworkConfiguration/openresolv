@@ -200,13 +200,17 @@ fi
 if [ ! -d "${IFACEDIR}" ]; then
 	if [ ! -d "${VARDIR}" ]; then
 		if [ -L "${VARDIR}" ]; then
-			DIR="$(readlink -f "${VARDIR}")"
-			[ -z "${DIR}" ] && DIR="$(readlink "${VARDIR}")"
+			DIR="$(readlink "${VARDIR}")"
+			# Change to /etc as link maybe relative
+			cd "${VARDIR%/*}"
+			if ! mkdir -m 0755 -p "${DIR}"; then
+				error_exit "Failed to create needed directory ${DIR}"
+			fi
+		else
+			if ! mkdir -m 0755 -p "${VARDIR}"; then
+				error_exit "Failed to create needed directory ${VARDIR}"
+			fi
 		fi
-		# Change to /etc as link maybe relative
-		cd "${VARDIR%/*}"
-		mkdir -m 0755 -p "${DIR}" \
-			|| error_exit "Failed to create needed directory ${DIR}"
 	fi
 	mkdir -m 0755 -p "${IFACEDIR}" || \
 		error_exit "Failed to create needed directory ${IFACEDIR}"

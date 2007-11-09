@@ -1,3 +1,4 @@
+VERSION = 1.0
 DESTDIR =
 PREFIX = /
 ROOT = $(DESTDIR)$(PREFIX)
@@ -9,7 +10,7 @@ BINDIR = $(ROOT)/sbin
 VARDIR = $(DESTDIR)/var/run
 UPDATEDIR = $(ETCDIR)/update.d
 
-default:
+.PHONY: all default clean
 
 install:
 	$(INSTALL) -d $(ETCDIR)/resolv.conf.d
@@ -19,11 +20,20 @@ install:
 	$(INSTALL) -d $(BINDIR)
 	$(INSTALL) -d $(VARDIR)/resolvconf
 	$(INSTALL) resolvconf $(BINDIR)
-	$(INSTALL) libc $(UPDATEDIR)
+	$(INSTALL) libc dnsmasq $(UPDATEDIR)
 	if test "$(PREFIX)" "!=" "/"; then \
-		for x in $(BINDIR)/resolvconf $(UPDATEDIR)/libc; do \
+		for x in $(BINDIR)/resolvconf $(UPDATEDIR)/libc $(UPDATEDIR)/dnsmasq; do \
 		sed -i.bak -e s':^PREFIX=.*:PREFIX="$(PREFIX)":' "$$x"; rm "$$x".bak; \
 		done; \
 		fi;
 	$(INSTALL) -m 644 resolvconf.8 $(MANDIR)
 	ln -snf /var/run/resolvconf $(ETCDIR)/run
+
+dist:
+	$(INSTALL) -m 0755 -d /tmp/openresolv-$(VERSION)
+	cp -RPp . /tmp/openresolv-$(VERSION)
+	(cd /tmp/openresolv-$(VERSION); $(MAKE) clean)
+	rm -rf /tmp/openresolv-$(VERSION)/*.bz2 /tmp/openresolv-$(VERSION)/.git
+	tar cvjpf openresolv-$(VERSION).tar.bz2 -C /tmp openresolv-$(VERSION)
+	rm -rf /tmp/openresolv-$(VERSION)
+	ls -l openresolv-$(VERSION).tar.bz2

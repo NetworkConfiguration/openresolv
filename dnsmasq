@@ -51,7 +51,7 @@
 VARS="$(resolvconf -v)"
 eval "${VARS}"
 
-PREFIX=
+PREFIX=/
 DNSMASQRESOLV="${PREFIX}/etc/dnsmasq-resolv.conf"
 DNSMASQCONF="${PREFIX}/etc/dnsmasq-resolvconf.conf"
 
@@ -64,7 +64,7 @@ NEWRESOLV="${NEWCONF}"
 # so we need to validate a few things first.
 # Check for DBus support in the binary
 DBUS=no
-if [ -s "${PREFIX}"/var/run/dbus.pid -a "${PREFIX}"/var/run/dnsmasq.pid ]; then
+if [ -s "${PREFIX}"/var/run/dbus.pid -a -s "${PREFIX}"/var/run/dnsmasq.pid ]; then
 	if dnsmasq --version 2>/dev/null | \
 		grep -q "^Compile time options.*[[:space:]]DBus[[:space:]]" \
 		; then

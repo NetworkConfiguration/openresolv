@@ -20,15 +20,15 @@ install:
 	$(INSTALL) -d $(BINDIR)
 	$(INSTALL) -d $(VARDIR)/resolvconf
 	$(INSTALL) resolvconf $(BINDIR)
-	$(INSTALL) libc dnsmasq $(UPDATEDIR)
+	$(INSTALL) libc dnsmasq named $(UPDATEDIR)
 	$(INSTALL) -m 644 resolvconf.8 $(MANDIR)
 	if test "$(PREFIX)" "!=" "/"; then \
-		for x in $(BINDIR)/resolvconf $(UPDATEDIR)/libc $(UPDATEDIR)/dnsmasq; do \
+		for x in $(BINDIR)/resolvconf $(UPDATEDIR)/libc $(UPDATEDIR)/dnsmasq $(UPDATEDIR)/named; do \
 		sed -i.bak -e s':^PREFIX=.*:PREFIX="$(PREFIX)":' "$$x"; rm "$$x".bak; \
 		done; \
-		sed -i.bak -e 's:%%PREFIX%%:$(PREFIX):g' $(MANDIR)/resolvconf.8; \
-		rm $(MANDIR)/resolvconf.8.bak; \
 	fi;
+	sed -i.bak -e 's:%%PREFIX%%:$(PREFIX):g' $(MANDIR)/resolvconf.8
+	rm $(MANDIR)/resolvconf.8.bak; \
 	ln -snf /var/run/resolvconf $(ETCDIR)/run
 
 dist:

@@ -51,7 +51,7 @@
 VARS="$(resolvconf -v)"
 eval "${VARS}"
 
-PREFIX=/
+PREFIX=
 DNSMASQRESOLV="${PREFIX}/etc/dnsmasq-resolv.conf"
 DNSMASQCONF="${PREFIX}/etc/dnsmasq-resolvconf.conf"
 

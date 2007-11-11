@@ -23,7 +23,7 @@ cat \fIFILE\fR |
 .SH DESCRIPTION
 Overwrite (\fB\-a\fR) or delete (\fB\-d\fR) the nameserver information
 record for network interface \fIINTERFACE\fR
-and run the update scripts in \fI%%PREFIX%%etc/resolvconf/update.d/\fR.
+and run the update scripts in \fI%%PREFIX%%/etc/resolvconf/update.d/\fR.
 .PP
 With \fB\-u\fR, just run the update scripts.
 .PP
@@ -61,8 +61,8 @@ Nameserver information provided to
 .B resolvconf
 is stored for use by subscribers to \fBresolvconf\fR's notification service.
 Subscribers that need to know when nameserver information has changed
-should install a script in \fI%%PREFIX%%etc/resolvconf/update.d/\fR
-(... or in \fI%%PREFIX%%etc/resolvconf/update-libc.d/\fR: see below).
+should install a script in \fI%%PREFIX%%/etc/resolvconf/update.d/\fR
+(... or in \fI%%PREFIX%%/etc/resolvconf/update-libc.d/\fR: see below).
 For example, DNS caches such as
 .BR dnsmasq (8)
 and
@@ -75,12 +75,12 @@ software that subscribes to the notification service is the set of functions
 that make up the GNU C Library
 .BR resolver (3).
 When nameserver information is updated the script
-\fI%%PREFIX%%etc/resolvconf/update.d/libc\fR writes a new resolver configuration
-file to \fI%%PREFIX%%etc/resolvconf/run/resolv.conf\fR and then runs the scripts in
-%%PREFIX%%etc/resolvconf/update-libc.d/.
+\fI%%PREFIX%%/etc/resolvconf/update.d/libc\fR writes a new resolver configuration
+file to \fI%%PREFIX%%/etc/resolvconf/run/resolv.conf\fR and then runs the scripts in
+%%PREFIX%%/etc/resolvconf/update-libc.d/.
 To make the resolver use the dynamically generated resolver configuration
 file the administrator should ensure that \fI/etc/resolv.conf\fR is a symbolic
-link to \fI%%PREFIX%%etc/resolvconf/run/resolv.conf\fR.
+link to \fI%%PREFIX%%/etc/resolvconf/run/resolv.conf\fR.
 This link is never modified by \fB/sbin/resolvconf\fR.
 If you find that \fI/etc/resolv.conf\fR is not being updated,
 check to see that the link is intact.
@@ -114,7 +114,7 @@ and nameserver 1.2.3.4 will handle everything else.
 .PP
 Subscribers that need to know only when the resolver configuration file
 has changed should install a script in \fI/etc/resolvconf/update-libc.d/\fR
-rather than in \fI%%PREFIX%%etc/resolvconf/update.d/\fR.
+rather than in \fI%%PREFIX%%/etc/resolvconf/update.d/\fR.
 (This is important for synchronization purposes:
 scripts in \fIupdate-libc.d/\fR are run after resolv.conf has been updated;
 the same is not necessarily true of scripts in update.d/.)
@@ -152,26 +152,26 @@ List the interfaces that match the pattern otherwise all the interfaces.
 Echo variables NEWDOMAIN, NEWSEARCH and NEWNS to the console.
 .SH FILES
 .TP
-.I %%PREFIX%%etc/resolvconf/run
+.I %%PREFIX%%/etc/resolvconf/run
 This is either a directory where nameserver information can be stored
 or a symbolic link to such a directory.
 Clients should not make any assumptions about the canonical location
 of this directory or the hierarchy that is constructed under it.
 .TP
-.I %%PREFIX%%etc/resolvconf/interface-order
+.I %%PREFIX%%/etc/resolvconf/interface-order
 Determines the order in which nameserver information records are processed
 by resolvconf -l.
 .TP
-.I %%PREFIX%%etc/resolvconf/resolv.conf.d/base
+.I %%PREFIX%%/etc/resolvconf/resolv.conf.d/base
 File containing basic resolver information.
 The lines in this file are included in the resolver configuration file
 even when no interfaces are configured.
 .TP
-.I %%PREFIX%%etc/resolvconf/resolv.conf.d/head
+.I %%PREFIX%%/etc/resolvconf/resolv.conf.d/head
 File to be prepended to the dynamically generated resolver configuration file.
 Normally this is just a comment line.
 .TP
-.I %%PREFIX%%etc/resolvconf/reslov.conf.d/tail
+.I %%PREFIX%%/etc/resolvconf/reslov.conf.d/tail
 File to be appended to the dynamically generated resolver configuration file.
 To append nothing, make this an empty file.
 .SH BUGS

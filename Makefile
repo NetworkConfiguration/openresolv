@@ -1,6 +1,6 @@
 VERSION = 1.0
 DESTDIR =
-PREFIX = /
+PREFIX =
 ROOT = $(DESTDIR)$(PREFIX)
 INSTALL = install 
 ETCDIR = $(ROOT)/etc/resolvconf

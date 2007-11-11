@@ -149,10 +149,13 @@ else
 	printf "${NEWRESOLV}" > "${DNSMASQRESOLV}"
 fi
 
+[ -x /sbin/runscript ] && INIT_EXTRA="--quiet --nodeps"
+
 if [ "${RELOAD}" = "yes" ]; then
 	if [ -x "${PREFIX}"/etc/init.d/dnsmasq ]; then
-		/etc/init.d/dnsmasq --quiet --nodeps conditionalrestart
-	elif [ -x "${PREFIX}"/etc/rc.d/dnsmasq ]; then
+		/etc/init.d/dnsmasq ${INIT_EXTRA} conditionalrestart
+	elif [ -x "${PREFIX}"/etc/rc.d/dnsmasq -a -s /var/run/dnsmasq.pid ]; then
+		kill -0 $(cat /var/run/dnsmasq.pid) && \
 		"${PREFIX}"/etc/rc.d/dnsmasq restart
 	fi
 fi
@@ -160,7 +163,7 @@ fi
 if [ "${DBUS}" = "yes" ]; then
 	if [ "${RELOAD}" != "yes" ]; then
 		if [ -x "${PREFIX}"/etc/init.d/dnsmasq ]; then
-			/etc/init.d/dnsmasq --quiet reload
+			/etc/init.d/dnsmasq ${INIT_EXTRA} reload
 		elif [ -x "${PREFIX}"/etc/rc.d/dnsmasq ]; then
 			"${PREFIX}"/etc/rc.d/dnsmasq reload
 		fi

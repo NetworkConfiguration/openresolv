@@ -22,7 +22,7 @@ install:
 	$(INSTALL) resolvconf $(BINDIR)
 	$(INSTALL) libc dnsmasq named $(UPDATEDIR)
 	$(INSTALL) -m 644 resolvconf.8 $(MANDIR)
-	if test "$(PREFIX)" "!=" "/"; then \
+	if test "$(PREFIX)" "!=" "/" && test -n "$(PREFIX)"; then \
 		for x in $(BINDIR)/resolvconf $(UPDATEDIR)/libc $(UPDATEDIR)/dnsmasq $(UPDATEDIR)/named; do \
 		sed -i.bak -e s':^PREFIX=.*:PREFIX="$(PREFIX)":' "$$x"; rm "$$x".bak; \
 		done; \

@@ -120,19 +120,6 @@ else
 	RELOAD="yes"
 fi
 
-if [ "${RELOAD}" = "yes" ]; then
-	# OpenRC style
-	if [ -x /etc/init.d/named ]; then
-		if [ -x /sbin/runscript ]; then
-			/etc/init.d/named --nodeps --quiet conditionalrestart
-		else
-			/etc/init.d/named restart
-		fi
-	fi
-	# BSD RC style
-	if [ -x /etc/rc.d/named -a -s /var/run/named/pid ]; then
-		kill -0 $(cat /var/run/named/pid) && /etc/rc.d/named restart
-	fi
-fi
+[ "${RELOAD}" = "yes" ] && resolvconf -s named restart
 
 exit 0

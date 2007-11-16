@@ -56,6 +56,7 @@ usage() {
                    pattern
 	  -v [\$PATTERN]    echo NEWDOMAIN, NEWSEARCH and NEWNS variables to
 	  		   the console
+	  -s \$SVC \$CMD    Do \$CMD for the system service \$SVC
 	  -h               Show this help cruft
 	EOF
 	[ -z "$@" ] && exit 0
@@ -86,6 +87,55 @@ if [ -n "$1" ]; then
 	CMD="$1"
 	shift
 fi
+
+# We do our service restarting here so that our subscribers don't have to know
+# about the OS's init system.
+if [ "x${CMD}" = "x-s" ]; then
+	if [ -n "$1" ]; then
+		SERVICE="$1"
+		shift
+	fi
+	[ -z "${SERVICE}" ] && usage "Service not specified"
+	if [ -n "$1" ]; then
+		ACTION="$1"
+		shift
+	fi
+	[ -z "${ACTION}" ] && usage "Action not specified"
+
+	# If restarting check if service is running or not if we can
+	if [ "x${ACTION}" = "xrestart" ]; then
+		if [ -s /var/run/"${SERVICE}".pid ]; then
+			kill -0 $(cat /var/run/"${SERVICE}".pid)
+		elif [ -s /var/run/"${SERVICE}"/"${SERVICE}".pid ]; then
+			kill -0 $(cat /var/run/"${SERVICE}".pid)
+		elif [ -s /var/run/"${SERVICE}"/pid ]; then
+			kill -0 $(cat /var/run/"${SERVICE}"/pid)
+		else
+			false
+		fi
+		# Service not running, so don't restart
+		[ $? != 0 ] && exit 1
+	fi	
+	if [ -x /sbin/service ]; then
+		service "${SERVICE}" "${ACTION}" "$@" 
+	elif [ -x /etc/init.d/"${SERVICE}" -a -x /sbin/runscript ]; then
+		if [ "x${ACTION}" = "xrestart" ]; then
+			/etc/init.d/"${SERVICE}" --quiet --nodeps conditionalrestart "$@"
+		else
+			/etc/init.d/"${SERVICE}" --quiet --nodeps "${ACTION}" "$@"
+		fi
+	elif [ -x /etc/init.d/"${SERVICE}" ]; then
+		/etc/init.d/"${SERVICE}" "${ACTION}" "$@"
+	elif [ -x /etc/rc.d/"${SERVICE}" ]; then
+		/etc/rc.d/"${SERVICE}" "${ACTION}" "$@" 
+	elif [ -x /etc/rc.d/rc."${SERVICE}" ]; then
+		/etc/rc.d/rc."${SERVICE}" "${ACTION}" "$@"
+	else
+		error_exit "Don't know how to interact with services on this platform"
+	fi
+	exit $?
+fi
+
 if [ -n "$1" ]; then
 	IFACE="$1"
 	shift

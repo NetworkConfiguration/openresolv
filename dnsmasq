@@ -149,25 +149,9 @@ else
 	printf "${NEWRESOLV}" > "${DNSMASQRESOLV}"
 fi
 
-[ -x /sbin/runscript ] && INIT_EXTRA="--quiet --nodeps"
-
-if [ "${RELOAD}" = "yes" ]; then
-	if [ -x "${PREFIX}"/etc/init.d/dnsmasq ]; then
-		/etc/init.d/dnsmasq ${INIT_EXTRA} conditionalrestart
-	elif [ -x "${PREFIX}"/etc/rc.d/dnsmasq -a -s /var/run/dnsmasq.pid ]; then
-		kill -0 $(cat /var/run/dnsmasq.pid) && \
-		"${PREFIX}"/etc/rc.d/dnsmasq restart
-	fi
-fi
-
+[ "${RELOAD}" = "yes" ] && resolvconf -s dnsmasq restart
 if [ "${DBUS}" = "yes" ]; then
-	if [ "${RELOAD}" != "yes" ]; then
-		if [ -x "${PREFIX}"/etc/init.d/dnsmasq ]; then
-			/etc/init.d/dnsmasq ${INIT_EXTRA} reload
-		elif [ -x "${PREFIX}"/etc/rc.d/dnsmasq ]; then
-			"${PREFIX}"/etc/rc.d/dnsmasq reload
-		fi
-	fi
+	[ "${RELOAD}" != "yes" ] && resolvconf -s dnsmasq reload
 	# Send even if emtpy so old servers are cleared
 	dbus-send --system --dest=uk.org.thekelleys.dnsmasq \
  		/uk/org/thekelleys/dnsmasq uk.org.thekelleys.SetServers \

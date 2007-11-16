@@ -19,7 +19,9 @@ cat \fIFILE\fR |
 \fB\-i\fR \fIPATTERN\fR
 .PP
 .B resolvconf
-\fB\-v\fR \fIPATTERN\fr
+\fB\-v\fR \fIPATTERN\fR
+.B resolvconf
+\fB\-s\fR \fISERVICE COMMAND [args]\fR
 .SH DESCRIPTION
 Overwrite (\fB\-a\fR) or delete (\fB\-d\fR) the nameserver information
 record for network interface \fIINTERFACE\fR
@@ -36,6 +38,10 @@ with patterns to match interface names.
 With \fB\-v\fR, we echo variables NEWDOMAIN, NEWSEARCH and NEWNS to the
 console which can be used to make it easer writing scripts which configure
 DNS resolvers.
+.PP
+With \fB\-s\fR, we work out if the service is running by finding its pidfile
+and if it is we restart it. This means that only resolvconf needs to know this
+for supported platforms and subscribers can just call this resolvconf function.
 .SH SERVERS
 Normally
 .B resolvconf

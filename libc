@@ -141,16 +141,7 @@ fi
 # Create our resolv.conf now
 printf "${NEWCONF}" > "${RESOLVCONF}"/run/resolv.conf
 
-# Restart nscd if it's running
-if [ -x /etc/init.d/nscd ]; then
-	if [ -x /sbin/runscript ]; then
-		/etc/init.d/nscd --nodeps --quiet conditionalrestart
-	else
-		/etc/init.d/nscd restart
-	fi
-elif [ -x /etc/rc.d/nscd ]; then
-	/etc/rc.d/nscd restart
-fi
+resolvconf -s nscd restart
 
 # Notify users of the resolver
 for x in "${REVOLVCONF}"/update-libc.d/*; do

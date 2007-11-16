@@ -26,7 +26,7 @@ resolvconf.8:
 	sed -e 's:%%PREFIX%%:$(PREFIX):g' $*.in > $*
 
 clean:
-	rm $(TARGET)
+	rm -f $(TARGET) openresolv-$(VERSION).tar.bz2
 
 install: $(TARGET)
 	$(INSTALL) -d $(BINDIR)

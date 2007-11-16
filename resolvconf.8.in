@@ -20,6 +20,7 @@ cat \fIFILE\fR |
 .PP
 .B resolvconf
 \fB\-v\fR \fIPATTERN\fR
+.PP
 .B resolvconf
 \fB\-s\fR \fISERVICE COMMAND [args]\fR
 .SH DESCRIPTION

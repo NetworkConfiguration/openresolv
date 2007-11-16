@@ -56,7 +56,7 @@ usage() {
                    pattern
 	  -v [\$PATTERN]    echo NEWDOMAIN, NEWSEARCH and NEWNS variables to
 	  		   the console
-	  -s \$SVC \$CMD    Do \$CMD for the system service \$SVC
+	  -s \$SVC \$CMD     Do \$CMD for the system service \$SVC
 	  -h               Show this help cruft
 	EOF
 	[ -z "$@" ] && exit 0

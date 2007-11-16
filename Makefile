@@ -1,11 +1,12 @@
 VERSION = 1.0
 DESTDIR =
 PREFIX =
+MANPREFIX ?= /usr/share
 ROOT = $(DESTDIR)$(PREFIX)
 INSTALL = install 
 ETCDIR = $(ROOT)/etc/resolvconf
 SHAREDIR = $(ROOT)/usr/share/man
-MANDIR = $(SHAREDIR)/man8
+MANDIR = $(MANPREFIX)/man8
 BINDIR = $(ROOT)/sbin
 VARDIR = $(DESTDIR)/var/run
 UPDATEDIR = $(ETCDIR)/update.d

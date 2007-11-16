@@ -1,4 +1,4 @@
-.TH RESOLVCONF 8 "9 Nov 2007" "openresolv"
+.TH RESOLVCONF 8 "9 Nov 2007" "openresolv" "openresolv"
 .SH NAME
 resolvconf \- manage nameserver information
 .SH SYNOPSIS

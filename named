@@ -53,7 +53,8 @@ VARS="$(resolvconf -v)"
 eval "${VARS}"
 
 # If our dir doesn't exist then don't do anything
-NAMEDB=${NAMEDB:-/etc/namedb}
+NAMEDB=/etc/namedb
+[ -d "${NAMEDB}" ] || NAMEDB="/etc/bind"
 [ -d "${NAMEDB}" ] || exit 0
 
 NAMEDOPTIONS="${NAMEDB}/resolvconf-options.conf"

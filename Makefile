@@ -1,4 +1,7 @@
+NAME = openresolv 
 VERSION = 1.0
+PKG = $(NAME)-$(VERSION)
+
 DESTDIR =
 PREFIX =
 MANPREFIX ?= /usr/share
@@ -40,10 +43,10 @@ install: $(TARGET)
 	ln -snf /var/run/resolvconf $(ETCDIR)/run
 
 dist:
-	$(INSTALL) -d /tmp/openresolv-$(VERSION)
-	cp -RPp . /tmp/openresolv-$(VERSION)
-	(cd /tmp/openresolv-$(VERSION); $(MAKE) clean)
-	rm -rf /tmp/openresolv-$(VERSION)/*.bz2 /tmp/openresolv-$(VERSION)/.git
-	tar cvjpf openresolv-$(VERSION).tar.bz2 -C /tmp openresolv-$(VERSION)
-	rm -rf /tmp/openresolv-$(VERSION)
-	ls -l openresolv-$(VERSION).tar.bz2
+	$(INSTALL) -d /tmp/$(PKG)
+	cp -RPp . /tmp/$(PKG)
+	(cd /tmp/$(PKG); $(MAKE) clean)
+	rm -rf /tmp/$(PKG)/*.bz2 /tmp/$(PKG)/.git
+	tar cvjpf $(PKG).tar.bz2 -C /tmp $(PKG) 
+	rm -rf /tmp/$(PKG) 
+	ls -l $(PKG).tar.bz2

@@ -139,7 +139,7 @@ if [ -e "${RESOLVCONF}"/run/resolv.conf ]; then
 fi
 
 # Create our resolv.conf now
-printf "${NEWCONF}" > "${RESOLVCONF}"/run/resolv.conf
+(umask 022; printf "${NEWCONF}" > "${RESOLVCONF}"/run/resolv.conf)
 
 resolvconf -s nscd restart
 

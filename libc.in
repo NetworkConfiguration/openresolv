@@ -36,8 +36,8 @@ uniqify() {
     local result=
     while [ -n "$1" ]; do
 		case " ${result} " in
-			*" $1 "*) ;;
-			*) result="${result} $1" ;;
+			*" $1 "*);;
+			*) result="${result} $1";;
 		esac
 		shift
 	done
@@ -64,7 +64,7 @@ for N in ${OUR_NS}; do
 	NS="${NS} ${N}"
 	[ "${i}" = "3" ] && break
 	case "${N}" in
-		127.*) LOCALH=true; break ;;
+		127.*) LOCALH=true; break;;
 	esac
 done
 
@@ -74,7 +74,7 @@ done
 # ones. This means we prefer search then domain, otherwise, we use them in
 # the order given to us.
 OUR_SEARCH=
-if ${LOCALH} ; then
+if ${LOCALH}; then
 	if [ -e "${BASE}" ]; then
 		OUR_SEARCH="$(sed -n -e 's/^[[:space:]]*search[[:space:]]*//p' "${BASE}")"
 	fi

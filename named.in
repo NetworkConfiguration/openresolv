@@ -68,13 +68,13 @@ NEWZONES="${NEWOPTIONS}"
 FORWARD=
 for N in ${NEWSEARCH}; do
 	case "${FORWARD}" in
-		*"\n\t${N#*,};"*) ;;
+		*"\n\t${N#*,};"*);;
 		*) FORWARD="${FORWARD}\n\t${N#*,};";;
 	esac
 done
 for N in ${NEWNS}; do
 	case "${FORWARD}" in
-		*"\n\t${N};"*) ;;
+		*"\n\t${N};"*);;
 		*) FORWARD="${FORWARD}\n\t${N};";;
 	esac
 done
@@ -86,7 +86,7 @@ LASTDN=
 ZONES=
 for DN in $(printf "%s\n" ${NEWDOMAIN} | sort -u); do
 	case "${LASTDN}" in
-		"${DN%,*}") ;;
+		"${DN%,*}");;
 		*)
 		[ -n "${ZONES}" ] && ZONES="${NEWZONES}\n\t};\n};\n"
 		ZONES="${ZONES}\nzone \"${DN%,*}\" {\n"

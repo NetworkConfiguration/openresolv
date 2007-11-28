@@ -75,8 +75,8 @@ uniqify() {
     local result=
     while [ -n "$1" ]; do
 		case " ${result} " in
-			*" $1 "*) ;;
-			*) result="${result} $1" ;;
+			*" $1 "*);;
+			*) result="${result} $1";;
 		esac
 		shift
 	done
@@ -188,7 +188,7 @@ if [ "x${CMD}" = "x-v" ]; then
 		case "${LINE}" in
 			"nameserver "*)
 				case "${LINE#* }" in
-					127.*) continue ;;
+					127.*) continue;;
 				esac
 				NS="${NS}${LINE#* } "
 				;;
@@ -253,12 +253,12 @@ fi
 if [ "x${CMD}" = "x-a" ]; then
 	for x in '/' \\ ' ' '*'; do
 		case "${IFACE}" in
-			*[${x}]*) error_exit "${x} not allowed in interface name" ;;
+			*[${x}]*) error_exit "${x} not allowed in interface name";;
 		esac
 	done
 	for x in '.' '-' '~'; do
 		case "${IFACE}" in
-			[${x}]*) error_exit "${x} not allowed at start of interface name" ;;
+			[${x}]*) error_exit "${x} not allowed at start of interface name";;
 		esac
 	done
 	[ "x${CMD}" = "x-a" -a -t 0 ] && error_exit "No file given via stdin"

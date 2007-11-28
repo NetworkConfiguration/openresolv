@@ -81,8 +81,8 @@ uniqify() {
     local result=
     while [ -n "$1" ]; do
 		case " ${result} " in
-			*" $1 "*) ;;
-			*) result="${result} $1" ;;
+			*" $1 "*);;
+			*) result="${result} $1";;
 		esac
 		shift
 	done
@@ -94,24 +94,24 @@ uniqify() {
 
 for N in ${NEWSEARCH}; do
 	case " ${NEWSL} " in
-		*" ${N%,*} "*) ;;
-		*) NEWSL="${NEWSL} ${N%,*}" ;;
+		*" ${N%,*} "*);;
+		*) NEWSL="${NEWSL} ${N%,*}";;
 	esac
 	case "\n${NEWRESOLV}\n" in
-		*"\nnameserver ${N#*,}\n"*) ;;
-		*) NEWRESOLV="${NEWRESOLV}nameserver ${N#*,}\n" ;;
+		*"\nnameserver ${N#*,}\n"*);;
+		*) NEWRESOLV="${NEWRESOLV}nameserver ${N#*,}\n";;
 	esac
 done
 for N in ${NEWNS}; do
 	case "\n${NEWRESOLV}\n" in
-		*"\nnameserver ${N}\n") ;;
-		*) NEWRESOLV="${NEWRESOLV}nameserver ${N}\n" ;;
+		*"\nnameserver ${N}\n");;
+		*) NEWRESOLV="${NEWRESOLV}nameserver ${N}\n";;
 	esac
 done
 [ -n "${NEWSL}" ] && NEWRESOLV="${NEWRESOLV}search${NEWSL}\n"
 
 DBUSDEST=
-for DN in $(uniqify ${NEWDOMAIN}) ; do
+for DN in $(uniqify ${NEWDOMAIN}); do
 	if [ "${DBUS}" = "yes" ]; then
 		IP=${DN#*,}
 		SIFS=${IFS-y} OIFS=$IFS

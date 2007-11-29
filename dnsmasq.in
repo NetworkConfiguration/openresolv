@@ -64,15 +64,17 @@ NEWRESOLV="${NEWCONF}"
 # so we need to validate a few things first.
 # Check for DBus support in the binary
 DBUS=no
-if [ -s "${PREFIX}"/var/run/dbus.pid -a -s "${PREFIX}"/var/run/dnsmasq.pid ]; then
+dbuspid=/var/run/dbus/dbus.pid
+[ -s "${dbuspid}" ] || dbuspid=/var/run/dbus.pid
+if [ -s "${dbuspid}" -a -s /var/run/dnsmasq.pid ]; then
 	if dnsmasq --version 2>/dev/null | \
 		grep -q "^Compile time options.*[[:space:]]DBus[[:space:]]" \
 		; then
 		# Sanity - check that dnsmasq and dbus are running
-		if kill -0 $(cat "${PREFIX}"/var/run/dbus.pid) \
-			&& kill -0 $(cat "${PREFIX}"/var/run/dnsmasq.pid); then
+		if kill -0 $(cat "${dbuspid}") \
+			&& kill -0 $(cat /var/run/dnsmasq.pid); then
 			DBUS=yes
-			NEWCONF="${NEWCONF}\n# Domain specific servers will be sent over dbus\n\nenable-dbus\n"
+			NEWCONF="${NEWCONF}\n# Domain specific servers will be sent over dbus\nenable-dbus\n"
 		fi
 	fi
 fi

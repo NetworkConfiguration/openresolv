@@ -106,12 +106,12 @@ querying for that domain.
 Example
 .nf
 # resolv.conf from bge0
-# search foo.com
-# nameserver 1.2.3.4
+search foo.com
+nameserver 1.2.3.4
 
 # resolv.conf from tap0
-# domain bar.org
-# nameserver 5.6.7.8
+domain bar.org
+nameserver 5.6.7.8
 .fi
 .PP
 In this instance, nameserver 5.6.7.8 will only handle requests for bar.org

@@ -176,7 +176,7 @@ even when no interfaces are configured.
 File to be prepended to the dynamically generated resolver configuration file.
 Normally this is just a comment line.
 .TP
-.I %%PREFIX%%/etc/resolvconf/reslov.conf.d/tail
+.I %%PREFIX%%/etc/resolvconf/resolv.conf.d/tail
 File to be appended to the dynamically generated resolver configuration file.
 To append nothing, make this an empty file.
 .SH BUGS

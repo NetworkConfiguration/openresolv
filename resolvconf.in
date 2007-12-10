@@ -1,5 +1,4 @@
 #!/bin/sh
-# Copyright 2006 Gentoo Foundation
 # Copyright 2007 Roy Marples
 # All rights reserved
 
@@ -141,8 +140,7 @@ if [ -n "$1" ]; then
 	shift
 fi
 
-# -l is a Gentoo option that lists our resolv files
-# optionally for a specific interface
+# -l lists our resolv files, optionally for a specific interface
 if [ "x${CMD}" = "x-l" -o "x${CMD}" = "x-i" ]; then
 	[ -d "${IFACEDIR}" ] || exit 0
 	

@@ -1,5 +1,4 @@
 #!/bin/sh
-# Copyright 2006 Gentoo Foundation
 # Copyright 2007 Roy Marples
 # All rights reserved
 
@@ -37,15 +36,17 @@
 # This allows dnsmasq to forward domains for a specific VPN domain to the
 # VPN nameserver and everything else to the standard name servers.
 
-# A sample dnsmasq config that works as above is like so
+# A sample dnsmasq config that works as above is like so.
+# NOTE: The loopback interface on some systems maybe lo0.
 #domain-needed
 #interface=lo
 #resolv-file=/etc/dnsmasq-resolv.conf
 #conf-file=/etc/dnsmasq-resolvconf.conf
 
 # The last step is to configure dns configuration for /etc/resolv.conf
-# for the lo interface. In Gentoo we set it up like so in /etc/conf.d/net
-#dns_servers_lo="127.0.0.1"
+# for the lo interface. You can do this in resolvconf as well by adding
+#nameserver 127.0.0.1
+# to resolv.conf.d/base
 
 # Load our variables from resolvconf
 VARS="$(resolvconf -v)"

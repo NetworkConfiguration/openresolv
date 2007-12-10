@@ -48,13 +48,11 @@ Normally
 .B resolvconf
 is run only by hook scripts attached to network interface configurers
 such as
-.BR pppd (8) 
+.BR ppp (8) 
 (for ppp interfaces),
 to DHCP clients such as
 .BR dhcpcd (8),
-to
-.BR /etc/init.d/net.eth0 
-and
+to network configuration scripts and
 .BR openvpn ,
 and
 to DNS caches such as
@@ -79,7 +77,7 @@ whither to forward queries.
 .PP
 The most important piece of
 software that subscribes to the notification service is the set of functions
-that make up the GNU C Library
+that make up the C Library
 .BR resolver (3).
 When nameserver information is updated the script
 \fI%%PREFIX%%/etc/resolvconf/update.d/libc\fR writes a new resolver configuration
@@ -88,7 +86,7 @@ file to \fI%%PREFIX%%/etc/resolvconf/run/resolv.conf\fR and then runs the script
 To make the resolver use the dynamically generated resolver configuration
 file the administrator should ensure that \fI/etc/resolv.conf\fR is a symbolic
 link to \fI%%PREFIX%%/etc/resolvconf/run/resolv.conf\fR.
-This link is never modified by \fB/sbin/resolvconf\fR.
+This link is never modified by \fBresolvconf\fR.
 If you find that \fI/etc/resolv.conf\fR is not being updated,
 check to see that the link is intact.
 .PP
@@ -101,7 +99,7 @@ should work with \fBresolvconf\fR.
 .BR dnsmasq (8)
 and
 .BR named (8)
-wwhich handle resolv.conf a bit differently. If they handle search AND domain
+which handle resolv.conf a bit differently. If they handle search AND domain
 options then the nameservers listed with the domain are only used when
 querying for that domain.
 .TP
@@ -120,7 +118,7 @@ In this instance, nameserver 5.6.7.8 will only handle requests for bar.org
 and nameserver 1.2.3.4 will handle everything else.
 .PP
 Subscribers that need to know only when the resolver configuration file
-has changed should install a script in \fI/etc/resolvconf/update-libc.d/\fR
+has changed should install a script in \fI%%PREFIX%%/etc/resolvconf/update-libc.d/\fR
 rather than in \fI%%PREFIX%%/etc/resolvconf/update.d/\fR.
 (This is important for synchronization purposes:
 scripts in \fIupdate-libc.d/\fR are run after resolv.conf has been updated;
@@ -190,8 +188,6 @@ Written by Roy Marples <roy@marples.name>.
 .br
 Heavily based on Debians resolvconf by Thomas Hood <jdthood_AT_yahoo.co.uk>
 .SH COPYRIGHT
-Copyright \(co 2006 Gentoo Foundation
-.br
 Copyright \(co 2007 Roy Marples
 .SH "SEE ALSO"
 .BR resolv.conf (5),

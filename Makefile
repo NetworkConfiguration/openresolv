@@ -2,9 +2,9 @@ NAME = openresolv
 VERSION = 1.0
 PKG = $(NAME)-$(VERSION)
 
-DESTDIR =
-PREFIX =
+INSTALL ?= install
 MANPREFIX ?= /usr/share
+
 ROOT = $(DESTDIR)$(PREFIX)
 ETCDIR = $(ROOT)/etc/resolvconf
 MANDIR = $(DESTDIR)$(MANPREFIX)/man/man8
@@ -15,8 +15,6 @@ UPDATEDIR = $(ETCDIR)/update.d
 RESOLVCONF = resolvconf resolvconf.8
 SUBSCRIBERS = libc dnsmasq named
 TARGET = $(RESOLVCONF) $(SUBSCRIBERS)
-
-INSTALL ?= install
 
 .SUFFIXES: .in
 

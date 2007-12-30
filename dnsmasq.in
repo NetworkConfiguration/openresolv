@@ -122,9 +122,9 @@ for DN in $(uniqify ${NEWDOMAIN}); do
 		set -- ${IP}
 		NUM="0x$(printf "%02x" $1 $2 $3 $4)"
 		if [ "${SIFS}" = "y" ]; then
-			IFS=$OIFS
-		else
 			unset IFS
+		else
+			IFS=$OIFS
 		fi
 		DBUSDEST="${DBUSDEST} uint32:$(printf "%d" ${NUM}) string:${DN%,*}"
 	else

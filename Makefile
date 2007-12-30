@@ -1,5 +1,5 @@
 NAME = openresolv
-VERSION = 1.0
+VERSION = 1.1
 PKG = $(NAME)-$(VERSION)
 
 INSTALL ?= install

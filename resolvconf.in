@@ -104,11 +104,11 @@ if [ "x${CMD}" = "x-s" ]; then
 	# If restarting check if service is running or not if we can
 	if [ "x${ACTION}" = "xrestart" ]; then
 		if [ -s /var/run/"${SERVICE}".pid ]; then
-			kill -0 $(cat /var/run/"${SERVICE}".pid)
+			kill -0 $(cat /var/run/"${SERVICE}".pid) 2>/dev/null
 		elif [ -s /var/run/"${SERVICE}"/"${SERVICE}".pid ]; then
-			kill -0 $(cat /var/run/"${SERVICE}".pid)
+			kill -0 $(cat /var/run/"${SERVICE}".pid) 2>/dev/null
 		elif [ -s /var/run/"${SERVICE}"/pid ]; then
-			kill -0 $(cat /var/run/"${SERVICE}"/pid)
+			kill -0 $(cat /var/run/"${SERVICE}"/pid) 2>/dev/null
 		else
 			false
 		fi

@@ -160,5 +160,3 @@ if [ "${DBUS}" = "yes" ]; then
  		/uk/org/thekelleys/dnsmasq uk.org.thekelleys.SetServers \
   		${DBUSDEST}
 fi
-
-# vim: ts=4 :

@@ -141,10 +141,13 @@ fi
 (umask 022; printf "${NEWCONF}" > "${RESOLVCONF}"/run/resolv.conf)
 
 resolvconf -s nscd restart
+retval=$?
 
 # Notify users of the resolver
 for x in "${REVOLVCONF}"/update-libc.d/*; do
-	[ -e "${x}" ] && "${x}" "$@"
+	if [ -e "${x}" ]; then
+		"${x}" "$@"
+		retval=$((${retval} + $?))
+	fi
 done
-
-# vim: ts=4 :
+exit ${retval}

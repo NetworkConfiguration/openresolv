@@ -143,11 +143,14 @@ fi
 # -l lists our resolv files, optionally for a specific interface
 if [ "x${CMD}" = "x-l" -o "x${CMD}" = "x-i" ]; then
 	[ -d "${IFACEDIR}" ] || exit 0
+
+	report=false
 	
 	# If we have an interface ordering list, then use that.
 	# It works by just using pathname expansion in the interface directory.
 	if [ -n "${IFACE}" ]; then
 		LIST="${IFACE} $@"
+		report=true
 	elif [ -r "${RESOLVCONF}"/interface-order ]; then
 		LIST="$(cat "${RESOLVCONF}"/interface-order)"
 	fi
@@ -158,10 +161,17 @@ if [ "x${CMD}" = "x-l" -o "x${CMD}" = "x-i" ]; then
 		LIST="lo lo[0-9]* tap[0-9]* tun[0-9]* vpn vpn[0-9]* ppp[0-9]* ippp[0-9]* *"
 	fi
 
+	retval=0
 	cd "${IFACEDIR}"
 	for IFACE in $(uniqify ${LIST}); do
 		# Only list interfaces which we really have
-		[ -e "${IFACE}" ] || continue
+		if ! [ -e "${IFACE}" ]; then
+			if ${report}; then
+				echo "No resolv.conf for interface ${IFACE}" >&2
+				retval=$((${retval} + 1))
+			fi
+			continue
+		fi
 		
 		if [ "x${CMD}" = "x-i" ]; then
 			printf "${IFACE} "
@@ -170,7 +180,7 @@ if [ "x${CMD}" = "x-l" -o "x${CMD}" = "x-i" ]; then
 		fi
 	done
 	[ "x${CMD}" = "x-i" ] && echo
-	exit 0
+	exit ${retval} 
 fi
 
 if [ "x${CMD}" = "x-v" ]; then
@@ -289,6 +299,9 @@ else
 	if [ "x${CMD}" = "x-a" -o "x${CMD}" = "x-d" ]; then
 		cd "${IFACEDIR}"
 		for iface in ${IFACE}; do
+			if [ "x${CMD}" = "x-d" -a ! -e "${iface}" ]; then
+				error_exit "No resolv.conf for interface ${iface}"
+			fi
 			rm -f "${iface}" || exit $?
 		done
 	fi

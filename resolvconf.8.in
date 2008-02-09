@@ -181,7 +181,7 @@ resolvconf, as written by Thomas Hood, on which openresolv is based.
 openresolv also shares a similar directory structure with the Debian version,
 but the included helpers are not compatible.
 .Pp
-The Debian version only works with bash and other GNU userland tools, where-as
+The Debian version only works with bash and other GNU userland tools, whereas
 openresolv works with a POSIX shell and userland tools.
 .Sh BUGS
 .Nm

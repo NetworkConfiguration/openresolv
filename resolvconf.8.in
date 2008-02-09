@@ -1,194 +1,193 @@
-.TH RESOLVCONF 8 "9 Nov 2007" "openresolv" "openresolv"
-.SH NAME
-resolvconf \- manage nameserver information
-.SH SYNOPSIS
-cat \fIFILE\fR |
-.B resolvconf
-\fB\-a\fR \fIINTERFACE\fR
-.PP
-.B resolvconf
-\fB\-d\fR \fIINTERFACE\fR
-.PP
-.B resolvconf
-\fB\-u\fR
-.PP
-.B resolvconf
-\fB\-l\fR \fIPATTERN\fR
-.PP
-.B resolvconf
-\fB\-i\fR \fIPATTERN\fR
-.PP
-.B resolvconf
-\fB\-v\fR \fIPATTERN\fR
-.PP
-.B resolvconf
-\fB\-s\fR \fISERVICE COMMAND [args]\fR
-.SH DESCRIPTION
-Overwrite (\fB\-a\fR) or delete (\fB\-d\fR) the nameserver information
-record for network interface \fIINTERFACE\fR
-and run the update scripts in \fI%%PREFIX%%/etc/resolvconf/update.d/\fR.
-.PP
-With \fB\-u\fR, just run the update scripts.
-.PP
-With \fB\-l\fR, list the resolv files for each interface, optionally
-with patterns to match interface names.
-.PP
-With \fB\-i\fR, list the interfaces we have resolv files for, optionally
-with patterns to match interface names.
-.PP
-With \fB\-v\fR, we echo variables NEWDOMAIN, NEWSEARCH and NEWNS to the
-console which can be used to make it easer writing scripts which configure
-DNS resolvers.
-.PP
-With \fB\-s\fR, we work out if the service is running by finding its pidfile
-and if it is we restart it. This means that only resolvconf needs to know this
-for supported platforms and subscribers can just call this resolvconf function.
-.SH SERVERS
-Normally
-.B resolvconf
-is run only by hook scripts attached to network interface configurers
-such as
-.BR ppp (8) 
-(for ppp interfaces),
-to DHCP clients such as
-.BR dhcpcd (8),
-to network configuration scripts and
-.BR openvpn ,
-and
-to DNS caches such as
-.BR dnsmasq (8)
-(for the loopback interface).
-However, the administrator can also run
-.B resolvconf
-from the command line to add or delete auxiliary nameserver information.
-.SH CLIENTS
-Nameserver information provided to
-.B resolvconf
-is stored for use by subscribers to \fBresolvconf\fR's notification service.
-Subscribers that need to know when nameserver information has changed
-should install a script in \fI%%PREFIX%%/etc/resolvconf/update.d/\fR
-(... or in \fI%%PREFIX%%/etc/resolvconf/update-libc.d/\fR: see below).
-For example, DNS caches such as
-.BR dnsmasq (8)
-and
-.BR pdnsd (8)
-subscribe to the notification service so that they know
-whither to forward queries.
-.PP
-The most important piece of
-software that subscribes to the notification service is the set of functions
-that make up the C Library
-.BR resolver (3).
-When nameserver information is updated the script
-\fI%%PREFIX%%/etc/resolvconf/update.d/libc\fR writes a new resolver configuration
-file to \fI%%PREFIX%%/etc/resolvconf/run/resolv.conf\fR and then runs the scripts in
-%%PREFIX%%/etc/resolvconf/update-libc.d/.
-To make the resolver use the dynamically generated resolver configuration
-file the administrator should ensure that \fI/etc/resolv.conf\fR is a symbolic
-link to \fI%%PREFIX%%/etc/resolvconf/run/resolv.conf\fR.
-This link is never modified by \fBresolvconf\fR.
-If you find that \fI/etc/resolv.conf\fR is not being updated,
-check to see that the link is intact.
-.PP
-The C Library resolver library isn't the only resolver library available.
-However, any resolver library that reads /etc/resolv.conf
-(and most of them do, in order to be compatible with the C Library resolver)
-should work with \fBresolvconf\fR.
-.PP
-\fBopenresolv\fR ships with subscribers for
-.BR dnsmasq (8)
-and
-.BR named (8)
-which handle resolv.conf a bit differently. If they handle search AND domain
-options then the nameservers listed with the domain are only used when
-querying for that domain.
-.TP
-Example
-.nf
-# resolv.conf from bge0
-search foo.com
-nameserver 1.2.3.4
-
-# resolv.conf from tap0
-domain bar.org
-nameserver 5.6.7.8
-.fi
-.PP
-In this instance, nameserver 5.6.7.8 will only handle requests for bar.org
-and nameserver 1.2.3.4 will handle everything else.
-.PP
-Subscribers that need to know only when the resolver configuration file
-has changed should install a script in \fI%%PREFIX%%/etc/resolvconf/update-libc.d/\fR
-rather than in \fI%%PREFIX%%/etc/resolvconf/update.d/\fR.
-(This is important for synchronization purposes:
-scripts in \fIupdate-libc.d/\fR are run after resolv.conf has been updated;
-the same is not necessarily true of scripts in update.d/.)
-.SH OPTIONS
-.TP
-\fB\-a\fR \fIINTERFACE\fR
-Add or overwrite the record for network interface \fIINTERFACE\fR.
-When this option is used the information must be provided to
-.B resolvconf
-on its standard input in the format of the
-.BR resolv.conf (5)
-file.
-Each line in the file must be terminated by a newline.
-.TP
-\fB\-d\fR \fIINTERFACE\fR
-Delete the record for network interface \fIINTERFACE\fR.
-.PP
-The \fIINTERFACE\fR name may not contain spaces, slashes, asterisks or
-initial dots, hyphens or tildes.
-.PP
-Following the addition or deletion of the record, resolvconf runs
-the update scripts as described in the CLIENTS section.
-.TP
-\fB\-u\fR
-Just run the update scripts.
-.TP
-\fB\-l\fR \fIPATTERN\fR
-List the resolv.conf files for the interfaces that match the pattern,
-otherwise all the interfaces.
-.TP
-\fB\-i\fR \fIPATTERN\fR
-List the interfaces that match the pattern otherwise all the interfaces.
-.TP
-\fB\-v\fR \fIPATTERN\fR
-Echo variables NEWDOMAIN, NEWSEARCH and NEWNS to the console.
-.SH FILES
-.TP
-.I %%PREFIX%%/etc/resolvconf/run
-This is either a directory where nameserver information can be stored
-or a symbolic link to such a directory.
-Clients should not make any assumptions about the canonical location
-of this directory or the hierarchy that is constructed under it.
-.TP
-.I %%PREFIX%%/etc/resolvconf/interface-order
+.\" Copyright 2007-2008 Roy Marples
+.\" All rights reserved
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.Dd Feb 09, 2008
+.Dt RESOLVCONF 8 SMM
+.Sh NAME
+.Nm resolvconf
+.Nd a framework for managing multiple DNS configurations
+.Sh SYNOPSIS
+.Nm
+.Fl a Ar interface No < Ns Pa file
+.Nm
+.Fl d Ar interface
+.Nm
+.Fl il Ar pattern
+.Nm
+.Fl u
+.Sh DESCRIPTION
+.Nm manages
+.Xr resolv.conf 5
+files from multiple sources, such as DHCP and VPN clients.
+Traditionally, the host runs just one client and that updates
+.Pa /etc/resolv.conf .
+More modern systems frequently have wired and wireless interfaces and there is
+no guarantee both are on the same network. With the advent of VPN and other
+types of networking daemons, many things contend for
+.Pa /etc/resolv.conf .
+.Pp
+.Nm
+solves this by letting the daemon send their
+.Xr resolv.conf 5
+file to
+.Nm
+via
+.Xr stdin 3
+with the argument
+.Fl a Ar interface
+instead of the filesystem.
+.Nm
+then updates
+.Pa /etc/resolv.conf
+as it thinks best.
+When a local resolver other than libc is installed, such as
+.Xr dnsmasq 8
+or
+.Xr named 8
+then
+.Nm
+will configure
+.Pa /etc/resolv.conf
+to use that and supply files that the resolver should be configured to include.
+This allows
+.Nm
+to configure the local resolver such that
+.Pa resolv.conf
+files specifiying a domain only query the listed nameservers when resolving
+for that domain. Otherwise the nameservers are treated as global nameservers.
+This in turn means, that you can trivially configure nameservers for say
+VPN domains.
+.Pp
+When an interface goes down, it should then call
+.Nm
+with
+.Fl d Ar interface
+arguments to delete the
+.Pa resolv.conf
+file for the
+.Ar interface .
+.Pp
+Here are some more options that
+.Nm
+has:-
+.Bl -tag -width indent
+.It Fl i Ar pattern
+List the interfaces, optionally matching
+.Ar pattern ,
+we have
+.Pa resolv.conf
+files for.
+.It Fl l Ar pattern
+List the
+.Pa resolv.conf
+files we have. If
+.Ar pattern
+is specified then we list the files for the interfaces that match it.
+.It Fl u
+Force
+.Nm
+to update all it's helpers.
+.El
+.Pp
+.Nm
+also has some options designed to be used by it's helpers:-
+.Bl -tag -width indent
+.It Fl s Ar service Ar command ...
+Try and send the
+.Ar command
+to the system
+.Ar service .
+Normally this is something like
+.Ar resolvconf -s named restart .
+We have this command, so the helpers don't have to know too much about the
+operating system on the host.
+.It Fl v
+Echo variables NEWDOMAIN, NEWSEARCH and NEWNS so that the helper can configure
+the resolver easily.
+.El
+.Sh FILES
+.Bl -ohang
+.It Pa @PREFIX@/etc/resolvconf/run
+Directory that holds the data for
+.Nm .
+Normally a symlink to
+.Pa /var/run/resolvconf .
+You could symlink
+.Pa /etc/resolv.conf
+to
+.Pa resolvconf/run/resolv.conf
+to support a read only
+.Pa /etc .
+.It Pa @PREFIX@/etc/resolvconf/update.d
+Directory of the helper scripts which are run every time
+.Nm
+adds, deletes or updates.
+.It Pa @PREFIX@/etc/resolvconf/update-libc.d
+Directory of helper scripts which are run after the libc helper script is run.
+.It Pa @PREFIX@/etc/resolvconf/interface-order
 Determines the order in which nameserver information records are processed
 by resolvconf -l.
-.TP
-.I %%PREFIX%%/etc/resolvconf/resolv.conf.d/base
-File containing basic resolver information.
-The lines in this file are included in the resolver configuration file
+.It Pa @PREFIX@/etc/resolvconf/resolv.conf.d/base
+Contains basic resolver information which is included in
+.Pa /etc/resolv.conf
 even when no interfaces are configured.
-.TP
-.I %%PREFIX%%/etc/resolvconf/resolv.conf.d/head
-File to be prepended to the dynamically generated resolver configuration file.
+.It Pa @PREFIX@/etc/resolvconf/resolv.conf.d/head
+File to be prepended to
+.Pa /etc/resolv.conf .
 Normally this is just a comment line.
-.TP
-.I %%PREFIX%%/etc/resolvconf/resolv.conf.d/tail
-File to be appended to the dynamically generated resolver configuration file.
-To append nothing, make this an empty file.
-.SH BUGS
-Currently
-.B resolvconf
-does not check the sanity of the information provided to it.
-.SH AUTHOR
-Written by Roy Marples <roy@marples.name>.
-.br
-Heavily based on Debians resolvconf by Thomas Hood <jdthood_AT_yahoo.co.uk>
-.SH COPYRIGHT
-Copyright \(co 2007 Roy Marples
-.SH "SEE ALSO"
-.BR resolv.conf (5),
-.BR resolver (3).
+.It Pa @PREFIX@/etc/resolvconf/resolv.conf.d/tail
+File to be appended to
+.Pa /etc/resolv.conf .
+.El
+.Sh HISTORY
+.Nm
+is fully command line compatible with Debians resolvconf,
+as written by Thomas Hood.
+.Nm
+also shares a similar directory structure with the Debian version,
+but the included helpers are not compatible.
+.Pp
+The Debian version only works with bash and other GNU userland tools, where-as
+.Nm
+works with a POSIX shell and userland tools.
+.Sh BUGS
+.Nm
+does not validate any of the files given to it.
+.Sh LOCAL RESOLVERS
+When running a local resolver other than libc, you will need to configure it
+to include files that
+.Nm
+will generate. You should consult the comment section in the helper script
+for your resolver found in @PREFIX@/etc/resolvconf/update.d for instructions
+on this.
+.Sh SEE ALSO
+.Xr dnsmasq 8 ,
+.Xr named 8 ,
+.Xr resolv.conf 5 ,
+.Xr resolver 3 ,
+.Xr stdin 3
+.Sh AUTHORS
+.An "Roy Marples" Aq roy@marples.name
+.Sh BUGS
+Please report them to http://bugs.marples.name

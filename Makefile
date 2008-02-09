@@ -24,7 +24,7 @@ all: $(TARGET)
 	sed -e s':^PREFIX=.*:PREFIX="$(PREFIX)":' $@.in > $@
 
 resolvconf.8: resolvconf.8.in
-	sed -e 's:%%PREFIX%%:$(PREFIX):g' $@.in > $@
+	sed -e 's:@PREFIX@:$(PREFIX):g' $@.in > $@
 
 clean:
 	rm -f $(TARGET) openresolv-$(VERSION).tar.bz2

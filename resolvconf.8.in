@@ -37,14 +37,15 @@
 .Nm
 .Fl u
 .Sh DESCRIPTION
-.Nm manages
+.Nm
+manages
 .Xr resolv.conf 5
 files from multiple sources, such as DHCP and VPN clients.
 Traditionally, the host runs just one client and that updates
 .Pa /etc/resolv.conf .
 More modern systems frequently have wired and wireless interfaces and there is
 no guarantee both are on the same network. With the advent of VPN and other
-types of networking daemons, many things contend for
+types of networking daemons, many things now contend for the contents of
 .Pa /etc/resolv.conf .
 .Pp
 .Nm
@@ -77,7 +78,19 @@ to configure the local resolver such that
 files specifiying a domain only query the listed nameservers when resolving
 for that domain. Otherwise the nameservers are treated as global nameservers.
 This in turn means, that you can trivially configure nameservers for say
-VPN domains.
+VPN domains. Example:-
+.Bd -literal -offset indent
+# resolv.conf from bge0
+search foo.com
+nameserver 1.2.3.4
+
+# resolv.conf from tap0
+domain bar.org
+nameserver 5.6.7.8
+.Ed
+.Pp
+In this instance, nameserver 5.6.7.8 will only handle requests for bar.org
+and nameserver 1.2.3.4 will handle everything else.
 .Pp
 When an interface goes down, it should then call
 .Nm
@@ -161,20 +174,19 @@ File to be appended to
 .Pa /etc/resolv.conf .
 .El
 .Sh HISTORY
+This implementation of
 .Nm
-is fully command line compatible with Debians resolvconf,
-as written by Thomas Hood.
-.Nm
-also shares a similar directory structure with the Debian version,
+is called openresolv and is fully command line compatible with Debians
+resolvconf, as written by Thomas Hood, on which openresolv is based.
+openresolv also shares a similar directory structure with the Debian version,
 but the included helpers are not compatible.
 .Pp
 The Debian version only works with bash and other GNU userland tools, where-as
-.Nm
-works with a POSIX shell and userland tools.
+openresolv works with a POSIX shell and userland tools.
 .Sh BUGS
 .Nm
 does not validate any of the files given to it.
-.Sh LOCAL RESOLVERS
+.Pp
 When running a local resolver other than libc, you will need to configure it
 to include files that
 .Nm

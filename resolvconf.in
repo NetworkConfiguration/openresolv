@@ -47,6 +47,7 @@ usage() {
 	  -a \$INTERFACE    Add DNS information to the specified interface
 	                   (DNS supplied via stdin in resolv.conf format)
 	  -d \$INTERFACE    Delete DNS information from the specified interface
+	  -f               Ignore non existant interfaces
 	  -u               Run updates from our current DNS information
 	  -l [\$PATTERN]    Show DNS information, optionally from interfaces
 	                   that match the specified pattern
@@ -82,19 +83,22 @@ uniqify() {
     echo "${result# *}"
 }
 
-if [ -n "$1" ]; then
-	CMD="$1"
-	shift
-fi
+FORCE=false
+while getopts a:d:fhils:uv OPT; do
+	case "${OPT}" in
+		f) FORCE=true;;
+		h) usage;;
+		s) CMD=s; SERVICE="${OPTARG}";;
+		'?') exit 1;;
+		*) CMD="${OPT}"; IFACE="${OPTARG}";;
+	esac
+done
+shift $((${OPTIND} - 1))
+ARGS="${IFACE}${IFACE:+ }$@"
 
 # We do our service restarting here so that our subscribers don't have to know
 # about the OS's init system.
-if [ "x${CMD}" = "x-s" ]; then
-	if [ -n "$1" ]; then
-		SERVICE="$1"
-		shift
-	fi
-	[ -z "${SERVICE}" ] && usage "Service not specified"
+if [ "${CMD}" = "s" ]; then
 	if [ -n "$1" ]; then
 		ACTION="$1"
 		shift
@@ -102,7 +106,7 @@ if [ "x${CMD}" = "x-s" ]; then
 	[ -z "${ACTION}" ] && usage "Action not specified"
 
 	# If restarting check if service is running or not if we can
-	if [ "x${ACTION}" = "xrestart" ]; then
+	if [ "${ACTION}" = "restart" ]; then
 		if [ -s /var/run/"${SERVICE}".pid ]; then
 			kill -0 $(cat /var/run/"${SERVICE}".pid) 2>/dev/null
 		elif [ -s /var/run/"${SERVICE}"/"${SERVICE}".pid ]; then
@@ -118,7 +122,7 @@ if [ "x${CMD}" = "x-s" ]; then
 	if [ -x /sbin/service ]; then
 		service "${SERVICE}" "${ACTION}" "$@" 
 	elif [ -x /etc/init.d/"${SERVICE}" -a -x /sbin/runscript ]; then
-		if [ "x${ACTION}" = "xrestart" ]; then
+		if [ "${ACTION}" = "restart" ]; then
 			/etc/init.d/"${SERVICE}" --quiet --nodeps conditionalrestart "$@"
 		else
 			/etc/init.d/"${SERVICE}" --quiet --nodeps "${ACTION}" "$@"
@@ -135,22 +139,16 @@ if [ "x${CMD}" = "x-s" ]; then
 	exit $?
 fi
 
-if [ -n "$1" ]; then
-	IFACE="$1"
-	shift
-fi
-
 # -l lists our resolv files, optionally for a specific interface
-if [ "x${CMD}" = "x-l" -o "x${CMD}" = "x-i" ]; then
+if [ "${CMD}" = "l" -o "${CMD}" = "i" ]; then
 	[ -d "${IFACEDIR}" ] || exit 0
 
-	report=false
-	
+	REPORT=false
 	# If we have an interface ordering list, then use that.
 	# It works by just using pathname expansion in the interface directory.
-	if [ -n "${IFACE}" ]; then
-		LIST="${IFACE} $@"
-		report=true
+	if [ -n "${ARGS}" ]; then
+		LIST="${ARGS}"
+		${FORCE} || REPORT=true
 	elif [ -r "${RESOLVCONF}"/interface-order ]; then
 		LIST="$(cat "${RESOLVCONF}"/interface-order)"
 	fi
@@ -161,29 +159,29 @@ if [ "x${CMD}" = "x-l" -o "x${CMD}" = "x-i" ]; then
 		LIST="lo lo[0-9]* tap[0-9]* tun[0-9]* vpn vpn[0-9]* ppp[0-9]* ippp[0-9]* *"
 	fi
 
-	retval=0
+	RETVAL=0
 	cd "${IFACEDIR}"
 	for IFACE in $(uniqify ${LIST}); do
 		# Only list interfaces which we really have
 		if ! [ -e "${IFACE}" ]; then
-			if ${report}; then
+			if ${REPORT}; then
 				echo "No resolv.conf for interface ${IFACE}" >&2
-				retval=$((${retval} + 1))
+				RETVAL=$((${RETVAL} + 1))
 			fi
 			continue
 		fi
 		
-		if [ "x${CMD}" = "x-i" ]; then
+		if [ "${CMD}" = "i" ]; then
 			printf "${IFACE} "
 		else
 			echo_resolv "${IFACE}"
 		fi
 	done
-	[ "x${CMD}" = "x-i" ] && echo
-	exit ${retval} 
+	[ "${CMD}" = "i" ] && echo
+	exit ${RETVAL} 
 fi
 
-if [ "x${CMD}" = "x-v" ]; then
+if [ "${CMD}" = "v" ]; then
 	NS=
 	DOMAIN=
 	SEARCH=
@@ -253,15 +251,15 @@ if [ "x${CMD}" = "x-v" ]; then
 fi
 
 # Test that we have valid options
-if [ "x${CMD}" = "x-a" -o "x${CMD}" = "x-d" ]; then
+if [ "${CMD}" = "a" -o "${CMD}" = "d" ]; then
 	if [ -z "${IFACE}" ]; then
 		usage "Interface not specified"
 	fi
-elif [ "x${CMD}" != "x-u" ]; then
-	[ -n "x${CMD}" -a "x${CMD}" != "x-h" ] && usage "Unknown option ${CMD}"
+elif [ "${CMD}" != "u" ]; then
+	[ -n "${CMD}" -a "${CMD}" != "h" ] && usage "Unknown option ${CMD}"
 	usage
 fi
-if [ "x${CMD}" = "x-a" ]; then
+if [ "${CMD}" = "a" ]; then
 	for x in '/' \\ ' ' '*'; do
 		case "${IFACE}" in
 			*[${x}]*) error_exit "${x} not allowed in interface name";;
@@ -272,7 +270,7 @@ if [ "x${CMD}" = "x-a" ]; then
 			[${x}]*) error_exit "${x} not allowed at start of interface name";;
 		esac
 	done
-	[ "x${CMD}" = "x-a" -a -t 0 ] && error_exit "No file given via stdin"
+	[ "${CMD}" = "a" -a -t 0 ] && error_exit "No file given via stdin"
 	IFACERESOLV="${IFACEDIR}/${IFACE}"
 fi
 
@@ -296,10 +294,11 @@ if [ ! -d "${IFACEDIR}" ]; then
 		error_exit "Failed to create needed directory ${IFACEDIR}"
 else
 	# Delete any existing information about the interface
-	if [ "x${CMD}" = "x-a" -o "x${CMD}" = "x-d" ]; then
+	if [ "${CMD}" = "a" -o "${CMD}" = "d" ]; then
 		cd "${IFACEDIR}"
 		for iface in ${IFACE}; do
-			if [ "x${CMD}" = "x-d" -a ! -e "${iface}" ]; then
+			if [ "${CMD}" = "d" -a ! -e "${iface}" ]; then
+				${FORCE} && continue
 				error_exit "No resolv.conf for interface ${iface}"
 			fi
 			rm -f "${iface}" || exit $?
@@ -307,17 +306,17 @@ else
 	fi
 fi
 
-if [ "x${CMD}" = "x-a" ]; then
+if [ "${CMD}" = "a" ]; then
 	# Create our resolv.conf file
 	cat >"${IFACEDIR}"/"${IFACE}" || exit $?
 fi
 
-retval=0
+RETVAL=0
 for x in "${UPDATED}"/*; do
 	if [ -e "${x}" ]; then
 		"${x}" "${CMD}" "${IFACE}"
-		retval=$((${retval} + $?))
+		RETVAL=$((${RETVAL} + $?))
 	fi
 done
 
-exit ${retval}
+exit ${RETVAL}

@@ -24,7 +24,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-argv0="$0"
+ARGV0="$0"
 
 PREFIX=
 RESOLVCONF="${PREFIX}"/etc/resolvconf
@@ -39,7 +39,7 @@ error_exit() {
 
 usage() {
 	cat <<-EOF
-	Usage: ${argv0##*/} [options]
+	Usage: ${ARGV0##*/} [options]
 
 	Inform the system about any DNS updates.
 
@@ -188,7 +188,7 @@ if [ "${CMD}" = "v" ]; then
 	NEWSEARCH=
 	NEWNS=
 	NEWDOMAIN=
-	LINES="$("${argv0}" -l "${IFACE}" |
+	LINES="$("${ARGV0}" -l "${IFACE}" |
 		sed -e "s/'/'\\\\''/g" -e "s/^/'/g" -e "s/$/'/g")"
 	eval set -- ${LINES}
 	for LINE in "$@"; do
@@ -296,12 +296,12 @@ else
 	# Delete any existing information about the interface
 	if [ "${CMD}" = "a" -o "${CMD}" = "d" ]; then
 		cd "${IFACEDIR}"
-		for iface in ${IFACE}; do
-			if [ "${CMD}" = "d" -a ! -e "${iface}" ]; then
+		for ARG in ${ARGS}; do
+			if [ "${CMD}" = "d" -a ! -e "${ARG}" ]; then
 				${FORCE} && continue
-				error_exit "No resolv.conf for interface ${iface}"
+				error_exit "No resolv.conf for interface ${ARG}"
 			fi
-			rm -f "${iface}" || exit $?
+			rm -f "${ARG}" || exit $?
 		done
 	fi
 fi
@@ -312,9 +312,9 @@ if [ "${CMD}" = "a" ]; then
 fi
 
 RETVAL=0
-for x in "${UPDATED}"/*; do
-	if [ -e "${x}" ]; then
-		"${x}" "${CMD}" "${IFACE}"
+for SCRIPT in "${UPDATED}"/*; do
+	if [ -e "${SCRIPT}" ]; then
+		"${SCRIPT}" "${CMD}" "${IFACE}"
 		RETVAL=$((${RETVAL} + $?))
 	fi
 done

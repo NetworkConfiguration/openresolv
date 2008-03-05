@@ -40,8 +40,8 @@
 # NOTE: The loopback interface on some systems maybe lo0.
 #domain-needed
 #interface=lo
-#resolv-file=/etc/dnsmasq-resolv.conf
-#conf-file=/etc/dnsmasq-resolvconf.conf
+#resolv-file=@PREFIX@/etc/dnsmasq-resolv.conf
+#conf-file=@PREFIX@/etc/dnsmasq-resolvconf.conf
 
 # The last step is to configure dns configuration for /etc/resolv.conf
 # for the lo interface. You can do this in resolvconf as well by adding
@@ -52,7 +52,7 @@
 VARS="$(resolvconf -v)"
 eval "${VARS}"
 
-PREFIX=
+PREFIX=@PREFIX@
 DNSMASQRESOLV="${PREFIX}/etc/dnsmasq-resolv.conf"
 DNSMASQCONF="${PREFIX}/etc/dnsmasq-resolvconf.conf"
 

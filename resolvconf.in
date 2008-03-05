@@ -26,10 +26,8 @@
 
 ARGV0="$0"
 
-PREFIX=
-RESOLVCONF="${PREFIX}"/etc/resolvconf
-UPDATED="${RESOLVCONF}"/update.d
-VARDIR="${RESOLVCONF}"/run
+SYSCONFDIR=@SYSCONFDIR@
+VARDIR=@VARBASE@/run/resolvconf
 IFACEDIR="${VARDIR}/interfaces"
 
 error_exit() {
@@ -149,8 +147,8 @@ if [ "${CMD}" = "l" -o "${CMD}" = "i" ]; then
 	if [ -n "${ARGS}" ]; then
 		LIST="${ARGS}"
 		${FORCE} || REPORT=true
-	elif [ -r "${RESOLVCONF}"/interface-order ]; then
-		LIST="$(cat "${RESOLVCONF}"/interface-order)"
+	elif [ -r "${SYSCONFDIR}"/interface-order ]; then
+		LIST="$(cat "${SYSCONFDIR}"/interface-order)"
 	fi
 
 	# If we don't have a list then prefer lo, tunnels, ppp
@@ -312,7 +310,7 @@ if [ "${CMD}" = "a" ]; then
 fi
 
 RETVAL=0
-for SCRIPT in "${UPDATED}"/*; do
+for SCRIPT in "${SYSCONFDIR}"/update.d/*; do
 	if [ -e "${SCRIPT}" ]; then
 		"${SCRIPT}" "${CMD}" "${IFACE}"
 		RETVAL=$((${RETVAL} + $?))

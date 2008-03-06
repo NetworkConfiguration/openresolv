@@ -7,6 +7,7 @@ MANPREFIX?=	/usr/share
 VARBASE?=	/var
 
 BINMODE?=	0755
+DOCMODE?=	0644
 MANMODE?=	0444
 
 SYSCONFDIR?=	${PREFIX}/etc/resolvconf
@@ -30,13 +31,15 @@ all: ${TARGET}
 clean:
 	rm -f ${TARGET} openresolv-${VERSION}.tar.bz2
 
+installdirs:
+
 install: ${TARGET}
 	${INSTALL} -d ${DESTDIR}${PREFIX}${BINDIR}
 	${INSTALL} -m ${BINMODE} resolvconf ${DESTDIR}${PREFIX}${BINDIR}
-	${INSTALL} -d ${DESTDIR}${SYSCONFDIR}/resolv.conf.d
-	${INSTALL} -d ${DESTDIR}${SYSCONFDIR}/update-libc.d
 	${INSTALL} -d ${DESTDIR}${SYSCONFDIR}/update.d
 	${INSTALL} -m ${BINMODE} ${SUBSCRIBERS} ${DESTDIR}${SYSCONFDIR}/update.d
+	${INSTALL} -d ${DESTDIR}${SYSCONFDIR}/resolv.conf.d
+	${INSTALL} -m ${DOCMODE} head ${DESTDIR}${SYSCONFDIR}/resolv.conf.d
 	${INSTALL} -d ${DESTDIR}${MANDIR}/man8
 	${INSTALL} -m ${MANMODE} resolvconf.8 ${DESTDIR}${MANDIR}/man8
 

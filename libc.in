@@ -122,7 +122,7 @@ if [ -e "${BASE}" ]; then
 		-e '/^[[:space:]]*nameserver[[:space:]]*.*/d' \
 		-e '/^[[:space:]]*search[[:space:]]*.*/d' \
 		-e '/^[[:space:]]*domain[[:space:]]*.*/d' \
-		"${BASE}")" 
+		"${BASE}")\n" 
 fi
 
 # We don't know we're using GNU sed, so we do it like this
@@ -133,7 +133,7 @@ NEWCONF="${NEWCONF}$(echo "${RESOLVCONFS}" | sed -e '/^[[:space:]]*$/d' \
 	-e '/^[[:space:]]*domain[[:space:]]*.*/d' \
 	)"
 [ -e "${SYSCONFDIR}"/resolv.conf.d/tail ] \
-	&& NEWCONF="${NEWCONF}$(cat "${SYSCONFDIR}"/resolv.conf.d/tail)"
+	&& NEWCONF="${NEWCONF}$(cat "${SYSCONFDIR}"/resolv.conf.d/tail)\n"
 
 # Check if the file has actually changed or not
 if [ -e "${RESOLVCONF}" ]; then

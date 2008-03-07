@@ -1,5 +1,5 @@
 NAME=		openresolv
-VERSION=	1.4
+VERSION=	1.5
 PKG=		${NAME}-${VERSION}
 
 INSTALL?=	install
@@ -11,7 +11,7 @@ DOCMODE?=	0644
 MANMODE?=	0444
 
 SYSCONFDIR?=	${PREFIX}/etc/resolvconf
-BINDIR=		/sbin
+BINDIR=		${PREFIX}/sbin
 MANDIR?=	${MANPREFIX}/man
 
 RESOLVCONF=	resolvconf resolvconf.8
@@ -34,8 +34,8 @@ clean:
 installdirs:
 
 install: ${TARGET}
-	${INSTALL} -d ${DESTDIR}${PREFIX}${BINDIR}
-	${INSTALL} -m ${BINMODE} resolvconf ${DESTDIR}${PREFIX}${BINDIR}
+	${INSTALL} -d ${DESTDIR}${BINDIR}
+	${INSTALL} -m ${BINMODE} resolvconf ${DESTDIR}${BINDIR}
 	${INSTALL} -d ${DESTDIR}${SYSCONFDIR}/update.d
 	${INSTALL} -m ${BINMODE} ${SUBSCRIBERS} ${DESTDIR}${SYSCONFDIR}/update.d
 	${INSTALL} -d ${DESTDIR}${SYSCONFDIR}/resolv.conf.d

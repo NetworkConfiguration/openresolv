@@ -22,7 +22,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.Dd Mar 05, 2008
+.Dd Mar 07, 2008
 .Dt RESOLVCONF 8 SMM
 .Sh NAME
 .Nm resolvconf
@@ -69,9 +69,7 @@ or
 .Xr named 8
 then
 .Nm
-will configure
-.Pa /etc/resolv.conf
-to use that and supply files that the resolver should be configured to include.
+will supply files that the resolver should be configured to include.
 This allows
 .Nm
 to configure the local resolver such that
@@ -147,12 +145,6 @@ the resolver easily.
 .It Pa @VARBASE@/run/resolvconf
 Directory that holds the data for
 .Nm .
-You could symlink
-.Pa /etc/resolv.conf
-to
-.Pa @VARBASE@/run/resolvconf/resolv.conf
-to support a read only
-.Pa /etc .
 .It Pa @SYSCONFDIR@/update.d
 Directory of the helper scripts which are run every time
 .Nm

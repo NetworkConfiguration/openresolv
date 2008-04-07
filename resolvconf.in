@@ -108,7 +108,7 @@ if [ "${CMD}" = "s" ]; then
 		if [ -s /var/run/"${SERVICE}".pid ]; then
 			kill -0 $(cat /var/run/"${SERVICE}".pid) 2>/dev/null
 		elif [ -s /var/run/"${SERVICE}"/"${SERVICE}".pid ]; then
-			kill -0 $(cat /var/run/"${SERVICE}".pid) 2>/dev/null
+			kill -0 $(cat /var/run/"${SERVICE}"/"${SERVICE}".pid) 2>/dev/null
 		elif [ -s /var/run/"${SERVICE}"/pid ]; then
 			kill -0 $(cat /var/run/"${SERVICE}"/pid) 2>/dev/null
 		else

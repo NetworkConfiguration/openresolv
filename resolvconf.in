@@ -25,17 +25,18 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ARGV0="$0"
-
 SYSCONFDIR=@SYSCONFDIR@
 VARDIR=@VARBASE@/run/resolvconf
 IFACEDIR="${VARDIR}/interfaces"
 
-error_exit() {
+error_exit()
+{
 	echo "$*" >&2
 	exit 1
 }
 
-usage() {
+usage()
+{
 	cat <<-EOF
 	Usage: ${ARGV0##*/} [options]
 
@@ -62,19 +63,68 @@ usage() {
 	error_exit "$*"
 }
 
-echo_resolv() {
+echo_resolv()
+{
 	[ -n "$1" -a -e "${IFACEDIR}/$1" ] || return 1
 	echo "# resolv.conf for interface $1"
 	cat "${IFACEDIR}/$1"
 	echo
 }
 
-uniqify() {
+# Parse resolv.conf's and make variables
+# for domain name servers, search name servers and global nameservers
+parse_resolv()
+{
+	local LINE= NS= DOMAIN= SEARCH= N= NEWDOMAIN= NEWSEARCH= NEWNS=
+
+	echo "NEWDOMAIN="
+	echo "NEWSEARCH="
+	echo "NEWNS="
+
+	while read LINE; do
+		case "${LINE}" in
+		"nameserver "*)
+			case "${LINE#* }" in
+			127.*) continue;;
+			esac
+			NS="${NS}${LINE#* } "
+			;;
+		"domain "*)
+			[ -z "${SEARCH}" ] && DOMAIN="${LINE#* }"
+			;;
+		"search "*)
+			SEARCH="${LINE#* }"
+			DOMAIN=
+			;;
+		*)
+			if [ -z "${LINE}" ]; then
+				for N in ${NS}; do
+					if [ -n "${DOMAIN}" ]; then
+						echo "NEWDOMAIN=\"\${NEWDOMAIN} ${DOMAIN},${N}\""
+					elif [ -n "${SEARCH}" ]; then
+						for S in ${SEARCH}; do
+							echo "NEWSEARCH=\"\${NEWSEARCH} ${S},${N}\""
+						done
+					else
+						echo "NEWNS=\"\${NEWNS} ${N}\""
+					fi
+				done
+				NS=
+				DOMAIN=
+				SEARCH=
+			fi
+			;;
+		esac
+	done
+}
+
+uniqify()
+{
     local result=
     while [ -n "$1" ]; do
 		case " ${result} " in
-			*" $1 "*);;
-			*) result="${result} $1";;
+		*" $1 "*);;
+		*) result="${result} $1";;
 		esac
 		shift
 	done
@@ -84,11 +134,11 @@ uniqify() {
 FORCE=false
 while getopts a:d:fhils:uv OPT; do
 	case "${OPT}" in
-		f) FORCE=true;;
-		h) usage;;
-		s) CMD=s; SERVICE="${OPTARG}";;
-		'?') exit 1;;
-		*) CMD="${OPT}"; IFACE="${OPTARG}";;
+	f) FORCE=true;;
+	h) usage;;
+	s) CMD=s; SERVICE="${OPTARG}";;
+	'?') exit 1;;
+	*) CMD="${OPT}"; IFACE="${OPTARG}";;
 	esac
 done
 shift $((${OPTIND} - 1))
@@ -180,70 +230,38 @@ if [ "${CMD}" = "l" -o "${CMD}" = "i" ]; then
 fi
 
 if [ "${CMD}" = "v" ]; then
-	NS=
-	DOMAIN=
-	SEARCH=
-	NEWSEARCH=
-	NEWNS=
-	NEWDOMAIN=
-	LINES="$("${ARGV0}" -l "${IFACE}" |
-		sed -e "s/'/'\\\\''/g" -e "s/^/'/g" -e "s/$/'/g")"
-	eval set -- ${LINES}
-	for LINE in "$@"; do
-		case "${LINE}" in
-			"nameserver "*)
-				case "${LINE#* }" in
-					127.*) continue;;
-				esac
-				NS="${NS}${LINE#* } "
-				;;
-			"domain "*)
-				[ -z "${SEARCH}" ] && DOMAIN="${LINE#* }"
-				;;
-			"search "*)
-				SEARCH="${LINE#* }"
-				DOMAIN=
-				;;
-			*)
-				if [ -z "${LINE}" ]; then
-					for N in ${NS}; do
-						if [ -n "${DOMAIN}" ]; then
-							NEWDOMAIN="${NEWDOMAIN} ${DOMAIN},${N}"
-						elif [ -n "${SEARCH}" ]; then
-							for S in ${SEARCH}; do
-								NEWSEARCH="${NEWSEARCH} ${S},${N}"
-							done
-						else
-							NEWNS="${NEWNS} ${N}"
-						fi
-					done
-					NS=
-					DOMAIN=
-					SEARCH=
-				fi
-				;;
-		esac
-	done
+	eval "$("${ARGV0}" -l "${IFACE}" | parse_resolv)"
 
 	# Prefer DOMAIN nameservers over SEARCH nameservers
-	# if we are supplied both.
+	# if we are supplied both, but put them in the SEARCH list
 	NEWDOMAIN="$(uniqify ${NEWDOMAIN})"
 	NEWSEARCH="$(uniqify ${NEWSEARCH})"
 	NEWNS="$(uniqify ${NEWNS})"
+	_NEWDOMAIN=
+	_NEWSEARCH=
 	for S in ${NEWSEARCH}; do
 		for DN in ${NEWDOMAIN}; do
 			if [ "${S%,*}" = "${DN%,*}" ]; then
-				NEWSEARCH="$(echo "${NEWSEARCH}" |
-					sed -e "s/${S}/${DN}/g")"
-				NEWDOMAIN="$(echo "${NEWDOMAIN}" |
-					sed -e "s/${DN}//g")"
+				S="${DN}"
 				break
 			fi
 		done
+		_NEWSEARCH="${_NEWSEARCH}${_NEWSEARCH:+ }${S}"
+	done
+	for DN in ${NEWDOMAIN}; do
+		for S in ${_NEWSEARCH}; do
+			if [ "${S%,*}" = "${DN%,*}" ]; then
+				DN=
+				break
+			fi
+		done
+		if [ -n "${DN}" ]; then
+			_NEWDOMAIN="${_NEWDOMAIN}${_NEWDOMAIN:+ }${DN}"
+		fi
 	done
 
-	echo "NEWDOMAIN='${NEWDOMAIN}'"
-	echo "NEWSEARCH='${NEWSEARCH}'"
+	echo "NEWDOMAIN='${_NEWDOMAIN}'"
+	echo "NEWSEARCH='${_NEWSEARCH}'"
 	echo "NEWNS='${NEWNS}'"
 	exit 0
 fi
@@ -260,12 +278,12 @@ fi
 if [ "${CMD}" = "a" ]; then
 	for x in '/' \\ ' ' '*'; do
 		case "${IFACE}" in
-			*[${x}]*) error_exit "${x} not allowed in interface name";;
+		*[${x}]*) error_exit "${x} not allowed in interface name";;
 		esac
 	done
 	for x in '.' '-' '~'; do
 		case "${IFACE}" in
-			[${x}]*) error_exit "${x} not allowed at start of interface name";;
+		[${x}]*) error_exit "${x} not allowed at start of interface name";;
 		esac
 	done
 	[ "${CMD}" = "a" -a -t 0 ] && error_exit "No file given via stdin"

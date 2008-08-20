@@ -45,7 +45,8 @@ files from multiple sources, such as DHCP and VPN clients.
 Traditionally, the host runs just one client and that updates
 .Pa /etc/resolv.conf .
 More modern systems frequently have wired and wireless interfaces and there is
-no guarantee both are on the same network. With the advent of VPN and other
+no guarantee both are on the same network.
+With the advent of VPN and other
 types of networking daemons, many things now contend for the contents of
 .Pa /etc/resolv.conf .
 .Pp
@@ -75,9 +76,11 @@ This allows
 to configure the local resolver such that
 .Pa resolv.conf
 files specifiying a domain only query the listed nameservers when resolving
-for that domain. Otherwise the nameservers are treated as global nameservers.
+for that domain.
+Otherwise the nameservers are treated as global nameservers.
 This in turn means, that you can trivially configure nameservers for say
-VPN domains. Example:-
+VPN domains.
+Example:-
 .Bd -literal -offset indent
 # resolv.conf from bge0
 search foo.com
@@ -105,7 +108,8 @@ Here are some more options that
 has:-
 .Bl -tag -width indent
 .It Fl f
-Ignore non existant interfaces. Only really useful for deleting interfaces.
+Ignore non existant interfaces.
+Only really useful for deleting interfaces.
 .It Fl i Ar pattern
 List the interfaces, optionally matching
 .Ar pattern ,
@@ -115,7 +119,8 @@ files for.
 .It Fl l Ar pattern
 List the
 .Pa resolv.conf
-files we have. If
+files we have.
+If
 .Ar pattern
 is specified then we list the files for the interfaces that match it.
 .It Fl u
@@ -183,7 +188,8 @@ does not validate any of the files given to it.
 When running a local resolver other than libc, you will need to configure it
 to include files that
 .Nm
-will generate. You should consult the comment section in the helper script
+will generate.
+You should consult the comment section in the helper script
 for your resolver found in @SYSCONFDIR@/update.d for instructions
 on this.
 .Sh SEE ALSO
@@ -193,6 +199,6 @@ on this.
 .Xr resolver 3 ,
 .Xr stdin 3
 .Sh AUTHORS
-.An "Roy Marples" Aq roy@marples.name
+.An Roy Marples <roy@marples.name>
 .Sh BUGS
 Please report them to http://bugs.marples.name

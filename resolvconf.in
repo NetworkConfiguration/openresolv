@@ -310,7 +310,7 @@ if [ ! -d "${IFACEDIR}" ]; then
 		error_exit "Failed to create needed directory ${IFACEDIR}"
 else
 	# Delete any existing information about the interface
-	if [ "${CMD}" = "a" -o "${CMD}" = "d" ]; then
+	if [ "${CMD}" = "d" ]; then
 		cd "${IFACEDIR}"
 		for ARG in ${ARGS}; do
 			if [ "${CMD}" = "d" -a ! -e "${ARG}" ]; then
@@ -323,8 +323,17 @@ else
 fi
 
 if [ "${CMD}" = "a" ]; then
-	# Create our resolv.conf file
-	cat >"${IFACEDIR}"/"${IFACE}" || exit $?
+	# Read resolv.conf from stdin
+	RESOLV="$(cat)"
+	# If what we are given matches what we have, then do nothing
+	if [ -e "${IFACEDIR}/${IFACE}" ]; then
+		if [ "$(printf "${RESOLV}")" = "$(cat "${IFACEDIR}/${IFACE}")" ]
+		then
+			exit 0
+		fi
+		rm "${IFACEDIR}/${IFACE}"
+	fi
+	printf "${RESOLV}" >"${IFACEDIR}/${IFACE}" || exit $?
 fi
 
 RETVAL=0

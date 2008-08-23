@@ -324,7 +324,7 @@ fi
 
 if [ "${CMD}" = "a" ]; then
 	# Read resolv.conf from stdin
-	RESOLV="$(cat)"
+	RESOLV="$(cat)\n"
 	# If what we are given matches what we have, then do nothing
 	if [ -e "${IFACEDIR}/${IFACE}" ]; then
 		if [ "$(printf "${RESOLV}")" = "$(cat "${IFACEDIR}/${IFACE}")" ]

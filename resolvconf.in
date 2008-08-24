@@ -66,7 +66,7 @@ usage()
 echo_resolv()
 {
 	[ -n "$1" -a -e "${IFACEDIR}/$1" ] || return 1
-	echo "# resolv.conf for interface $1"
+	echo "# resolv.conf from $1"
 	cat "${IFACEDIR}/$1"
 	echo
 }

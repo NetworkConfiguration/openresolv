@@ -65,9 +65,15 @@ usage()
 
 echo_resolv()
 {
+	local LINE=
 	[ -n "$1" -a -e "${IFACEDIR}/$1" ] || return 1
 	echo "# resolv.conf from $1"
-	cat "${IFACEDIR}/$1"
+	# Our variable maker works of the fact each resolv.conf per interface
+	# is separated by blank lines.
+	# So we remove them when echoing them.
+	while read LINE; do
+		[ -n "${LINE}" ] && echo "${LINE}"
+	done < "${IFACEDIR}/$1"
 	echo
 }
 

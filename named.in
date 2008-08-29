@@ -78,7 +78,7 @@ for N in ${NEWNS}; do
 	esac
 done
 if [ -n "${FORWARD}" ]; then
-	NEWOPTIONS="${NEWOPTIONS}\nforward first;\nforwarders {${FORWARD}\n};\n"
+	NEWOPTIONS="${NEWOPTIONS}forward first;\nforwarders {${FORWARD}\n};\n"
 fi
 
 LASTDN=
@@ -87,8 +87,9 @@ for DN in $(printf "%s\n" ${NEWDOMAIN} | sort -u); do
 	case "${LASTDN}" in
 		"${DN%,*}");;
 		*)
-		[ -n "${ZONES}" ] && ZONES="${NEWZONES}\n\t};\n};\n"
-		ZONES="${ZONES}\nzone \"${DN%,*}\" {\n"
+		LASTDN="${DN%,*}"
+		[ -n "${ZONES}" ] && ZONES="${ZONES}\n\t};\n};\n"
+		ZONES="${ZONES}zone \"${LASTDN}\" {\n"
 		ZONES="${ZONES}\ttype forward;\n"
 		ZONES="${ZONES}\tforward first;\n"
 		ZONES="${ZONES}\tforwarders {"

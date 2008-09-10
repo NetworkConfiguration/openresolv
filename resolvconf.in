@@ -28,6 +28,7 @@ ARGV0="$0"
 SYSCONFDIR=@SYSCONFDIR@
 VARDIR=@VARBASE@/run/resolvconf
 IFACEDIR="${VARDIR}/interfaces"
+METRICDIR="${VARDIR}/metrics"
 
 error_exit()
 {
@@ -45,6 +46,7 @@ usage()
 	Options:
 	  -a \$INTERFACE    Add DNS information to the specified interface
 	                   (DNS supplied via stdin in resolv.conf format)
+	  -m metric        Give the added DNS information a metric
 	  -d \$INTERFACE    Delete DNS information from the specified interface
 	  -f               Ignore non existant interfaces
 	  -u               Run updates from our current DNS information
@@ -138,10 +140,11 @@ uniqify()
 }
 
 FORCE=false
-while getopts a:d:fhils:uv OPT; do
+while getopts a:d:fhilm:s:uv OPT; do
 	case "${OPT}" in
 	f) FORCE=true;;
 	h) usage;;
+	m) IF_METRIC="${OPTARG}";;
 	s) CMD=s; SERVICE="${OPTARG}";;
 	'?') exit 1;;
 	*) CMD="${OPT}"; IFACE="${OPTARG}";;
@@ -204,13 +207,17 @@ if [ "${CMD}" = "l" -o "${CMD}" = "i" ]; then
 		LIST="${ARGS}"
 		${FORCE} || REPORT=true
 	elif [ -r "${SYSCONFDIR}"/interface-order ]; then
-		LIST="$(cat "${SYSCONFDIR}"/interface-order)"
+		LIST="lo lo[0-9]* $(cat "${SYSCONFDIR}"/interface-order) *"
 	fi
-
-	# If we don't have a list then prefer lo, tunnels, ppp
+	# If we don't have a list then prefer lo, metrics, tunnels, ppp
 	# and then anything else.
 	if [ -z "${LIST}" ]; then
-		LIST="lo lo[0-9]* tap[0-9]* tun[0-9]* vpn vpn[0-9]* ppp[0-9]* ippp[0-9]* *"
+		LIST="lo lo[0-9]* "
+		cd "${METRICDIR}"
+		for METRIC in *; do
+			LIST="${LIST} ${METRIC#* }"
+		done
+		LIST="${LIST} tap[0-9]* tun[0-9]* vpn vpn[0-9]* ppp[0-9]* ippp[0-9]* *"
 	fi
 
 	RETVAL=0
@@ -323,7 +330,7 @@ else
 				${FORCE} && continue
 				error_exit "No resolv.conf for interface ${ARG}"
 			fi
-			rm -f "${ARG}" || exit $?
+			rm -f "${ARG}" "${METRICDIR}/"*" ${ARG}" || exit $?
 		done
 	fi
 fi
@@ -340,6 +347,17 @@ if [ "${CMD}" = "a" ]; then
 		rm "${IFACEDIR}/${IFACE}"
 	fi
 	printf "${RESOLV}" >"${IFACEDIR}/${IFACE}" || exit $?
+	rm -f "${METRICDIR}/"*" ${IFACE}"
+	if [ ! -d "${METRICDIR}" ]; then
+		mkdir "${METRICDIR}"
+	fi
+	rm -f "${METRICDIR}/"*" ${IFACE}"
+	# Pad metric to 6 characters, so 5 is less than 10
+	# All interfaces will get a default metric of 0
+	while [ ${#IF_METRIC} -le 6 ]; do
+		IF_METRIC="0${IF_METRIC}"
+	done
+	echo " " >"${METRICDIR}/${IF_METRIC} ${IFACE}"
 fi
 
 RETVAL=0

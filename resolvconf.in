@@ -146,7 +146,7 @@ while getopts a:d:fhilm:s:uv OPT; do
 	h) usage;;
 	m) IF_METRIC="${OPTARG}";;
 	s) CMD=s; SERVICE="${OPTARG}";;
-	'?') exit 1;;
+	'?') ;;
 	*) CMD="${OPT}"; IFACE="${OPTARG}";;
 	esac
 done

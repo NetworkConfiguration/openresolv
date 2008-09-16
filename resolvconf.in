@@ -213,10 +213,12 @@ if [ "${CMD}" = "l" -o "${CMD}" = "i" ]; then
 	# and then anything else.
 	if [ -z "${LIST}" ]; then
 		LIST="lo lo[0-9]* "
-		cd "${METRICDIR}"
-		for METRIC in *; do
-			LIST="${LIST} ${METRIC#* }"
-		done
+		if [ -d "${METRCICDIR}" ]; then
+			cd "${METRICDIR}"
+			for METRIC in *; do
+				LIST="${LIST} ${METRIC#* }"
+			done
+		fi
 		LIST="${LIST} tap[0-9]* tun[0-9]* vpn vpn[0-9]* ppp[0-9]* ippp[0-9]* *"
 	fi
 

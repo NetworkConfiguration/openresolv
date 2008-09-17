@@ -94,6 +94,14 @@ nameserver 5.6.7.8
 .Pp
 In this instance, nameserver 5.6.7.8 will only handle requests for bar.org
 and nameserver 1.2.3.4 will handle everything else.
+Doing this, you would probably want
+.Nm
+to always configure
+.Pa /etc/resolv.conf
+with the local nameserver.
+See
+.Pa @SYSCONFDIR@/resolv.conf.d/base
+below on how to do this.
 .Pp
 When an interface goes down, it should then call
 .Nm
@@ -180,6 +188,10 @@ by resolvconf -l.
 Contains basic resolver information which is included in
 .Pa /etc/resolv.conf
 even when no interfaces are configured.
+This is a good place to set libc to always use your local nameserver like so:
+.Bd -literal -offset indent
+nameserver 127.0.0.1
+.Ed
 .It Pa @SYSCONFDIR@/resolv.conf.d/head
 File to be prepended to
 .Pa /etc/resolv.conf .

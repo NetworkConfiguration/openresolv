@@ -47,7 +47,7 @@ dist:
 	${INSTALL} -d /tmp/${PKG}
 	cp -RPp . /tmp/${PKG}
 	(cd /tmp/${PKG}; ${MAKE} clean)
-	rm -rf /tmp/${PKG}/*.bz2 /tmp/${PKG}/.git /tmp/${PKG}/.gitignore
+	rm -rf /tmp/${PKG}/*.bz2 /tmp/${PKG}/.svn
 	tar cvjpf ${PKG}.tar.bz2 -C /tmp ${PKG} 
 	rm -rf /tmp/${PKG} 
 	ls -l ${PKG}.tar.bz2

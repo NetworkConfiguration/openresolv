@@ -29,6 +29,7 @@ SYSCONFDIR=@SYSCONFDIR@
 VARDIR=@VARBASE@/run/resolvconf
 IFACEDIR="${VARDIR}/interfaces"
 METRICDIR="${VARDIR}/metrics"
+PRIVATEDIR="${VARDIR}/private"
 
 error_exit()
 {
@@ -47,6 +48,7 @@ usage()
 	  -a \$INTERFACE    Add DNS information to the specified interface
 	                   (DNS supplied via stdin in resolv.conf format)
 	  -m metric        Give the added DNS information a metric
+	  -p               Mark the interface as private
 	  -d \$INTERFACE    Delete DNS information from the specified interface
 	  -f               Ignore non existant interfaces
 	  -u               Run updates from our current DNS information
@@ -79,18 +81,48 @@ echo_resolv()
 	echo
 }
 
+# Return 1 if an interface is private
+# ie, we only use the listed nameservers for the domain/search path
+is_private()
+{
+	[ -e "${PRIVATEDIR}/$1" ] && return 0
+	if [ -e "${SYSCONFDIR}/private-interfaces" ]; then
+		for IFACE in $(cat "${SYSCONFDIR}/private-interfaces"); do
+			[ "${IFACE}" = "$1" ] && return 0
+		done
+	else
+		cd "${IFACEDIR}"
+		for IFACE in tap[0-9]* tun[0-9]* vpn vpn[0-9]*; do
+			[ -e "${IFACE}" ] || continue
+			[ "${IFACE}" = "$1" ] && return 0
+		done
+	fi
+	return 1
+}
+
 # Parse resolv.conf's and make variables
 # for domain name servers, search name servers and global nameservers
 parse_resolv()
 {
-	local LINE= NS= DOMAIN= SEARCH= N= NEWDOMAIN= NEWSEARCH= NEWNS=
+	local LINE= NS= DOMAINS= SEARCH= D= N= NEWNS=
+	local NEW=true PRIVATE=false
 
-	echo "NEWDOMAIN="
-	echo "NEWSEARCH="
-	echo "NEWNS="
+	echo "DOMAINS="
+	echo "SEARCH="
+	echo "NAMESERVERS="
 
 	while read LINE; do
 		case "${LINE}" in
+		"# resolv.conf from "*)
+			if ${NEW}; then
+				if is_private "${LINE#\# resolv.conf from *}"; then
+					PRIVATE=true
+				else
+					PRIVATE=false
+				fi
+				NEW=false
+			fi
+			;;
 		"nameserver "*)
 			case "${LINE#* }" in
 			127.*) continue;;
@@ -98,28 +130,31 @@ parse_resolv()
 			NS="${NS}${LINE#* } "
 			;;
 		"domain "*)
-			[ -z "${SEARCH}" ] && DOMAIN="${LINE#* }"
+			SEARCH="${LINE#* }"
 			;;
 		"search "*)
 			SEARCH="${LINE#* }"
-			DOMAIN=
 			;;
 		*)
 			if [ -z "${LINE}" ]; then
-				for N in ${NS}; do
-					if [ -n "${DOMAIN}" ]; then
-						echo "NEWDOMAIN=\"\${NEWDOMAIN} ${DOMAIN},${N}\""
-					elif [ -n "${SEARCH}" ]; then
-						for S in ${SEARCH}; do
-							echo "NEWSEARCH=\"\${NEWSEARCH} ${S},${N}\""
-						done
-					else
-						echo "NEWNS=\"\${NEWNS} ${N}\""
-					fi
-				done
+				if [ -n "${NS}" -a -n "${SEARCH}" ] && ${PRIVATE}; then
+					unset NEWNS
+					for N in ${NS}; do
+						NEWNS="${NEWNS}${NEWNS:+,}${N}"
+					done
+					DOMAINS=
+					for D in ${SEARCH}; do
+						DOMAINS="${DOMAINS}${DOMAINS:+ }${D}:${NEWNS}"
+					done
+					echo "DOMAINS=\"\${DOMAINS} ${DOMAINS}\""
+				else
+					echo "NAMESERVERS=\"\${NAMESERVERS} ${NS}\""
+				fi
+				echo "SEARCH=\"\${SEARCH} ${SEARCH}\""
 				NS=
-				DOMAIN=
 				SEARCH=
+				PRIVATE=false
+				NEW=true
 			fi
 			;;
 		esac
@@ -140,11 +175,12 @@ uniqify()
 }
 
 FORCE=false
-while getopts a:d:fhilm:s:uv OPT; do
+while getopts a:d:fhilm:ps:uv OPT; do
 	case "${OPT}" in
 	f) FORCE=true;;
 	h) usage;;
 	m) IF_METRIC="${OPTARG}";;
+	p) IF_PRIVATE=1;;
 	s) CMD=s; SERVICE="${OPTARG}";;
 	'?') ;;
 	*) CMD="${OPT}"; IFACE="${OPTARG}";;
@@ -247,37 +283,25 @@ fi
 if [ "${CMD}" = "v" ]; then
 	eval "$("${ARGV0}" -l "${IFACE}" | parse_resolv)"
 
-	# Prefer DOMAIN nameservers over SEARCH nameservers
-	# if we are supplied both, but put them in the SEARCH list
-	NEWDOMAIN="$(uniqify ${NEWDOMAIN})"
-	NEWSEARCH="$(uniqify ${NEWSEARCH})"
-	NEWNS="$(uniqify ${NEWNS})"
-	_NEWDOMAIN=
-	_NEWSEARCH=
-	for S in ${NEWSEARCH}; do
-		for DN in ${NEWDOMAIN}; do
-			if [ "${S%,*}" = "${DN%,*}" ]; then
-				S="${DN}"
-				break
-			fi
+	DOMAINS="$(uniqify ${DOMAINS})"
+	SEARCH="$(uniqify ${SEARCH})"
+	# If we don't have any non private nameservers
+	# then make them all private ones public
+	if [ -z "${NAMESERVERS}" ]; then
+		NAMESERVERS=
+		for D in ${DOMAINS}; do
+			NS="${D#*:}"
+			while [ -n "${NS}" ]; do
+				NAMESERVERS="${NAMESERVERS} ${NS%%,*}"
+				[ "${NS}" = "${NS#*,}" ] && break
+				NS="${NS#*,}"
+			done
 		done
-		_NEWSEARCH="${_NEWSEARCH}${_NEWSEARCH:+ }${S}"
-	done
-	for DN in ${NEWDOMAIN}; do
-		for S in ${_NEWSEARCH}; do
-			if [ "${S%,*}" = "${DN%,*}" ]; then
-				DN=
-				break
-			fi
-		done
-		if [ -n "${DN}" ]; then
-			_NEWDOMAIN="${_NEWDOMAIN}${_NEWDOMAIN:+ }${DN}"
-		fi
-	done
-
-	echo "NEWDOMAIN='${_NEWDOMAIN}'"
-	echo "NEWSEARCH='${_NEWSEARCH}'"
-	echo "NEWNS='${NEWNS}'"
+	fi
+	NAMESERVERS="$(uniqify ${NAMESERVERS})"
+	echo "DOMAINS='${DOMAINS}'"
+	echo "SEARCH='${SEARCH}'"
+	echo "NAMESERVERS='${NAMESERVERS}'"
 	exit 0
 fi
 
@@ -332,7 +356,7 @@ else
 				${FORCE} && continue
 				error_exit "No resolv.conf for interface ${ARG}"
 			fi
-			rm -f "${ARG}" "${METRICDIR}/"*" ${ARG}" || exit $?
+			rm -f "${ARG}" "${METRICDIR}/"*" ${ARG}" "${PRIVATEDIR}/${ARG}" || exit $?
 		done
 	fi
 fi
@@ -360,6 +384,18 @@ if [ "${CMD}" = "a" ]; then
 		IF_METRIC="0${IF_METRIC}"
 	done
 	echo " " >"${METRICDIR}/${IF_METRIC} ${IFACE}"
+	case "${IF_PRIVATE}" in
+	[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1)
+		if [ ! -d "${PRIVATEDIR}" ]; then
+			[ -e "${PRIVATEDIR}" ] && rm "${PRIVATEDIR}"
+			mkdir "${PRIVATEDIR}"
+		fi
+		[ -d "${PRIVATEDIR}" ] && echo " " >"${PRIVATEDIR}/${IFACE}"
+		;;
+	*)
+		[ -e "${PRIVATEDIR}/${IFACE}" ] && rm -f "${PRIVATEDIR}/${IFACE}"
+		;;
+	esac
 fi
 
 RETVAL=0

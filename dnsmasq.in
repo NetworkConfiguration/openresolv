@@ -49,8 +49,7 @@
 # to resolv.conf.d/base
 
 # Load our variables from resolvconf
-VARS="$(resolvconf -v)"
-eval "${VARS}"
+eval "$(resolvconf -v)"
 
 PREFIX=@PREFIX@
 DNSMASQRESOLV="${PREFIX}/etc/dnsmasq-resolv.conf"
@@ -65,6 +64,7 @@ NEWRESOLV="${NEWCONF}"
 # whilst changing DNS options around. However, DBUS support is optional
 # so we need to validate a few things first.
 # Check for DBus support in the binary
+
 DBUS=no
 DBUSPID=/var/run/dbus/dbus.pid
 [ -s "${DBUSPID}" ] || DBUSPID=/var/run/dbus.pid
@@ -82,56 +82,35 @@ if [ -s "${DBUSPID}" -a -s ${DNSMASQPID} ]; then
 	fi
 fi
 
-uniqify() {
-    local result=
-    while [ -n "$1" ]; do
-		case " ${result} " in
-			*" $1 "*);;
-			*) result="${result} $1";;
-		esac
-		shift
-	done
-    echo "${result# *}"
-}
-
-# If we only have domain information then put it in search too
-[ -z "${NEWSEARCH}" -a -z "${NEWNS}" ] && NEWSEARCH="${NEWDOMAIN}"
-
-for N in ${NEWSEARCH}; do
-	case " ${NEWSL} " in
-		*" ${N%,*} "*);;
-		*) NEWSL="${NEWSL} ${N%,*}";;
-	esac
-	case "\n${NEWRESOLV}\n" in
-		*"\nnameserver ${N#*,}\n"*);;
-		*) NEWRESOLV="${NEWRESOLV}nameserver ${N#*,}\n";;
-	esac
-done
-for N in ${NEWNS}; do
+for N in ${NAMESERVERS}; do
 	case "\n${NEWRESOLV}\n" in
 		*"\nnameserver ${N}\n");;
 		*) NEWRESOLV="${NEWRESOLV}nameserver ${N}\n";;
 	esac
 done
-[ -n "${NEWSL}" ] && NEWRESOLV="${NEWRESOLV}search${NEWSL}\n"
 
 DBUSDEST=
-for DN in $(uniqify ${NEWDOMAIN}); do
-	if [ "${DBUS}" = "yes" ]; then
-		IP=${DN#*,}
-		SIFS=${IFS-y} OIFS=$IFS
-		IFS=.
-		set -- ${IP}
-		NUM="0x$(printf "%02x" $1 $2 $3 $4)"
-		if [ "${SIFS}" = "y" ]; then
-			unset IFS
+for D in ${DOMAINS}; do
+	DN="${D%%:*}"
+	NS="${D#*:}"
+	while [ -n "${NS}" ]; do
+		if [ "${DBUS}" = "yes" ]; then
+			SIFS=${IFS-y} OIFS=$IFS
+			IFS=.
+			set -- ${NS%%,*}
+			NUM="0x$(printf "%02x" $1 $2 $3 $4)"
+			if [ "${SIFS}" = "y" ]; then
+				unset IFS
+			else
+				IFS=$OIFS
+			fi
+			DBUSDEST="${DBUSDEST} uint32:$(printf "%d" ${NUM}) string:${DN}"
 		else
-			IFS=$OIFS
+			NEWCONF="${NEWCONF}server=/${DN}/${NS%%,*}\n"
 		fi
-		DBUSDEST="${DBUSDEST} uint32:$(printf "%d" ${NUM}) string:${DN%,*}"
-	else
-		NEWCONF="${NEWCONF}server=/${DN%,*}/${DN#*,}\n"
-	fi
+		[ "${NS}" = "${NS#*,}" ] && break
+		NS="${NS#*,}"
+	done
 done
 
 RELOAD="no"

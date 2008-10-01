@@ -28,10 +28,12 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# Load our variables from resolvconf
+eval "$(resolvconf -v)"
+
 RESOLVCONF=/etc/resolv.conf
 PREFIX=@PREFIX@
 SYSCONFDIR=@SYSCONFDIR@
-RESOLVCONFS="$(resolvconf -l)"
 BASE="${SYSCONFDIR}/resolv.conf.d/base"
 
 uniqify()
@@ -70,73 +72,33 @@ key_get_value()
 	fi
 }
 
-OUR_NS=
+NEWNS=
+NEWSEARCH=
 if [ -e "${BASE}" ]; then
-	OUR_NS="$(key_get_value "nameserver " "${BASE}")"
+	NEWNS="$(key_get_value "nameserver " "${BASE}")"
+	NEWSEARCH="$(key_get_value "search " "${BASE}")"
+	if [ -z "${NEWSEARCH}" ]; then
+		NEWSEARCH="$(key_get_value "domain " "${BASE}")"
+	fi
 fi
-OUR_NS="$(uniqify \
-	${OUR_NS} \
-	$(echo "${RESOLVCONFS}" | key_get_value "nameserver "))"
-
-# libc only allows for 3 nameservers
-# truncate after 127 as well
-i=0
-NS=
-LOCALH=false
-for N in ${OUR_NS}; do
-	i=$((${i} + 1))
-	NS="${NS} ${N}"
-	[ "${i}" = "3" ] && break
-	case "${N}" in
-		127.*) LOCALH=true; break;;
-	esac
+for D in ${DOMAINS}; do
+	NEWSEARCH="${NEWSEARCH} ${D%%:*}"
+	NS="${D#*:}"
+	while [ -n "${NS}" ]; do
+		NEWNS="${NEWNS} ${NS%%,*}"
+		[ "${NS}" = "${NS#*,}" ] && break
+		NS="${NS#*,}"
+	done
 done
-
-# This is nasty!
-# If we have a local nameserver then assume they are intelligent enough
-# to be forwarding domain requests to the correct nameserver and not search
-# ones. This means we prefer search then domain, otherwise, we use them in
-# the order given to us.
-OUR_SEARCH=
-if ${LOCALH}; then
-	if [ -e "${BASE}" ]; then
-		OUR_SEARCH="$(key_get_value "search " "${BASE}")"
-	fi
-	RESS="$(echo "${RESOLVCONFS}" | key_get_value "search ")"
-	OUR_SEARCH="${OUR_SEARCH} ${RESS}"
-	if [ -e "${BASE}" ]; then
-		RESD="$(key_get_value "domain " "${BASE}")"
-		OUR_SEARCH="${OUR_SEARCH} ${RESD}"
-	fi
-	RESD="$(echo "${RESOLVCONFS}" | key_get_value "domain ")"
-	OUR_SEARCH="${OUR_SEARCH} ${RESD}"
-else
-	if [ -e "${BASE}" ]; then
-		RESS="$(key_get_value "search " "${BASE}")"
-		RESD="$(key_get_value "domain " "${BASE}")"
-		OUR_SEARCH="${RESS} ${RESD}"
-	fi
-	RESS="$(echo "${RESOLVCONFS}" | key_get_value "search ")"
-	RESD="$(echo "${RESOLVCONFS}" | key_get_value "domain ")"
-	OUR_SEARCH="${OUR_SEARCH} ${RESS} ${RESD}"
-fi
-
-# libc only allows for 6 search domains 
-i=0
-SEARCH=
-for S in $(uniqify ${OUR_SEARCH}); do
-	i=$((${i} + 1))
-	SEARCH="${SEARCH} ${S}"
-	[ "${i}" = "6" ] && break
-done
-[ -n "${SEARCH}" ] && SEARCH="search${SEARCH}"
+NEWSEARCH="$(uniqify ${NEWSEARCH} ${SEARCH})"
+NEWNS="$(uniqify ${NEWNS} ${NAMESERVERS})"
 
 # Hold our new resolv.conf in a variable to save on temporary files
 NEWCONF=""
 [ -e "${SYSCONFDIR}"/resolv.conf.d/head ] \
 	&& NEWCONF="${NEWCONF}$(cat "${SYSCONFDIR}"/resolv.conf.d/head)\n"
-[ -n "${SEARCH}" ] && NEWCONF="${NEWCONF}${SEARCH}\n"
-for N in ${NS}; do
+[ -n "${NEWSEARCH}" ] && NEWCONF="${NEWCONF}search ${NEWSEARCH}\n"
+for N in ${NEWNS}; do
 	NEWCONF="${NEWCONF}nameserver ${N}\n"
 done
 
@@ -145,7 +107,7 @@ OPTS=
 if [ -e "${BASE}" ]; then
 	OPTS="$(key_get_value "options " "${BASE}")"
 fi
-OPTS="${OPTS}${OPTS:+ }$(echo ${RESOLVCONFS} | key_get_value "options ")"
+OPTS="${OPTS}${OPTS:+ }$(resolvconf -l | key_get_value "options ")"
 if [ -n "${OPTS}" ]; then
 	NEWCONF="${NEWCONF}options"
 	for OPT in $(uniqify ${OPTS}); do

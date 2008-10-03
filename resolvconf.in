@@ -81,31 +81,12 @@ echo_resolv()
 	echo
 }
 
-# Return 1 if an interface is private
-# ie, we only use the listed nameservers for the domain/search path
-is_private()
-{
-	[ -e "${PRIVATEDIR}/$1" ] && return 0
-	if [ -e "${SYSCONFDIR}/private-interfaces" ]; then
-		for IFACE in $(cat "${SYSCONFDIR}/private-interfaces"); do
-			[ "${IFACE}" = "$1" ] && return 0
-		done
-	else
-		cd "${IFACEDIR}"
-		for IFACE in tap[0-9]* tun[0-9]* vpn vpn[0-9]*; do
-			[ -e "${IFACE}" ] || continue
-			[ "${IFACE}" = "$1" ] && return 0
-		done
-	fi
-	return 1
-}
-
 # Parse resolv.conf's and make variables
 # for domain name servers, search name servers and global nameservers
 parse_resolv()
 {
 	local LINE= NS= DOMAINS= SEARCH= D= N= NEWNS=
-	local NEW=true PRIVATE=false
+	local NEW=true IFACE=
 
 	echo "DOMAINS="
 	echo "SEARCH="
@@ -115,11 +96,7 @@ parse_resolv()
 		case "${LINE}" in
 		"# resolv.conf from "*)
 			if ${NEW}; then
-				if is_private "${LINE#\# resolv.conf from *}"; then
-					PRIVATE=true
-				else
-					PRIVATE=false
-				fi
+				IFACE="${LINE#\# resolv.conf from *}"
 				NEW=false
 			fi
 			;;
@@ -137,8 +114,8 @@ parse_resolv()
 			;;
 		*)
 			if [ -z "${LINE}" ]; then
-				if [ -n "${NS}" -a -n "${SEARCH}" ] && ${PRIVATE}; then
-					unset NEWNS
+				if [ -n "${NS}" -a -n "${SEARCH}" ]; then
+					NEWNS=
 					for N in ${NS}; do
 						NEWNS="${NEWNS}${NEWNS:+,}${N}"
 					done
@@ -147,10 +124,11 @@ parse_resolv()
 						DOMAINS="${DOMAINS}${DOMAINS:+ }${D}:${NEWNS}"
 					done
 					echo "DOMAINS=\"\${DOMAINS} ${DOMAINS}\""
-				else
-					echo "NAMESERVERS=\"\${NAMESERVERS} ${NS}\""
 				fi
 				echo "SEARCH=\"\${SEARCH} ${SEARCH}\""
+				if [ ! -e "${PRIVATEDIR}/${IFACE}" ]; then
+					echo "NAMESERVERS=\"\${NAMESERVERS} ${NS}\""
+				fi
 				NS=
 				SEARCH=
 				PRIVATE=false
@@ -283,25 +261,31 @@ fi
 if [ "${CMD}" = "v" ]; then
 	eval "$("${ARGV0}" -l "${IFACE}" | parse_resolv)"
 
-	DOMAINS="$(uniqify ${DOMAINS})"
-	SEARCH="$(uniqify ${SEARCH})"
-	# If we don't have any non private nameservers
-	# then make them all private ones public
-	if [ -z "${NAMESERVERS}" ]; then
-		NAMESERVERS=
-		for D in ${DOMAINS}; do
-			NS="${D#*:}"
-			while [ -n "${NS}" ]; do
-				NAMESERVERS="${NAMESERVERS} ${NS%%,*}"
-				[ "${NS}" = "${NS#*,}" ] && break
-				NS="${NS#*,}"
-			done
+	# Ensure that we only list each domain once
+	NEWDOMAINS=
+	for D in ${DOMAINS}; do
+		DN="${D%%:*}"
+		case " ${NEWDOMAINS}" in
+			*" ${DN}:"*) continue;;
+		esac
+		DONE="${DONE} ${DN}"
+		NEWDOMAINS="${NEWDOMAINS}${NEWDOMAINS:+ }${DN}:"
+		NEWNS=
+		for ND in ${DOMAINS}; do
+			if [ "${DN}" = "${ND%%:*}" ]; then
+				NS="${ND#*:}"
+				while [ -n "${NS}" ]; do
+					NEWNS="${NEWNS}${NEWNS:+,}${NS%%,*}"
+					[ "${NS}" = "${NS#*,}" ] && break
+					NS="${NS#*,}"
+				done
+			fi
 		done
-	fi
-	NAMESERVERS="$(uniqify ${NAMESERVERS})"
-	echo "DOMAINS='${DOMAINS}'"
-	echo "SEARCH='${SEARCH}'"
-	echo "NAMESERVERS='${NAMESERVERS}'"
+		NEWDOMAINS="${NEWDOMAINS}${NEWNS}"
+	done
+	echo "DOMAINS='${NEWDOMAINS}'"
+	echo "SEARCH='$(uniqify ${SEARCH})'"
+	echo "NAMESERVERS='$(uniqify ${NAMESERVERS})'"
 	exit 0
 fi
 

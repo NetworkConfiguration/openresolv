@@ -81,15 +81,6 @@ if [ -e "${BASE}" ]; then
 		NEWSEARCH="$(key_get_value "domain " "${BASE}")"
 	fi
 fi
-for D in ${DOMAINS}; do
-	NEWSEARCH="${NEWSEARCH} ${D%%:*}"
-	NS="${D#*:}"
-	while [ -n "${NS}" ]; do
-		NEWNS="${NEWNS} ${NS%%,*}"
-		[ "${NS}" = "${NS#*,}" ] && break
-		NS="${NS#*,}"
-	done
-done
 NEWSEARCH="$(uniqify ${NEWSEARCH} ${SEARCH})"
 NEWNS="$(uniqify ${NEWNS} ${NAMESERVERS})"
 

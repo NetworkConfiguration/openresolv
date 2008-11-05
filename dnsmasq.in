@@ -104,7 +104,7 @@ for D in ${DOMAINS}; do
 			else
 				IFS=$OIFS
 			fi
-			DBUSDEST="${DBUSDEST} uint32:$(printf "%d" ${NUM}) string:${DN}"
+			DBUSDEST="${DBUSDEST} uint32:$(printf "%u" ${NUM}) string:${DN}"
 		else
 			NEWCONF="${NEWCONF}server=/${DN}/${NS%%,*}\n"
 		fi

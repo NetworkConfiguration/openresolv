@@ -1,4 +1,4 @@
-.\" Copyright 2007-2008 Roy Marples
+.\" Copyright 2007-2009 Roy Marples
 .\" All rights reserved
 .\"
 .\" Redistribution and use in source and binary forms, with or without
@@ -226,6 +226,6 @@ on this.
 .Xr resolver 3 ,
 .Xr stdin 3
 .Sh AUTHORS
-.An Roy Marples <roy@marples.name>
+.An Roy Marples Aq roy@marples.name
 .Sh BUGS
 Please report them to http://roy.marples.name/projects/openresolv

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright 2007 Roy Marples <roy@marples.name>
+# Copyright 2007-2009 Roy Marples <roy@marples.name>
 # All rights reserved
 
 # named updater for resolvconf
@@ -26,16 +26,6 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# This is very important!
-# We assume that we are a local dns cache - after all, why would a server
-# use resolvconf?
-# Now that we have assumed this, we also assume that generic DHCP clients
-# will enter their domains and search domains ONLY in the "search" field
-# in their resolv.confs and VPN clients will put the domain they are for
-# into the domain field only.
-# This allows bind to forward domains for a specific VPN domain to the
-# VPN nameserver and everything else to the standard name servers.
-
 # The bind config needs to be setup to include our file
 #options {
 #   include "resolvconf-options.conf";
@@ -43,9 +33,7 @@
 #include "resolvconf-zones.conf";
 
 # The last step is to configure dns configuration for /etc/resolv.conf
-#echo "nameserver 127.0.0.1" > /etc/resolvconf/resolv.conf.d/base
-# On some platforms, like FreeBSD, resolvconf is in /usr/local so it becomes
-#echo "nameserver 127.0.0.1" > /usr/local/etc/resolvconf/resolv.conf.d/base
+#echo "nameserver 127.0.0.1" > @SYSCONFDIR@/resolv.conf.d/base
 
 # Load our variables from resolvconf
 eval "$(resolvconf -v)"

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright 2007-2008 Roy Marples
+# Copyright 2007-2009 Roy Marples
 # All rights reserved
 
 # dnsmasq subscriber for resolvconf
@@ -26,16 +26,6 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# This is very important!
-# We assume that we are a local dns cache - after all, why would a server
-# use resolvconf?
-# Now that we have assumed this, we also assume that generic DHCP clients
-# will enter their domains and search domains ONLY in the "search" field
-# in their resolv.confs and VPN clients will put the domain they are for
-# into the domain field only.
-# This allows dnsmasq to forward domains for a specific VPN domain to the
-# VPN nameserver and everything else to the standard name servers.
-
 # A sample dnsmasq config that works as above is like so.
 # NOTE: The loopback interface on some systems maybe lo0.
 #domain-needed
@@ -46,7 +36,7 @@
 # The last step is to configure dns configuration for /etc/resolv.conf
 # for the lo interface. You can do this in resolvconf as well by adding
 #nameserver 127.0.0.1
-# to resolv.conf.d/base
+# to @SYSCONFDIR@/resolv.conf.d/base
 
 # Load our variables from resolvconf
 eval "$(resolvconf -v)"

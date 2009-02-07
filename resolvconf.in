@@ -227,7 +227,7 @@ if [ "${CMD}" = "l" -o "${CMD}" = "i" ]; then
 	# and then anything else.
 	if [ -z "${LIST}" ]; then
 		LIST="lo lo[0-9]* "
-		if [ -d "${METRCICDIR}" ]; then
+		if [ -d "${METRICDIR}" ]; then
 			cd "${METRICDIR}"
 			for METRIC in *; do
 				LIST="${LIST} ${METRIC#* }"

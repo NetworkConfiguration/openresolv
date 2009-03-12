@@ -24,6 +24,7 @@
 .\"
 .Dd October 03, 2008
 .Dt RESOLVCONF 8 SMM
+.Os
 .Sh NAME
 .Nm resolvconf
 .Nd a framework for managing multiple DNS configurations

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright 2007-2008 Roy Marples
+# Copyright 2007-2009 Roy Marples
 # All rights reserved
 
 # libc subscriber for resolvconf
@@ -34,7 +34,8 @@ eval "$(resolvconf -v)"
 RESOLVCONF=/etc/resolv.conf
 PREFIX=@PREFIX@
 SYSCONFDIR=@SYSCONFDIR@
-BASE="${SYSCONFDIR}/resolv.conf.d/base"
+LIBEXECDIR=@LIBEXECDIR@
+BASE="${SYSCONFDIR}/resolv.conf.base"
 
 uniqify()
 {
@@ -86,8 +87,8 @@ NEWNS="$(uniqify ${NEWNS} ${NAMESERVERS})"
 
 # Hold our new resolv.conf in a variable to save on temporary files
 NEWCONF=""
-[ -e "${SYSCONFDIR}"/resolv.conf.d/head ] \
-	&& NEWCONF="${NEWCONF}$(cat "${SYSCONFDIR}"/resolv.conf.d/head)\n"
+[ -e "${SYSCONFDIR}"/resolv.conf.head ] \
+	&& NEWCONF="${NEWCONF}$(cat "${SYSCONFDIR}"/resolv.conf.head)\n"
 [ -n "${NEWSEARCH}" ] && NEWCONF="${NEWCONF}search ${NEWSEARCH}\n"
 for N in ${NEWNS}; do
 	NEWCONF="${NEWCONF}nameserver ${N}\n"
@@ -107,8 +108,8 @@ if [ -n "${OPTS}" ]; then
 	NEWCONF="${NEWCONF}\n"
 fi
 
-[ -e "${SYSCONFDIR}"/resolv.conf.d/tail ] \
-	&& NEWCONF="${NEWCONF}$(cat "${SYSCONFDIR}"/resolv.conf.d/tail)\n"
+[ -e "${SYSCONFDIR}"/resolv.conf.tail ] \
+	&& NEWCONF="${NEWCONF}$(cat "${SYSCONFDIR}"/resolv.conf.tail)\n"
 
 # Check if the file has actually changed or not
 if [ -e "${RESOLVCONF}" ]; then
@@ -122,7 +123,7 @@ resolvconf -s nscd restart
 retval=$?
 
 # Notify users of the resolver
-for x in "${SYSCONFDIR}"/update-libc.d/*; do
+for x in "${LIBEXECDIR}"/libc.d/*; do
 	if [ -e "${x}" ]; then
 		"${x}" "$@"
 		retval=$((${retval} + $?))

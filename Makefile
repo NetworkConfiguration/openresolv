@@ -1,8 +1,9 @@
 NAME=		openresolv
-VERSION=	2.0.1
+VERSION=	2.1
 PKG=		${NAME}-${VERSION}
 
 INSTALL?=	install
+PREFIX?=	/usr/local
 MANPREFIX?=	/usr/share
 VARBASE?=	/var
 
@@ -12,6 +13,7 @@ MANMODE?=	0444
 
 SYSCONFDIR?=	${PREFIX}/etc/resolvconf
 BINDIR=		${PREFIX}/sbin
+LIBEXECDIR?=	${PREFIX}/libexec/resolvconf
 MANDIR?=	${MANPREFIX}/man
 
 RESOLVCONF=	resolvconf resolvconf.8
@@ -25,6 +27,7 @@ all: ${TARGET}
 .in:
 	sed -e 's:@PREFIX@:${PREFIX}:g' \
 		-e 's:@SYSCONFDIR@:${SYSCONFDIR}:g' \
+		-e 's:@LIBEXECDIR@:${LIBEXECDIR}:g' \
 		-e 's:@VARBASE@:${VARBASE}:g' \
 		$@.in > $@
 
@@ -36,10 +39,10 @@ installdirs:
 install: ${TARGET}
 	${INSTALL} -d ${DESTDIR}${BINDIR}
 	${INSTALL} -m ${BINMODE} resolvconf ${DESTDIR}${BINDIR}
-	${INSTALL} -d ${DESTDIR}${SYSCONFDIR}/update.d
-	${INSTALL} -m ${BINMODE} ${SUBSCRIBERS} ${DESTDIR}${SYSCONFDIR}/update.d
-	${INSTALL} -d ${DESTDIR}${SYSCONFDIR}/resolv.conf.d
-	${INSTALL} -m ${DOCMODE} head ${DESTDIR}${SYSCONFDIR}/resolv.conf.d
+	${INSTALL} -d ${DESTDIR}${LIBEXECDIR}
+	${INSTALL} -m ${BINMODE} ${SUBSCRIBERS} ${DESTDIR}${LIBEXECDIR}
+	${INSTALL} -d ${DESTDIR}${SYSCONFDIR}
+	${INSTALL} -m ${DOCMODE} resolv.conf.head ${DESTDIR}${SYSCONFDIR}
 	${INSTALL} -d ${DESTDIR}${MANDIR}/man8
 	${INSTALL} -m ${MANMODE} resolvconf.8 ${DESTDIR}${MANDIR}/man8
 

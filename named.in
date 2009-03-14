@@ -33,7 +33,7 @@
 #include "resolvconf-zones.conf";
 
 # The last step is to configure dns configuration for /etc/resolv.conf
-#echo "nameserver 127.0.0.1" > @SYSCONFDIR@/resolv.conf.d/base
+#echo "nameserver 127.0.0.1" > @SYSCONFDIR@/resolv.conf.base
 
 # Load our variables from resolvconf
 eval "$(resolvconf -v)"

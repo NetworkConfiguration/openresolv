@@ -22,7 +22,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.Dd October 03, 2008
+.Dd March 14, 2009
 .Dt RESOLVCONF 8 SMM
 .Os
 .Sh NAME
@@ -89,7 +89,7 @@ to always configure
 .Pa /etc/resolv.conf
 with the local nameserver.
 See
-.Pa @SYSCONFDIR@/resolv.conf.d/base
+.Pa @SYSCONFDIR@/resolv.conf.base
 below on how to do this.
 .Pp
 When an interface goes down, it should then call
@@ -134,7 +134,7 @@ Force
 .Nm
 to update all it's helpers.
 .Nm
-does not update the helpers when adding a reslov.conf that matches
+does not update the helpers when adding a resolv.conf that matches
 what it already has for that interface.
 .El
 .Pp
@@ -169,21 +169,12 @@ as private.
 .El
 .Sh FILES
 .Bl -ohang
-.It Pa @VARBASE@/run/resolvconf
-Directory that holds the data for
-.Nm .
-.It Pa @SYSCONFDIR@/update.d
-Directory of the helper scripts which are run every time
-.Nm
-adds, deletes or updates.
-.It Pa @SYSCONFDIR@/update-libc.d
-Directory of helper scripts which are run after the libc helper script is run.
 .It Pa @SYSCONFDIR@/interface-order
 Determines the order in which nameserver information records are processed
 by resolvconf -l.
 .It Pa @SYSCONFDIR@/private-interfaces
 A list of interfaces who should be marked as private by default.
-.It Pa @SYSCONFDIR@/resolv.conf.d/base
+.It Pa @SYSCONFDIR@/resolv.conf.base
 Contains basic resolver information which is included in
 .Pa /etc/resolv.conf
 even when no interfaces are configured.
@@ -191,21 +182,28 @@ This is a good place to set libc to always use your local nameserver like so:
 .Bd -literal -offset indent
 nameserver 127.0.0.1
 .Ed
-.It Pa @SYSCONFDIR@/resolv.conf.d/head
+.It Pa @SYSCONFDIR@/resolv.conf.head
 File to be prepended to
 .Pa /etc/resolv.conf .
 Normally this is just a comment line.
-.It Pa @SYSCONFDIR@/resolv.conf.d/tail
+.It Pa @SYSCONFDIR@/resolv.conf.tail
 File to be appended to
 .Pa /etc/resolv.conf .
+.It Pa @VARBASE@/run/resolvconf
+Directory that holds the data for
+.Nm .
+.It Pa @LIBEXECDIR@
+Directory of the helper scripts which are run every time
+.Nm
+adds, deletes or updates.
+.It Pa @LIBEXECDIR@/libc.d
+Directory of helper scripts which are run after the libc helper script is run.
 .El
 .Sh HISTORY
 This implementation of
 .Nm
-is called openresolv and is fully command line compatible with Debians
+is called openresolv and is fully command line compatible with Debian's
 resolvconf, as written by Thomas Hood, on which openresolv is based.
-openresolv also shares a similar directory structure with the Debian version,
-but the included helpers are not compatible.
 .Pp
 The Debian version only works with bash and other GNU userland tools, whereas
 openresolv works with a POSIX shell and userland tools.
@@ -218,7 +216,7 @@ to include files that
 .Nm
 will generate.
 You should consult the comment section in the helper script
-for your resolver found in @SYSCONFDIR@/update.d for instructions
+for your resolver found in @LIBEXECDIR@ for instructions
 on this.
 .Sh SEE ALSO
 .Xr dnsmasq 8 ,

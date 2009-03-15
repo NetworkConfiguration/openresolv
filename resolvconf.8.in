@@ -185,7 +185,6 @@ nameserver 127.0.0.1
 .It Pa @SYSCONFDIR@/resolv.conf.head
 File to be prepended to
 .Pa /etc/resolv.conf .
-Normally this is just a comment line.
 .It Pa @SYSCONFDIR@/resolv.conf.tail
 File to be appended to
 .Pa /etc/resolv.conf .

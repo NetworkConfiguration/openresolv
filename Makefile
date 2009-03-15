@@ -1,5 +1,5 @@
 NAME=		openresolv
-VERSION=	2.1
+VERSION=	2.1.1
 PKG=		${NAME}-${VERSION}
 
 INSTALL?=	install
@@ -41,8 +41,6 @@ install: ${TARGET}
 	${INSTALL} -m ${BINMODE} resolvconf ${DESTDIR}${BINDIR}
 	${INSTALL} -d ${DESTDIR}${LIBEXECDIR}
 	${INSTALL} -m ${BINMODE} ${SUBSCRIBERS} ${DESTDIR}${LIBEXECDIR}
-	${INSTALL} -d ${DESTDIR}${SYSCONFDIR}
-	${INSTALL} -m ${DOCMODE} resolv.conf.head ${DESTDIR}${SYSCONFDIR}
 	${INSTALL} -d ${DESTDIR}${MANDIR}/man8
 	${INSTALL} -m ${MANMODE} resolvconf.8 ${DESTDIR}${MANDIR}/man8
 

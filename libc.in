@@ -32,7 +32,6 @@
 eval "$(resolvconf -v)"
 
 RESOLVCONF=/etc/resolv.conf
-PREFIX=@PREFIX@
 SYSCONFDIR=@SYSCONFDIR@
 LIBEXECDIR=@LIBEXECDIR@
 BASE="${SYSCONFDIR}/resolv.conf.base"

@@ -1,0 +1,90 @@
+.\" Copyright 2009 Roy Marples
+.\" All rights reserved
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.Dd March 16, 2009
+.Dt RESOLVCONF.CONF 5 SMM
+.Os
+.Sh NAME
+.Nm resolvconf.conf
+.Nd resolvconf configuration file
+.Sh DESCRIPTION
+.Nm
+is the configuration file for
+.Xr resolvconf 8 .
+.Pp
+After updaing this file, you may wish to run
+.Nm resolvconf -u
+to apply the new configuration.
+.Sh RESOLVCONF OPTIONS
+.Bl -tag -width indent
+.It Sy interface_order
+If unset, the interfaces will be processed in metric order, then
+tun, tap, vpn, ppp and ippp interfaces. The loopback interface is always
+processed first regardless.
+.El
+.Sh LIBC OPTIONS
+The following variables affect
+.Xr resolv.conf 5
+directly:-
+.Bl -tag -width indent
+.It Sy resolv_conf
+Defaults to
+.Pa /etc/resolv.conf
+if not set.
+.It Sy search_domains
+Prepend search domains to the dynamically generated list.
+.It Sy name_servers
+Prepend name servers to the dynamically generated list.
+You should set this to 127.0.0.1 if you use a local name server other than
+libc.
+.El
+.Sh SUBSCRIBER OPTIONS
+openresolv ships with subscribers for the name servers
+.Xr dnsmasq 8
+and
+.Xr named 8 .
+These subscribers take two options each which instruct openresolv where
+to write the configuration files for the name server to include.
+.Bl -tag -width indent
+.It Sy dnsmasq_conf
+Set this to the same file that the dnsmasq configuaration option
+.Sy conf-file
+points to.
+.It Sy dnsmasq_resolv
+Set this to the same file that the dnsmasq configuaration option
+.Sy resolv-file
+points to.
+.It Sy named_options
+Include this file in the named options block.
+.It Sy named_zones
+Include this file in the named global scope, after the options block.
+.El
+.Sh SEE ALSO
+.Xr resolv.conf 5 ,
+.Xr resolvconf 8 ,
+.Xr named.conf 5
+.Sh AUTHORS
+.An Roy Marples Aq roy@marples.name
+.Sh BUGS
+Please report them to http://roy.marples.name/projects/openresolv

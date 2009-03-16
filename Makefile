@@ -1,5 +1,5 @@
 NAME=		openresolv
-VERSION=	2.1.1
+VERSION=	3.0
 PKG=		${NAME}-${VERSION}
 
 INSTALL?=	install
@@ -11,12 +11,12 @@ BINMODE?=	0755
 DOCMODE?=	0644
 MANMODE?=	0444
 
-SYSCONFDIR?=	${PREFIX}/etc/resolvconf
+SYSCONFDIR?=	${PREFIX}/etc
 BINDIR=		${PREFIX}/sbin
 LIBEXECDIR?=	${PREFIX}/libexec/resolvconf
 MANDIR?=	${MANPREFIX}/man
 
-RESOLVCONF=	resolvconf resolvconf.8
+RESOLVCONF=	resolvconf resolvconf.8 resolvconf.conf.5
 SUBSCRIBERS=	libc dnsmasq named
 TARGET=		${RESOLVCONF} ${SUBSCRIBERS}
 
@@ -39,10 +39,14 @@ installdirs:
 install: ${TARGET}
 	${INSTALL} -d ${DESTDIR}${BINDIR}
 	${INSTALL} -m ${BINMODE} resolvconf ${DESTDIR}${BINDIR}
+	${INSTALL} -d ${DESTDIR}${SYSCONFDIR}
+	${INSTALL} -m ${DOCMODE} resolvconf.conf ${DESTDIR}${SYSCONFDIR}
 	${INSTALL} -d ${DESTDIR}${LIBEXECDIR}
 	${INSTALL} -m ${BINMODE} ${SUBSCRIBERS} ${DESTDIR}${LIBEXECDIR}
 	${INSTALL} -d ${DESTDIR}${MANDIR}/man8
 	${INSTALL} -m ${MANMODE} resolvconf.8 ${DESTDIR}${MANDIR}/man8
+	${INSTALL} -d ${DESTDIR}${MANDIR}/man5
+	${INSTALL} -m ${MANMODE} resolvconf.conf.5 ${DESTDIR}${MANDIR}/man5
 
 dist:
 	${INSTALL} -d /tmp/${PKG}

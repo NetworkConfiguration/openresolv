@@ -32,6 +32,20 @@ IFACEDIR="${VARDIR}/interfaces"
 METRICDIR="${VARDIR}/metrics"
 PRIVATEDIR="${VARDIR}/private"
 
+# Support original resolvconf configuration layout
+# as well as the openresolv config file
+if [ -f "${SYSCONFDIR}"/resolvconf.conf ]; then
+	. "${SYSCONFDIR}"/resolvconf.conf
+elif [ -d "${SYSCONFDIR}/resolvconf" ]; then
+	SYSCONFDIR="${SYSCONFDIR}/resolvconf"
+	if [ -f "${SYSCONFDIR}"/interface-order ]; then
+		interface_order="$(cat "${SYSCONFDIR}"/interface-order) *"
+	fi
+fi
+if [ -n "${interface_order}" ]; then
+	interface_order="lo lo[0-9]* ${interface_order} *"
+fi
+
 error_exit()
 {
 	echo "$*" >&2
@@ -142,15 +156,15 @@ parse_resolv()
 
 uniqify()
 {
-    local result=
-    while [ -n "$1" ]; do
+	local result=
+	while [ -n "$1" ]; do
 		case " ${result} " in
 		*" $1 "*);;
 		*) result="${result} $1";;
 		esac
 		shift
 	done
-    echo "${result# *}"
+	echo "${result# *}"
 }
 
 FORCE=false
@@ -182,7 +196,8 @@ if [ "${CMD}" = "s" ]; then
 		if [ -s /var/run/"${SERVICE}".pid ]; then
 			kill -0 $(cat /var/run/"${SERVICE}".pid) 2>/dev/null
 		elif [ -s /var/run/"${SERVICE}"/"${SERVICE}".pid ]; then
-			kill -0 $(cat /var/run/"${SERVICE}"/"${SERVICE}".pid) 2>/dev/null
+			kill -0 $(cat /var/run/"${SERVICE}"/"${SERVICE}".pid) \
+				2>/dev/null
 		elif [ -s /var/run/"${SERVICE}"/pid ]; then
 			kill -0 $(cat /var/run/"${SERVICE}"/pid) 2>/dev/null
 		else
@@ -195,9 +210,11 @@ if [ "${CMD}" = "s" ]; then
 		service "${SERVICE}" "${ACTION}" "$@" 
 	elif [ -x /etc/init.d/"${SERVICE}" -a -x /sbin/runscript ]; then
 		if [ "${ACTION}" = "restart" ]; then
-			/etc/init.d/"${SERVICE}" --quiet --nodeps conditionalrestart "$@"
+			/etc/init.d/"${SERVICE}" --quiet --nodeps \
+				conditionalrestart "$@"
 		else
-			/etc/init.d/"${SERVICE}" --quiet --nodeps "${ACTION}" "$@"
+			/etc/init.d/"${SERVICE}" --quiet --nodeps \
+				"${ACTION}" "$@"
 		fi
 	elif [ -x /etc/init.d/"${SERVICE}" ]; then
 		/etc/init.d/"${SERVICE}" "${ACTION}" "$@"
@@ -206,7 +223,8 @@ if [ "${CMD}" = "s" ]; then
 	elif [ -x /etc/rc.d/rc."${SERVICE}" ]; then
 		/etc/rc.d/rc."${SERVICE}" "${ACTION}" "$@"
 	else
-		error_exit "Don't know how to interact with services on this platform"
+		error_exit "Don't know how to interact with services on" \
+			"this platform"
 	fi
 	exit $?
 fi
@@ -221,8 +239,8 @@ if [ "${CMD}" = "l" -o "${CMD}" = "i" ]; then
 	if [ -n "${ARGS}" ]; then
 		LIST="${ARGS}"
 		${FORCE} || REPORT=true
-	elif [ -r "${SYSCONFDIR}"/interface-order ]; then
-		LIST="lo lo[0-9]* $(cat "${SYSCONFDIR}"/interface-order) *"
+	else
+		LIST="${interface_order}"
 	fi
 	# If we don't have a list then prefer lo, metrics, tunnels, ppp
 	# and then anything else.
@@ -234,7 +252,8 @@ if [ "${CMD}" = "l" -o "${CMD}" = "i" ]; then
 				LIST="${LIST} ${METRIC#* }"
 			done
 		fi
-		LIST="${LIST} tap[0-9]* tun[0-9]* vpn vpn[0-9]* ppp[0-9]* ippp[0-9]* *"
+		LIST="${LIST} tap[0-9]* tun[0-9]* vpn vpn[0-9]*"
+		LIST="${LIST} ppp[0-9]* ippp[0-9]* *"
 	fi
 
 	RETVAL=0
@@ -243,7 +262,8 @@ if [ "${CMD}" = "l" -o "${CMD}" = "i" ]; then
 		# Only list interfaces which we really have
 		if ! [ -e "${IFACE}" ]; then
 			if ${REPORT}; then
-				echo "No resolv.conf for interface ${IFACE}" >&2
+				echo "No resolv.conf for interface" \
+					"${IFACE}" >&2
 				RETVAL=$((${RETVAL} + 1))
 			fi
 			continue
@@ -267,7 +287,7 @@ if [ "${CMD}" = "v" ]; then
 	for D in ${DOMAINS}; do
 		DN="${D%%:*}"
 		case " ${NEWDOMAINS}" in
-			*" ${DN}:"*) continue;;
+		*" ${DN}:"*) continue;;
 		esac
 		DONE="${DONE} ${DN}"
 		NEWDOMAINS="${NEWDOMAINS}${NEWDOMAINS:+ }${DN}:"
@@ -307,7 +327,8 @@ if [ "${CMD}" = "a" ]; then
 	done
 	for x in '.' '-' '~'; do
 		case "${IFACE}" in
-		[${x}]*) error_exit "${x} not allowed at start of interface name";;
+		[${x}]*) error_exit \
+			"${x} not allowed at start of interface name";;
 		esac
 	done
 	[ "${CMD}" = "a" -a -t 0 ] && error_exit "No file given via stdin"
@@ -322,11 +343,13 @@ if [ ! -d "${IFACEDIR}" ]; then
 			# Change to /etc as link maybe relative
 			cd "${VARDIR%/*}"
 			if ! mkdir -m 0755 -p "${DIR}"; then
-				error_exit "Failed to create needed directory ${DIR}"
+				error_exit "Failed to create needed" \
+					"directory ${DIR}"
 			fi
 		else
 			if ! mkdir -m 0755 -p "${VARDIR}"; then
-				error_exit "Failed to create needed directory ${VARDIR}"
+				error_exit "Failed to create needed" \
+					"directory ${VARDIR}"
 			fi
 		fi
 	fi
@@ -339,9 +362,11 @@ else
 		for ARG in ${ARGS}; do
 			if [ "${CMD}" = "d" -a ! -e "${ARG}" ]; then
 				${FORCE} && continue
-				error_exit "No resolv.conf for interface ${ARG}"
+				error_exit "No resolv.conf for" \
+					"interface ${ARG}"
 			fi
-			rm -f "${ARG}" "${METRICDIR}/"*" ${ARG}" "${PRIVATEDIR}/${ARG}" || exit $?
+			rm -f "${ARG}" "${METRICDIR}/"*" ${ARG}" \
+				"${PRIVATEDIR}/${ARG}" || exit $?
 		done
 	fi
 fi
@@ -351,7 +376,8 @@ if [ "${CMD}" = "a" ]; then
 	RESOLV="$(cat)\n"
 	# If what we are given matches what we have, then do nothing
 	if [ -e "${IFACEDIR}/${IFACE}" ]; then
-		if [ "$(printf "${RESOLV}")" = "$(cat "${IFACEDIR}/${IFACE}")" ]
+		if [ "$(printf "${RESOLV}")" = \
+			"$(cat "${IFACEDIR}/${IFACE}")" ]
 		then
 			exit 0
 		fi
@@ -359,9 +385,7 @@ if [ "${CMD}" = "a" ]; then
 	fi
 	printf "${RESOLV}" >"${IFACEDIR}/${IFACE}" || exit $?
 	rm -f "${METRICDIR}/"*" ${IFACE}"
-	if [ ! -d "${METRICDIR}" ]; then
-		mkdir "${METRICDIR}"
-	fi
+	[ ! -d "${METRICDIR}" ] && mkdir "${METRICDIR}"
 	rm -f "${METRICDIR}/"*" ${IFACE}"
 	# Pad metric to 6 characters, so 5 is less than 10
 	# All interfaces will get a default metric of 0
@@ -378,17 +402,17 @@ if [ "${CMD}" = "a" ]; then
 		[ -d "${PRIVATEDIR}" ] && echo " " >"${PRIVATEDIR}/${IFACE}"
 		;;
 	*)
-		[ -e "${PRIVATEDIR}/${IFACE}" ] && rm -f "${PRIVATEDIR}/${IFACE}"
+		if [ -e "${PRIVATEDIR}/${IFACE}" ]; then
+			rm -f "${PRIVATEDIR}/${IFACE}"
+		fi
 		;;
 	esac
 fi
 
 RETVAL=0
 for SCRIPT in "${LIBEXECDIR}"/*; do
-	if [ -e "${SCRIPT}" ]; then
-		"${SCRIPT}" "${CMD}" "${IFACE}"
-		RETVAL=$((${RETVAL} + $?))
-	fi
+	[ -f "${SCRIPT}" -a -x "${SCRIPT}" ] || continue
+	RESOLVCONF="${ARGV0}" "${SCRIPT}" "${CMD}" "${IFACE}"
+	RETVAL=$((${RETVAL} + $?))
 done
-
 exit ${RETVAL}

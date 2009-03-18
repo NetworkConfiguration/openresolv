@@ -22,7 +22,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.Dd March 16, 2009
+.Dd March 18, 2009
 .Dt RESOLVCONF.CONF 5 SMM
 .Os
 .Sh NAME
@@ -39,9 +39,13 @@ to apply the new configuration.
 .Sh RESOLVCONF OPTIONS
 .Bl -tag -width indent
 .It Sy interface_order
-If unset, the interfaces will be processed in metric order, then
-tun, tap, vpn, ppp and ippp interfaces. The loopback interface is always
-processed first regardless.
+These interfaces will always be processed first.
+If unset, defaults to the following:-
+.D1 lo lo[0-9]*
+.It Sy dynamic_order
+These interfaces will be processed next, unless they have a metric.
+If unset, defaults to the following:-
+.D1 tap[0-9]* tun[0-9]* vpn vpn[0-9]* ppp[0-9]* ippp[0-9]*
 .El
 .Sh LIBC OPTIONS
 The following variables affect

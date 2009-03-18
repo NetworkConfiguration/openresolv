@@ -39,12 +39,11 @@ if [ -f "${SYSCONFDIR}"/resolvconf.conf ]; then
 elif [ -d "${SYSCONFDIR}/resolvconf" ]; then
 	SYSCONFDIR="${SYSCONFDIR}/resolvconf"
 	if [ -f "${SYSCONFDIR}"/interface-order ]; then
-		interface_order="$(cat "${SYSCONFDIR}"/interface-order) *"
+		interface_order="$(cat "${SYSCONFDIR}"/interface-order)"
 	fi
 fi
-if [ -n "${interface_order}" ]; then
-	interface_order="lo lo[0-9]* ${interface_order} *"
-fi
+dynamic_order="${dynamic_order:-tap[0-9]* tun[0-9]* vpn vpn[0-9]* ppp[0-9]* ippp[0-9]*}"
+interface_order="${interface_order:-lo lo[0-9]*}"
 
 error_exit()
 {
@@ -240,20 +239,23 @@ if [ "${CMD}" = "l" -o "${CMD}" = "i" ]; then
 		LIST="${ARGS}"
 		${FORCE} || REPORT=true
 	else
-		LIST="${interface_order}"
-	fi
-	# If we don't have a list then prefer lo, metrics, tunnels, ppp
-	# and then anything else.
-	if [ -z "${LIST}" ]; then
-		LIST="lo lo[0-9]* "
+		cd "${IFACEDIR}"
+		for LST in ${interface_order}; do
+			[ -e "${LST}" ] && LIST="${LIST} ${LST}"
+		done
+		for DYN in ${dynamic_order}; do
+			if [ -e "${DYN}" -a ! -e "${METRICDIR}/"*" ${DYN}" ]
+			then
+				LIST="${LIST} ${DYN}"
+			fi
+		done
 		if [ -d "${METRICDIR}" ]; then
 			cd "${METRICDIR}"
 			for METRIC in *; do
 				LIST="${LIST} ${METRIC#* }"
 			done
 		fi
-		LIST="${LIST} tap[0-9]* tun[0-9]* vpn vpn[0-9]*"
-		LIST="${LIST} ppp[0-9]* ippp[0-9]* *"
+		LIST="${LIST} *"
 	fi
 
 	RETVAL=0
@@ -384,15 +386,15 @@ if [ "${CMD}" = "a" ]; then
 		rm "${IFACEDIR}/${IFACE}"
 	fi
 	printf "${RESOLV}" >"${IFACEDIR}/${IFACE}" || exit $?
-	rm -f "${METRICDIR}/"*" ${IFACE}"
 	[ ! -d "${METRICDIR}" ] && mkdir "${METRICDIR}"
 	rm -f "${METRICDIR}/"*" ${IFACE}"
-	# Pad metric to 6 characters, so 5 is less than 10
-	# All interfaces will get a default metric of 0
-	while [ ${#IF_METRIC} -le 6 ]; do
-		IF_METRIC="0${IF_METRIC}"
-	done
-	echo " " >"${METRICDIR}/${IF_METRIC} ${IFACE}"
+	if [ -n "${IF_METRIC}" ]; then
+		# Pad metric to 6 characters, so 5 is less than 10
+		while [ ${#IF_METRIC} -le 6 ]; do
+			IF_METRIC="0${IF_METRIC}"
+		done
+		echo " " >"${METRICDIR}/${IF_METRIC} ${IFACE}"
+	fi
 	case "${IF_PRIVATE}" in
 	[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1)
 		if [ ! -d "${PRIVATEDIR}" ]; then

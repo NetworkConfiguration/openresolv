@@ -99,8 +99,8 @@ echo_resolv()
 # for domain name servers, search name servers and global nameservers
 parse_resolv()
 {
-	local line= ns= domains= search= d= n= newns=
-	local new=true iface=
+	local line= ns= ds= search= d= n= newns=
+	local new=true iface= private=false
 
 	echo "DOMAINS="
 	echo "SEARCH="
@@ -112,6 +112,18 @@ parse_resolv()
 			if ${new}; then
 				iface="${line#\# resolv.conf from *}"
 				new=false
+				case " ${private_interfaces} " in
+				*" ${iface} "*)
+					private=true
+					;;
+				*)
+					if [ -e "${PRIVATEDIR}/${iface}" ]; then
+						private=true
+					else
+						private=false
+					fi
+					;;
+				esac
 			fi
 			;;
 		"nameserver "*)
@@ -124,26 +136,25 @@ parse_resolv()
 			search="${line#* }"
 			;;
 		*)
-			if [ -z "${line}" ]; then
-				if [ -n "${ns}" -a -n "${search}" ]; then
-					newns=
-					for n in ${ns}; do
-						newns="${newns}${newns:+,}${n}"
-					done
-					domains=
-					for d in ${search}; do
-						domains="${domains}${domains:+ }${d}:${newns}"
-					done
-					echo "DOMAINS=\"\${DOMAINS} ${domains}\""
-				fi
-				echo "SEARCH=\"\${SEARCH} ${search}\""
-				if [ ! -e "${PRIVATEDIR}/${iface}" ]; then
-					echo "NAMESERVERS=\"\${NAMESERVERS} ${ns}\""
-				fi
-				ns=
-				search=
-				new=true
+			[ -n "${line}" ] && continue
+			if [ -n "${ns}" -a -n "${search}" ]; then
+				newns=
+				for n in ${ns}; do
+					newns="${newns}${newns:+,}${n}"
+				done
+				ds=
+				for d in ${search}; do
+					ds="${ds}${ds:+ }${d}:${newns}"
+				done
+				echo "DOMAINS=\"\${DOMAINS} ${ds}\""
 			fi
+			echo "SEARCH=\"\${SEARCH} ${search}\""
+			if ! ${private}; then
+				echo "NAMESERVERS=\"\${NAMESERVERS} ${ns}\""
+			fi
+			ns=
+			search=
+			new=true
 			;;
 		esac
 	done

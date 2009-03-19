@@ -60,21 +60,15 @@ done
 # No point in changing files or reloading bind if the end result has not
 # changed
 changed=false
-if [ -f "${named_options}" ]; then 
-	if [ "$(cat "${named_options}")" != "$(printf "${newoptions}")" ]; then
-		printf "${newoptions}" > "${named_options}"
-		changed=true
-	fi
-else
+if [ ! -f "${named_options}" ] || \
+	[ "$(cat "${named_options}")" != "$(printf "${newoptions}")" ]
+then
 	printf "${newoptions}" > "${named_options}"
 	changed=true
 fi
-if [ -f "${named_zones}" ]; then
-	if [ "$(cat "${named_zones}")" != "$(printf "${newzones}")" ]; then
-		printf "${newzones}" > "${named_zones}"
-		changed=true
-	fi
-else
+if [ ! -f "${named_zones}" ] || \
+	[ "$(cat "${named_zones}")" != "$(printf "${newzones}")" ]
+then
 	printf "${newzones}" > "${named_zones}"
 	changed=true
 fi

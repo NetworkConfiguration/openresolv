@@ -95,12 +95,9 @@ for d in ${DOMAINS}; do
 done
 
 changed=false
-if [ -f "${dnsmasq_conf}" ]; then
-	if [ "$(cat "${dnsmasq_conf}")" != "$(printf "${newconf}")" ]; then
-		changes=true
-		printf "${newconf}" > "${dnsmasq_conf}"
-	fi
-else
+if [ ! -f "${dnsmasq_conf}" ] || \
+	[ "$(cat "${dnsmasq_conf}")" != "$(printf "${newconf}")" ]
+then
 	changed=true
 	printf "${newconf}" > "${dnsmasq_conf}"
 fi

@@ -128,7 +128,7 @@ parse_resolv()
 			;;
 		"nameserver "*)
 			case "${line#* }" in
-			127.*) continue;;
+			127.*|0.0.0.0) continue;;
 			esac
 			ns="${ns}${line#* } "
 			;;

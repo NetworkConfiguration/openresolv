@@ -190,7 +190,7 @@ Directory of subscribers which are run every time
 adds, deletes or updates.
 .It Pa @LIBEXECDIR@/libc.d
 Directory of subscribers which are run after the libc subscriber is run.
-.It Pa @VARBASE@/run/resolvconf
+.It Pa @VARDIR@
 State directory for
 .Nm .
 .El

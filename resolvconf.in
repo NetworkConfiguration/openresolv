@@ -27,7 +27,7 @@
 ARGV0="$0"
 SYSCONFDIR=@SYSCONFDIR@
 LIBEXECDIR=@LIBEXECDIR@
-VARDIR=@VARBASE@/run/resolvconf
+VARDIR=@VARDIR@
 IFACEDIR="${VARDIR}/interfaces"
 METRICDIR="${VARDIR}/metrics"
 PRIVATEDIR="${VARDIR}/private"
@@ -344,7 +344,6 @@ if [ "${cmd}" = "a" ]; then
 	[ "${cmd}" = "a" -a -t 0 ] && error_exit "No file given via stdin"
 fi
 
-# Ensure that libdir exists
 if [ ! -d "${IFACEDIR}" ]; then
 	if [ ! -d "${VARDIR}" ]; then
 		if [ -L "${VARDIR}" ]; then

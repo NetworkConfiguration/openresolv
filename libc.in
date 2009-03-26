@@ -29,8 +29,8 @@
 RESOLVCONF="${RESOLVCONF:-resolvconf}"
 SYSCONFDIR=@SYSCONFDIR@
 LIBEXECDIR=@LIBEXECDIR@
-VARBASE=@VARBASE@
-IFACEDIR="${VARBASE}/run/resolvconf/interfaces"
+VARDIR=@VARDIR@
+IFACEDIR="${VARDIR}/interfaces"
 
 # sed may not be available, and this is faster on small files
 key_get_value()
@@ -86,10 +86,10 @@ uniqify()
 		case " ${result} " in
 		*" $1 "*);;
 		*) result="${result} $1";;
-esac
-shift
-done
-echo "${result# *}"
+		esac
+		shift
+	done
+	echo "${result# *}"
 }
 
 case "${resolv_conf_passthrough:-NO}" in

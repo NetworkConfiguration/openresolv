@@ -14,6 +14,7 @@ MANMODE?=	0444
 SYSCONFDIR?=	${PREFIX}/etc
 BINDIR=		${PREFIX}/sbin
 LIBEXECDIR?=	${PREFIX}/libexec/resolvconf
+VARDIR?=	${VARBASE}/run/resolvconf
 MANDIR?=	${MANPREFIX}/man
 
 RESOLVCONF=	resolvconf resolvconf.8 resolvconf.conf.5
@@ -28,7 +29,7 @@ all: ${TARGET}
 	sed -e 's:@PREFIX@:${PREFIX}:g' \
 		-e 's:@SYSCONFDIR@:${SYSCONFDIR}:g' \
 		-e 's:@LIBEXECDIR@:${LIBEXECDIR}:g' \
-		-e 's:@VARBASE@:${VARBASE}:g' \
+		-e 's:@VARDIR@:${VARDIR}:g' \
 		$@.in > $@
 
 clean:

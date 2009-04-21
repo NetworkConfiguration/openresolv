@@ -120,7 +120,11 @@ case "${resolv_conf_passthrough:-NO}" in
 
 	# Now get any configured options
 	opts="$resolv_conf_options${resolv_conf_options:+ }"
-	opts="$opts$($RESOLVCONF -l | key_get_value "options ")"
+	if [ "$(command -v list_resolv)" = list_resolv ]; then
+		opts="$opts$(list_resolv -l | key_get_value "options ")"
+	else
+		opts="$opts$($RESOLVCONF -l | key_get_value "options ")"
+	fi
 	if [ -n "$opts" ]; then
 		newconf="${newconf}options"
 		for opt in $(uniqify $opts); do

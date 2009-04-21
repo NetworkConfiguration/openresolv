@@ -54,5 +54,9 @@ if [ ! -f "$pdns_zones" ] || \
 	[ "$(cat "$pdns_zones")" != "$(printf "$newzones")" ]
 then
 	printf "$newzones" >"$pdns_zones"
-	$RESOLVCONF -s pdns_recursor restart
+	if [ "$(command -v service)" = service ]; then
+		service pdns_recursor restart
+	else
+		$RESOLVCONF -s pdns_recursor restart
+	fi
 fi

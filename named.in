@@ -74,5 +74,11 @@ then
 	changed=true
 fi
 
-$changed && $RESOLVCONF -s named restart
+if $changed; then
+	if [ "$(command -v service)" = service ]; then
+		service named restart
+	else
+		$RESOLVCONF -s named restart
+	fi
+fi
 exit 0

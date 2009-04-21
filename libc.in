@@ -146,8 +146,11 @@ fi
 
 # Create our resolv.conf now
 (umask 022; printf "$newconf" >"$resolv_conf")
-
-$RESOLVCONF -s nscd restart
+if [ "$(command -v service)" = service ]; then
+	service nscd restart
+else
+	$RESOLVCONF -s nscd restart
+fi
 
 retval=0
 # Notify users of the resolver

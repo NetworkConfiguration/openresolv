@@ -107,7 +107,13 @@ else
 	printf "$newresolv" >"$dnsmasq_resolv"
 fi
 
-$changed && $RESOLVCONF -s dnsmasq restart
+if $changed; then
+	if [ "$(command -v service)" = service ]; then
+		service dnsmasq restart
+	else
+		$RESOLVCONF -s dnsmasq restart
+	fi
+fi
 if $dbus; then
 	$restart || kill -HUP $(cat "$dnsmasqpid")
 	# Send even if empty so old servers are cleared

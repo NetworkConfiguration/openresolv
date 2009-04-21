@@ -148,8 +148,8 @@ fi
 (umask 022; printf "$newconf" >"$resolv_conf")
 
 $RESOLVCONF -s nscd restart
-retval=$?
 
+retval=0
 # Notify users of the resolver
 for script in "$LIBEXECDIR"/libc.d/*; do
 	if [ -f "$script" -a -x "$script" ]; then

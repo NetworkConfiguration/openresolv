@@ -258,29 +258,14 @@ make_vars()
 	echo "NAMESERVERS='$(uniqify $NAMESERVERS)'"
 }
 
-force=false
-while getopts a:d:fhilm:ps:uv OPT; do
-	case "$OPT" in
-	f) force=true;;
-	h) usage;;
-	m) IF_METRIC="$OPTARG";;
-	p) IF_PRIVATE=1;;
-	s) cmd=s; service="$OPTARG";;
-	'?') ;;
-	*) cmd="$OPT"; iface="$OPTARG";;
-	esac
-done
-shift $(($OPTIND - 1))
-args="$iface${iface:+ }$@"
-
 # We do our service restarting here so that our subscribers don't have to know
 # about the OS's init system.
-if [ "$cmd" = "s" ]; then
-	if [ -n "$1" ]; then
-		action="$1"
-		shift
-	fi
+service()
+{
+	local service="$1" action="$2"
+
 	[ -z "$action" ] && usage "Action not specified"
+	shift; shift
 
 	# If restarting check if service is running or not if we can
 	if [ "$action" = restart ]; then
@@ -317,6 +302,25 @@ if [ "$cmd" = "s" ]; then
 		error_exit "Don't know how to interact with services on" \
 			"this platform"
 	fi
+}
+
+force=false
+while getopts a:d:fhilm:ps:uv OPT; do
+	case "$OPT" in
+	f) force=true;;
+	h) usage;;
+	m) IF_METRIC="$OPTARG";;
+	p) IF_PRIVATE=1;;
+	s) cmd=s; service="$OPTARG";;
+	'?') ;;
+	*) cmd="$OPT"; iface="$OPTARG";;
+	esac
+done
+shift $(($OPTIND - 1))
+args="$iface${iface:+ }$@"
+
+if [ "$cmd" = s ]; then
+	service "$service" "$@"
 	exit $?
 fi
 

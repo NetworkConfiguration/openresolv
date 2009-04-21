@@ -50,12 +50,9 @@ for d in $DOMAINS; do
 	[ -n "$newns" ] && newzones="$newzones${d%%:*}=$newns\n"
 done
 
-changed=false
 if [ ! -f "$pdns_zones" ] || \
 	[ "$(cat "$pdns_zones")" != "$(printf "$newzones")" ]
 then
-	changed=true
 	printf "$newzones" >"$pdns_zones"
+	$RESOLVCONF -s pdns_recursor restart
 fi
-
-$changed && $RESOLVCONF -s pdns_recursor restart

@@ -30,7 +30,7 @@
 . "@SYSCONFDIR@/resolvconf.conf" || exit 1
 [ -z "$pdns_zones" ] && exit 0
 : ${RESOLVCONF:=resolvconf}
-eval "$("$RESOLVCONF" -v)"
+[ -z "$NAMESERVERS" -a -z "$DOMAINS" ] && eval "$("$RESOLVCONF" -v)"
 
 newzones=
 for n in $NAMESERVERS; do

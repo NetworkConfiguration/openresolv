@@ -104,7 +104,7 @@ case "${resolv_conf_passthrough:-NO}" in
 	newconf="$(cat "$newest")\n"
 	;;
 *)
-	eval "$($RESOLVCONF -v)"
+	[ -z "$NAMESERVERS" -a -z "$SEARCH" ] && eval "$("$RESOLVCONF" -v)"
 	newsearch="$(uniqify $search_domains $SEARCH)"
 	newns="$(uniqify $name_servers $NAMESERVERS)"
 

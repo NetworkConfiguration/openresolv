@@ -416,6 +416,8 @@ if [ "$cmd" = a ]; then
 	esac
 fi
 
+eval "$($ARGV0 -v)"
+export DOMAINS SEARCH NAMESERVERS
 retval=0
 for script in "$LIBEXECDIR"/*; do
 	[ -f "$script" -a -x "$script" ] || continue

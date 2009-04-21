@@ -65,7 +65,7 @@ changed=false
 if [ ! -f "$named_options" ] || \
 	[ "$(cat "$named_options")" != "$(printf "$newoptions")" ]
 then
-	printf "$newoptions" > "$named_options"
+	printf "$newoptions" >"$named_options"
 	changed=true
 fi
 if [ ! -f "$named_zones" ] || \

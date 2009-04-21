@@ -73,7 +73,6 @@ usage()
                    pattern
 	  -v [\$PATTERN]    echo NEWDOMAIN, NEWSEARCH and NEWNS variables to
 	  		   the console
-	  -s \$SVC \$CMD     Do \$CMD for the system service \$SVC
 	  -h               Show this help cruft
 	EOF
 	[ -z "$1" ] && exit 0
@@ -258,60 +257,13 @@ make_vars()
 	echo "NAMESERVERS='$(uniqify $NAMESERVERS)'"
 }
 
-# We do our service restarting here so that our subscribers don't have to know
-# about the OS's init system.
-service()
-{
-	local service="$1" action="$2"
-
-	[ -z "$action" ] && usage "Action not specified"
-	shift; shift
-
-	# If restarting check if service is running or not if we can
-	if [ "$action" = restart ]; then
-		if [ -s /var/run/"$service".pid ]; then
-			kill -0 $(cat /var/run/"$service".pid) 2>/dev/null
-		elif [ -s /var/run/"$service"/"$service".pid ]; then
-			kill -0 $(cat /var/run/"$service"/"$service".pid) \
-				2>/dev/null
-		elif [ -s /var/run/"$service"/pid ]; then
-			kill -0 $(cat /var/run/"$service"/pid) 2>/dev/null
-		else
-			false
-		fi
-		# Service not running, so don't restart
-		[ $? != 0 ] && exit 0
-	fi	
-	if [ -x /sbin/service ]; then
-		service "$service" "$action" "$@" 
-	elif [ -x /etc/init.d/"$service" -a -x /sbin/runscript ]; then
-		if [ "$action" = "restart" ]; then
-			/etc/init.d/"$service" --quiet --nodeps \
-				conditionalrestart "$@"
-		else
-			/etc/init.d/"$service" --quiet --nodeps \
-				"$action" "$@"
-		fi
-	elif [ -x /etc/init.d/"$service" ]; then
-		/etc/init.d/"$service" "$action" "$@"
-	elif [ -x /etc/rc.d/"${service}" ]; then
-		/etc/rc.d/"$service" "$action" "$@" 
-	elif [ -x /etc/rc.d/rc."$service" ]; then
-		/etc/rc.d/rc."$service" "$action" "$@"
-	else
-		error_exit "Don't know how to interact with services on" \
-			"this platform"
-	fi
-}
-
 force=false
-while getopts a:d:fhilm:ps:uv OPT; do
+while getopts a:d:fhilm:puv OPT; do
 	case "$OPT" in
 	f) force=true;;
 	h) usage;;
 	m) IF_METRIC="$OPTARG";;
 	p) IF_PRIVATE=1;;
-	s) cmd=s; service="$OPTARG";;
 	'?') ;;
 	*) cmd="$OPT"; iface="$OPTARG";;
 	esac
@@ -319,17 +271,13 @@ done
 shift $(($OPTIND - 1))
 args="$iface${iface:+ }$@"
 
-if [ "$cmd" = s ]; then
-	service "$service" "$@"
-	exit $?
-fi
-
 # -l lists our resolv files, optionally for a specific interface
 if [ "$cmd" = l -o "$cmd" = i ]; then
 	list_resolv "$cmd" "$args"
 	exit $?
 fi
 
+# Not normally needed, but subscribers should be able to run independently
 if [ "$cmd" = v ]; then
 	make_vars "$iface"
 	exit $?
@@ -433,6 +381,7 @@ if [ "$cmd" = a ]; then
 fi
 
 eval "$(make_vars)"
+: ${list_resolv:=list_resolv -l}
 retval=0
 for script in "$LIBEXECDIR"/*; do
 	[ -f "$script" ] || continue

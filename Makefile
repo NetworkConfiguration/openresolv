@@ -3,6 +3,7 @@ VERSION=	3.2
 PKG=		${NAME}-${VERSION}
 
 INSTALL?=	install
+SED?=		sed
 PREFIX?=	/usr/local
 MANPREFIX?=	/usr/share
 VARBASE?=	/var
@@ -21,15 +22,26 @@ RESOLVCONF=	resolvconf resolvconf.8 resolvconf.conf.5
 SUBSCRIBERS=	libc dnsmasq named pdns_recursor
 TARGET=		${RESOLVCONF} ${SUBSCRIBERS}
 
+_CMD_SH=	if [ -x /sbin/rc-service ]; then \
+			echo '/sbin/rc-service \\1 -- --ifstarted restart'; \
+		elif [ -d /etc/rc.d ]; then \
+			echo '/etc/rc.d/\\1 status && /etc/rc.d/\\1 restart'; \
+		elif [ -d /etc/init.d ]; then \
+			echo '/etc/init.d/\\1 status && /etc/rc.d/\\1 restart'; \
+		fi
+_CMD!=		${_CMD_SH}
+RESTARTCMD?=	${_CMD}$(shell ${_CMD_SH})
+
 .SUFFIXES: .in
 
 all: ${TARGET}
 
 .in:
-	sed -e 's:@PREFIX@:${PREFIX}:g' \
+	${SED} -e 's:@PREFIX@:${PREFIX}:g' \
 		-e 's:@SYSCONFDIR@:${SYSCONFDIR}:g' \
 		-e 's:@LIBEXECDIR@:${LIBEXECDIR}:g' \
 		-e 's:@VARDIR@:${VARDIR}:g' \
+		-e 's:@RESTARTCMD \(.*\)@:${RESTARTCMD}:g' \
 		$@.in > $@
 
 clean:

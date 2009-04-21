@@ -29,16 +29,20 @@
 [ -f "@SYSCONFDIR@"/resolvconf.conf ] || exit 0
 . "@SYSCONFDIR@/resolvconf.conf" || exit 1
 [ -z "$pdns_zones" ] && exit 0
-: ${RESOLVCONF:=resolvconf}
-[ -z "$NAMESERVERS" -a -z "$DOMAINS" ] && eval "$("$RESOLVCONF" -v)"
+[ -z "$RESOLVCONF" ] && eval "$(@PREFIX@/sbin/resolvconf -v)"
+
+: ${pdns_restart:=@RESTARTCMD pdns_recursor@}
 
 newzones=
-for n in $NAMESERVERS; do
-	newzones="$newzones${newzones:+,}$n"
-done
-[ -n "$newzones" ] && newzones=".=$newzones\n"
 
-dbusdest=
+# pds_recursor does not present support global forward servers, which
+# does limit it's usefulness somewhat.
+# If it did, the below code can be enabled, or something like it.
+#for n in $NAMESERVERS; do
+#	newzones="$newzones${newzones:+,}$n"
+#done
+#[ -n "$newzones" ] && newzones=".=$newzones\n"
+
 for d in $DOMAINS; do
 	newns=
 	ns="${d#*:}"
@@ -54,9 +58,5 @@ if [ ! -f "$pdns_zones" ] || \
 	[ "$(cat "$pdns_zones")" != "$(printf "$newzones")" ]
 then
 	printf "$newzones" >"$pdns_zones"
-	if [ "$(command -v service)" = service ]; then
-		service pdns_recursor restart
-	else
-		$RESOLVCONF -s pdns_recursor restart
-	fi
+	$pdns_restart
 fi

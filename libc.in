@@ -26,11 +26,10 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-: ${RESOLVCONF:=resolvconf}
 SYSCONFDIR=@SYSCONFDIR@
 LIBEXECDIR=@LIBEXECDIR@
 VARDIR=@VARDIR@
-IFACEDIR="${VARDIR}/interfaces"
+IFACEDIR="$VARDIR/interfaces"
 
 # sed may not be available, and this is faster on small files
 key_get_value()
@@ -78,6 +77,8 @@ elif [ -d "$SYSCONFDIR"/resolvconf ]; then
 	fi
 fi
 : ${resolv_conf:=/etc/resolv.conf}
+: ${libc_restart:=@RESTARTCMD nscd@}
+: ${list_resolv:=@PREFIX@/sbin/resolvconf -l}
 
 uniqify()
 {
@@ -104,7 +105,7 @@ case "${resolv_conf_passthrough:-NO}" in
 	newconf="$(cat "$newest")\n"
 	;;
 *)
-	[ -z "$NAMESERVERS" -a -z "$SEARCH" ] && eval "$("$RESOLVCONF" -v)"
+	[ -z "$RESOLVCONF" ] && eval "$(@PREFIX@/sbin/resolvconf -v)"
 	newsearch="$(uniqify $search_domains $SEARCH)"
 	newns="$(uniqify $name_servers $NAMESERVERS)"
 
@@ -120,11 +121,7 @@ case "${resolv_conf_passthrough:-NO}" in
 
 	# Now get any configured options
 	opts="$resolv_conf_options${resolv_conf_options:+ }"
-	if [ "$(command -v list_resolv)" = list_resolv ]; then
-		opts="$opts$(list_resolv -l | key_get_value "options ")"
-	else
-		opts="$opts$($RESOLVCONF -l | key_get_value "options ")"
-	fi
+	opts="$opts$($list_resolv | key_get_value "options ")"
 	if [ -n "$opts" ]; then
 		newconf="${newconf}options"
 		for opt in $(uniqify $opts); do
@@ -133,7 +130,7 @@ case "${resolv_conf_passthrough:-NO}" in
 		newconf="$newconf\n"
 	fi
 
-	if [ -n "resolv_conf_tail" ]; then
+	if [ -n "$resolv_conf_tail" ]; then
 		newconf="$newconf$resolv_conf_tail\n"
 	fi
 	;;
@@ -146,17 +143,13 @@ fi
 
 # Create our resolv.conf now
 (umask 022; printf "$newconf" >"$resolv_conf")
-if [ "$(command -v service)" = service ]; then
-	service nscd restart
-else
-	$RESOLVCONF -s nscd restart
-fi
+$libc_restart
 
 retval=0
 # Notify users of the resolver
 for script in "$LIBEXECDIR"/libc.d/*; do
 	if [ -f "$script" -a -x "$script" ]; then
-		RESOLVCONF="$RESOLVCONF" "$script" "$@"
+		"$script" "$@"
 		retval=$(($retval + $?))
 	fi
 done

@@ -22,7 +22,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.Dd March 18, 2009
+.Dd April 21, 2009
 .Dt RESOLVCONF 8 SMM
 .Os
 .Sh NAME
@@ -138,15 +138,6 @@ what it already has for that interface.
 .Nm
 also has some options designed to be used by it's subscribers:-
 .Bl -tag -width indent
-.It Fl s Ar service Ar command ...
-Try and send the
-.Ar command
-to the system
-.Ar service .
-Normally this is something like
-.Ar resolvconf -s named restart .
-We have this command, so the subscribers don't have to know too much about the
-operating system on the host.
 .It Fl v
 Echo variables DOMAINS, SEARCH and NAMESERVERS so that the subscriber can
 configure the resolver easily.
@@ -214,6 +205,7 @@ for instructions on how to configure your resolver.
 .Xr dnsmasq 8 ,
 .Xr named 8 ,
 .Xr resolv.conf 5 ,
+.Xr resolvconf.conf 5 ,
 .Xr resolver 3 ,
 .Xr stdin 3
 .Sh AUTHORS

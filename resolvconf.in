@@ -28,22 +28,22 @@ ARGV0="$0"
 SYSCONFDIR=@SYSCONFDIR@
 LIBEXECDIR=@LIBEXECDIR@
 VARDIR=@VARDIR@
-IFACEDIR="${VARDIR}/interfaces"
-METRICDIR="${VARDIR}/metrics"
-PRIVATEDIR="${VARDIR}/private"
+IFACEDIR="$VARDIR/interfaces"
+METRICDIR="$VARDIR/metrics"
+PRIVATEDIR="$VARDIR/private"
 
 # Support original resolvconf configuration layout
 # as well as the openresolv config file
-if [ -f "${SYSCONFDIR}"/resolvconf.conf ]; then
-	. "${SYSCONFDIR}"/resolvconf.conf
-elif [ -d "${SYSCONFDIR}/resolvconf" ]; then
-	SYSCONFDIR="${SYSCONFDIR}/resolvconf"
-	if [ -f "${SYSCONFDIR}"/interface-order ]; then
+if [ -f "$SYSCONFDIR"/resolvconf.conf ]; then
+	. "$SYSCONFDIR"/resolvconf.conf
+elif [ -d "$SYSCONFDIR/resolvconf" ]; then
+	SYSCONFDIR="$SYSCONFDIR/resolvconf"
+	if [ -f "$SYSCONFDIR"/interface-order ]; then
 		interface_order="$(cat "${SYSCONFDIR}"/interface-order)"
 	fi
 fi
-dynamic_order="${dynamic_order:-tap[0-9]* tun[0-9]* vpn vpn[0-9]* ppp[0-9]* ippp[0-9]*}"
-interface_order="${interface_order:-lo lo[0-9]*}"
+: ${dynamic_order:=tap[0-9]* tun[0-9]* vpn vpn[0-9]* ppp[0-9]* ippp[0-9]*}
+: ${interface_order:=lo lo[0-9]*}
 
 error_exit()
 {
@@ -84,14 +84,14 @@ usage()
 echo_resolv()
 {
 	local line=
-	[ -n "$1" -a -e "${IFACEDIR}/$1" ] || return 1
+	[ -n "$1" -a -e "$IFACEDIR/$1" ] || return 1
 	echo "# resolv.conf from $1"
 	# Our variable maker works of the fact each resolv.conf per interface
 	# is separated by blank lines.
 	# So we remove them when echoing them.
 	while read line; do
-		[ -n "${line}" ] && echo "${line}"
-	done < "${IFACEDIR}/$1"
+		[ -n "$line" ] && echo "$line"
+	done < "$IFACEDIR/$1"
 	echo
 }
 
@@ -107,17 +107,17 @@ parse_resolv()
 	echo "NAMESERVERS="
 
 	while read line; do
-		case "${line}" in
+		case "$line" in
 		"# resolv.conf from "*)
 			if ${new}; then
 				iface="${line#\# resolv.conf from *}"
 				new=false
-				case " ${private_interfaces} " in
-				*" ${iface} "*)
+				case " $private_interfaces " in
+				*" $iface "*)
 					private=true
 					;;
 				*)
-					if [ -e "${PRIVATEDIR}/${iface}" ]; then
+					if [ -e "$PRIVATEDIR/$iface" ]; then
 						private=true
 					else
 						private=false
@@ -130,27 +130,27 @@ parse_resolv()
 			case "${line#* }" in
 			127.*|0.0.0.0|255.255.255.255) continue;;
 			esac
-			ns="${ns}${line#* } "
+			ns="$ns${line#* } "
 			;;
 		"domain "*|"search "*)
 			search="${line#* }"
 			;;
 		*)
-			[ -n "${line}" ] && continue
-			if [ -n "${ns}" -a -n "${search}" ]; then
+			[ -n "$line" ] && continue
+			if [ -n "$ns" -a -n "$search" ]; then
 				newns=
-				for n in ${ns}; do
-					newns="${newns}${newns:+,}${n}"
+				for n in $ns; do
+					newns="$newns${newns:+,}$n"
 				done
 				ds=
-				for d in ${search}; do
-					ds="${ds}${ds:+ }${d}:${newns}"
+				for d in $search; do
+					ds="$ds${ds:+ }$d:$newns"
 				done
-				echo "DOMAINS=\"\${DOMAINS} ${ds}\""
+				echo "DOMAINS=\"\$DOMAINS $ds\""
 			fi
-			echo "SEARCH=\"\${SEARCH} ${search}\""
-			if ! ${private}; then
-				echo "NAMESERVERS=\"\${NAMESERVERS} ${ns}\""
+			echo "SEARCH=\"\$SEARCH $search\""
+			if ! $private; then
+				echo "NAMESERVERS=\"\$NAMESERVERS $ns\""
 			fi
 			ns=
 			search=
@@ -164,9 +164,9 @@ uniqify()
 {
 	local result=
 	while [ -n "$1" ]; do
-		case " ${result} " in
+		case " $result " in
 		*" $1 "*);;
-		*) result="${result} $1";;
+		*) result="$result $1";;
 		esac
 		shift
 	done
@@ -175,37 +175,37 @@ uniqify()
 
 force=false
 while getopts a:d:fhilm:ps:uv OPT; do
-	case "${OPT}" in
+	case "$OPT" in
 	f) force=true;;
 	h) usage;;
-	m) IF_METRIC="${OPTARG}";;
+	m) IF_METRIC="$OPTARG";;
 	p) IF_PRIVATE=1;;
-	s) cmd=s; service="${OPTARG}";;
+	s) cmd=s; service="$OPTARG";;
 	'?') ;;
-	*) cmd="${OPT}"; iface="${OPTARG}";;
+	*) cmd="$OPT"; iface="$OPTARG";;
 	esac
 done
-shift $((${OPTIND} - 1))
-args="${iface}${iface:+ }$@"
+shift $(($OPTIND - 1))
+args="$iface${iface:+ }$@"
 
 # We do our service restarting here so that our subscribers don't have to know
 # about the OS's init system.
-if [ "${cmd}" = "s" ]; then
+if [ "$cmd" = "s" ]; then
 	if [ -n "$1" ]; then
 		action="$1"
 		shift
 	fi
-	[ -z "${action}" ] && usage "Action not specified"
+	[ -z "$action" ] && usage "Action not specified"
 
 	# If restarting check if service is running or not if we can
-	if [ "${action}" = "restart" ]; then
-		if [ -s /var/run/"${service}".pid ]; then
-			kill -0 $(cat /var/run/"${service}".pid) 2>/dev/null
-		elif [ -s /var/run/"${service}"/"${service}".pid ]; then
-			kill -0 $(cat /var/run/"${service}"/"${service}".pid) \
+	if [ "$action" = restart ]; then
+		if [ -s /var/run/"$service".pid ]; then
+			kill -0 $(cat /var/run/"$service".pid) 2>/dev/null
+		elif [ -s /var/run/"$service"/"$service".pid ]; then
+			kill -0 $(cat /var/run/"$service"/"$service".pid) \
 				2>/dev/null
-		elif [ -s /var/run/"${service}"/pid ]; then
-			kill -0 $(cat /var/run/"${service}"/pid) 2>/dev/null
+		elif [ -s /var/run/"$service"/pid ]; then
+			kill -0 $(cat /var/run/"$service"/pid) 2>/dev/null
 		else
 			false
 		fi
@@ -213,21 +213,21 @@ if [ "${cmd}" = "s" ]; then
 		[ $? != 0 ] && exit 0
 	fi	
 	if [ -x /sbin/service ]; then
-		service "${service}" "${action}" "$@" 
-	elif [ -x /etc/init.d/"${service}" -a -x /sbin/runscript ]; then
-		if [ "${action}" = "restart" ]; then
-			/etc/init.d/"${service}" --quiet --nodeps \
+		service "$service" "$action" "$@" 
+	elif [ -x /etc/init.d/"$service" -a -x /sbin/runscript ]; then
+		if [ "$action" = "restart" ]; then
+			/etc/init.d/"$service" --quiet --nodeps \
 				conditionalrestart "$@"
 		else
-			/etc/init.d/"${service}" --quiet --nodeps \
-				"${action}" "$@"
+			/etc/init.d/"$service" --quiet --nodeps \
+				"$action" "$@"
 		fi
-	elif [ -x /etc/init.d/"${service}" ]; then
-		/etc/init.d/"${service}" "${action}" "$@"
+	elif [ -x /etc/init.d/"$service" ]; then
+		/etc/init.d/"$service" "$action" "$@"
 	elif [ -x /etc/rc.d/"${service}" ]; then
-		/etc/rc.d/"${service}" "${action}" "$@" 
-	elif [ -x /etc/rc.d/rc."${service}" ]; then
-		/etc/rc.d/rc."${service}" "${action}" "$@"
+		/etc/rc.d/"$service" "$action" "$@" 
+	elif [ -x /etc/rc.d/rc."$service" ]; then
+		/etc/rc.d/rc."$service" "$action" "$@"
 	else
 		error_exit "Don't know how to interact with services on" \
 			"this platform"
@@ -236,191 +236,190 @@ if [ "${cmd}" = "s" ]; then
 fi
 
 # -l lists our resolv files, optionally for a specific interface
-if [ "${cmd}" = "l" -o "${cmd}" = "i" ]; then
-	[ -d "${IFACEDIR}" ] || exit 0
+if [ "$cmd" = l -o "$cmd" = i ]; then
+	[ -d "$IFACEDIR" ] || exit 0
 
 	report=false
 	# If we have an interface ordering list, then use that.
 	# It works by just using pathname expansion in the interface directory.
-	if [ -n "${args}" ]; then
-		list="${args}"
-		${force} || report=true
+	if [ -n "$args" ]; then
+		list="$args"
+		$force || report=true
 	else
-		cd "${IFACEDIR}"
-		for i in ${interface_order}; do
-			[ -e "${i}" ] && list="${list} ${i}"
+		cd "$IFACEDIR"
+		for i in $interface_order; do
+			[ -e "$i" ] && list="$list $i"
 		done
-		for i in ${dynamic_order}; do
-			if [ -e "${i}" -a ! -e "${METRICDIR}/"*" ${i}" ]; then
-				list="${list} ${i}"
+		for i in $dynamic_order; do
+			if [ -e "$i" -a ! -e "$METRICDIR/"*" $i" ]; then
+				list="$list $i"
 			fi
 		done
-		if [ -d "${METRICDIR}" ]; then
-			cd "${METRICDIR}"
+		if [ -d "$METRICDIR" ]; then
+			cd "$METRICDIR"
 			for i in *; do
-				list="${list} ${i#* }"
+				list="$list ${i#* }"
 			done
 		fi
-		list="${list} *"
+		list="$list *"
 	fi
 
 	retval=0
-	cd "${IFACEDIR}"
-	for i in $(uniqify ${list}); do
+	cd "$IFACEDIR"
+	for i in $(uniqify $list); do
 		# Only list interfaces which we really have
-		if ! [ -e "${i}" ]; then
-			if ${report}; then
-				echo "No resolv.conf for interface ${i}" >&2
-				retval=$((${retval} + 1))
+		if ! [ -e "$i" ]; then
+			if $report; then
+				echo "No resolv.conf for interface $i" >&2
+				retval=$(($retval + 1))
 			fi
 			continue
 		fi
 		
-		if [ "${cmd}" = "i" ]; then
-			printf "${i} "
+		if [ "$cmd" = i ]; then
+			printf "$i "
 		else
-			echo_resolv "${i}"
+			echo_resolv "$i"
 		fi
 	done
-	[ "${cmd}" = "i" ] && echo
-	exit ${retval} 
+	[ "$cmd" = i ] && echo
+	exit $retval 
 fi
 
-if [ "${cmd}" = "v" ]; then
-	eval "$("${ARGV0}" -l "${iface}" | parse_resolv)"
+if [ "$cmd" = v ]; then
+	eval "$("$ARGV0" -l "$iface" | parse_resolv)"
 
 	# Ensure that we only list each domain once
 	newdomains=
-	for d in ${DOMAINS}; do
+	for d in $DOMAINS; do
 		dn="${d%%:*}"
-		case " ${newdomains}" in
+		case " $newdomains" in
 		*" ${dn}:"*) continue;;
 		esac
-		newdomains="${newdomains}${newdomains:+ }${dn}:"
+		newdomains="$newdomains${newdomains:+ }$dn:"
 		newns=
-		for nd in ${DOMAINS}; do
-			if [ "${dn}" = "${nd%%:*}" ]; then
+		for nd in $DOMAINS; do
+			if [ "$dn" = "${nd%%:*}" ]; then
 				ns="${nd#*:}"
-				while [ -n "${ns}" ]; do
-					case ",${newns}," in
+				while [ -n "$ns" ]; do
+					case ",$newns," in
 					*,${ns%%,*},*) ;;
-					*) newns="${newns}${newns:+,}${ns%%,*}"
-						;;
+					*) newns="$newns${newns:+,}${ns%%,*}";;
 					esac
-					[ "${ns}" = "${ns#*,}" ] && break
+					[ "$ns" = "${ns#*,}" ] && break
 					ns="${ns#*,}"
 				done
 			fi
 		done
-		newdomains="${newdomains}${newns}"
+		newdomains="$newdomains$newns"
 	done
-	echo "DOMAINS='${newdomains}'"
-	echo "SEARCH='$(uniqify ${SEARCH})'"
-	echo "NAMESERVERS='$(uniqify ${NAMESERVERS})'"
+	echo "DOMAINS='$newdomains'"
+	echo "SEARCH='$(uniqify $SEARCH)'"
+	echo "NAMESERVERS='$(uniqify $NAMESERVERS)'"
 	exit 0
 fi
 
 # Test that we have valid options
-if [ "${cmd}" = "a" -o "${cmd}" = "d" ]; then
-	if [ -z "${iface}" ]; then
+if [ "$cmd" = a -o "$cmd" = d ]; then
+	if [ -z "$iface" ]; then
 		usage "Interface not specified"
 	fi
-elif [ "${cmd}" != "u" ]; then
-	[ -n "${cmd}" -a "${cmd}" != "h" ] && usage "Unknown option ${cmd}"
+elif [ "$cmd" != u ]; then
+	[ -n "$cmd" -a "$cmd" != h ] && usage "Unknown option $cmd"
 	usage
 fi
-if [ "${cmd}" = "a" ]; then
+if [ "$cmd" = a ]; then
 	for x in '/' \\ ' ' '*'; do
-		case "${iface}" in
-		*[${x}]*) error_exit "${x} not allowed in interface name";;
+		case "$iface" in
+		*[$x]*) error_exit "$x not allowed in interface name";;
 		esac
 	done
 	for x in '.' '-' '~'; do
-		case "${iface}" in
-		[${x}]*) error_exit \
-			"${x} not allowed at start of interface name";;
+		case "$iface" in
+		[$x]*) error_exit \
+			"$x not allowed at start of interface name";;
 		esac
 	done
-	[ "${cmd}" = "a" -a -t 0 ] && error_exit "No file given via stdin"
+	[ "$cmd" = a -a -t 0 ] && error_exit "No file given via stdin"
 fi
 
-if [ ! -d "${IFACEDIR}" ]; then
-	if [ ! -d "${VARDIR}" ]; then
-		if [ -L "${VARDIR}" ]; then
-			dir="$(readlink "${VARDIR}")"
+if [ ! -d "$IFACEDIR" ]; then
+	if [ ! -d "$VARDIR" ]; then
+		if [ -L "$VARDIR" ]; then
+			dir="$(readlink "$VARDIR")"
 			# link maybe relative
 			cd "${VARDIR%/*}"
-			if ! mkdir -m 0755 -p "${dir}"; then
+			if ! mkdir -m 0755 -p "$dir"; then
 				error_exit "Failed to create needed" \
-					"directory ${dir}"
+					"directory $dir"
 			fi
 		else
-			if ! mkdir -m 0755 -p "${VARDIR}"; then
+			if ! mkdir -m 0755 -p "$VARDIR"; then
 				error_exit "Failed to create needed" \
-					"directory ${VARDIR}"
+					"directory $VARDIR"
 			fi
 		fi
 	fi
-	mkdir -m 0755 -p "${IFACEDIR}" || \
-		error_exit "Failed to create needed directory ${IFACEDIR}"
+	mkdir -m 0755 -p "$IFACEDIR" || \
+		error_exit "Failed to create needed directory $IFACEDIR"
 else
 	# Delete any existing information about the interface
-	if [ "${cmd}" = "d" ]; then
-		cd "${IFACEDIR}"
-		for i in ${args}; do
-			if [ "${cmd}" = "d" -a ! -e "${i}" ]; then
-				${force} && continue
+	if [ "$cmd" = d ]; then
+		cd "$IFACEDIR"
+		for i in $args; do
+			if [ "$cmd" = d -a ! -e "$i" ]; then
+				$force && continue
 				error_exit "No resolv.conf for" \
-					"interface ${i}"
+					"interface $i"
 			fi
-			rm -f "${i}" "${METRICDIR}/"*" ${i}" \
-				"${PRIVATEDIR}/${i}" || exit $?
+			rm -f "$i" "$METRICDIR/"*" $i" \
+				"$PRIVATEDIR/$i" || exit $?
 		done
 	fi
 fi
 
-if [ "${cmd}" = "a" ]; then
+if [ "$cmd" = a ]; then
 	# Read resolv.conf from stdin
 	resolv="$(cat)\n"
 	# If what we are given matches what we have, then do nothing
-	if [ -e "${IFACEDIR}/${iface}" ]; then
-		if [ "$(printf "${resolv}")" = \
-			"$(cat "${IFACEDIR}/${iface}")" ]
+	if [ -e "$IFACEDIR/$iface" ]; then
+		if [ "$(printf "$resolv")" = \
+			"$(cat "$IFACEDIR/$iface")" ]
 		then
 			exit 0
 		fi
-		rm "${IFACEDIR}/${iface}"
+		rm "$IFACEDIR/$iface"
 	fi
-	printf "${resolv}" >"${IFACEDIR}/${iface}" || exit $?
-	[ ! -d "${METRICDIR}" ] && mkdir "${METRICDIR}"
-	rm -f "${METRICDIR}/"*" ${iface}"
-	if [ -n "${IF_METRIC}" ]; then
+	printf "$resolv" >"$IFACEDIR/$iface" || exit $?
+	[ ! -d "$METRICDIR" ] && mkdir "$METRICDIR"
+	rm -f "$METRICDIR/"*" $iface"
+	if [ -n "$IF_METRIC" ]; then
 		# Pad metric to 6 characters, so 5 is less than 10
 		while [ ${#IF_METRIC} -le 6 ]; do
-			IF_METRIC="0${IF_METRIC}"
+			IF_METRIC="0$IF_METRIC"
 		done
-		echo " " >"${METRICDIR}/${IF_METRIC} ${iface}"
+		echo " " >"$METRICDIR/$IF_METRIC $iface"
 	fi
-	case "${IF_PRIVATE}" in
+	case "$IF_PRIVATE" in
 	[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1)
-		if [ ! -d "${PRIVATEDIR}" ]; then
-			[ -e "${PRIVATEDIR}" ] && rm "${PRIVATEDIR}"
-			mkdir "${PRIVATEDIR}"
+		if [ ! -d "$PRIVATEDIR" ]; then
+			[ -e "$PRIVATEDIR" ] && rm "$PRIVATEDIR"
+			mkdir "$PRIVATEDIR"
 		fi
-		[ -d "${PRIVATEDIR}" ] && echo " " >"${PRIVATEDIR}/${iface}"
+		[ -d "$PRIVATEDIR" ] && echo " " >"$PRIVATEDIR/$iface"
 		;;
 	*)
-		if [ -e "${PRIVATEDIR}/${iface}" ]; then
-			rm -f "${PRIVATEDIR}/${iface}"
+		if [ -e "$PRIVATEDIR/$iface" ]; then
+			rm -f "$PRIVATEDIR/$iface"
 		fi
 		;;
 	esac
 fi
 
 retval=0
-for script in "${LIBEXECDIR}"/*; do
-	[ -f "${script}" -a -x "${script}" ] || continue
-	RESOLVCONF="${ARGV0}" "${script}" "${cmd}" "${iface}"
-	retval=$((${retval} + $?))
+for script in "$LIBEXECDIR"/*; do
+	[ -f "$script" -a -x "$script" ] || continue
+	RESOLVCONF="$ARGV0" "$script" "$cmd" "$iface"
+	retval=$(($retval + $?))
 done
-exit ${retval}
+exit $retval

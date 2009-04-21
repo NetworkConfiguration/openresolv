@@ -18,7 +18,7 @@ VARDIR?=	${VARBASE}/run/resolvconf
 MANDIR?=	${MANPREFIX}/man
 
 RESOLVCONF=	resolvconf resolvconf.8 resolvconf.conf.5
-SUBSCRIBERS=	libc dnsmasq named pdns-recursor
+SUBSCRIBERS=	libc dnsmasq named pdns_recursor
 TARGET=		${RESOLVCONF} ${SUBSCRIBERS}
 
 .SUFFIXES: .in

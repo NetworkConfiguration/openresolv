@@ -76,5 +76,5 @@ then
 fi
 
 if $changed; then
-	$named_restart
+	eval $named_restart
 fi

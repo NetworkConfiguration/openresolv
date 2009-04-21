@@ -58,5 +58,5 @@ if [ ! -f "$pdns_zones" ] || \
 	[ "$(cat "$pdns_zones")" != "$(printf "$newzones")" ]
 then
 	printf "$newzones" >"$pdns_zones"
-	$pdns_restart
+	eval $pdns_restart
 fi

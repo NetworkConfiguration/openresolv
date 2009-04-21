@@ -143,7 +143,7 @@ fi
 
 # Create our resolv.conf now
 (umask 022; printf "$newconf" >"$resolv_conf")
-$libc_restart
+eval $libc_restart
 
 retval=0
 # Notify users of the resolver

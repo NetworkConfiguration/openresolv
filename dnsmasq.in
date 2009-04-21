@@ -107,7 +107,7 @@ else
 fi
 
 if $changed; then
-	$dnsmasq_restart
+	eval $dnsmasq_restart
 fi
 if $dbus; then
 	$restart || kill -HUP $(cat "$dnsmasq_pid")

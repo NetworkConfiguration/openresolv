@@ -22,13 +22,13 @@ RESOLVCONF=	resolvconf resolvconf.8 resolvconf.conf.5
 SUBSCRIBERS=	libc dnsmasq named pdns_recursor
 TARGET=		${RESOLVCONF} ${SUBSCRIBERS}
 
-_CMD_SH=	if [ -x /sbin/rc-service ]; then \
-			echo '/sbin/rc-service \\1 -- --ifstarted restart'; \
-		elif [ -d /etc/rc.d ]; then \
-			echo '/etc/rc.d/\\1 status && /etc/rc.d/\\1 restart'; \
-		elif [ -d /etc/init.d ]; then \
-			echo '/etc/init.d/\\1 status && /etc/rc.d/\\1 restart'; \
-		fi
+_CMD_SH=if [ -x /sbin/rc-service ]; then \
+		printf '/sbin/rc-service \\1 -- --ifstarted restart'; \
+	elif [ -d /etc/rc.d ]; then \
+		printf '/etc/rc.d/\\1 status \\&\\& /etc/rc.d/\\1 restart'; \
+	elif [ -d /etc/init.d ]; then \
+		printf '/etc/init.d/\\1 status \\&\\& /etc/rc.d/\\1 restart'; \
+	fi
 _CMD!=		${_CMD_SH}
 RESTARTCMD?=	${_CMD}$(shell ${_CMD_SH})
 

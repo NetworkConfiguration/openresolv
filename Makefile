@@ -4,7 +4,7 @@ PKG=		${NAME}-${VERSION}
 
 INSTALL?=	install
 SED?=		sed
-PREFIX?=	/usr/local
+#PREFIX?=	/usr/local
 MANPREFIX?=	/usr/share
 VARBASE?=	/var
 
@@ -22,13 +22,22 @@ RESOLVCONF=	resolvconf resolvconf.8 resolvconf.conf.5
 SUBSCRIBERS=	libc dnsmasq named pdns_recursor
 TARGET=		${RESOLVCONF} ${SUBSCRIBERS}
 
+# Try to embed correct service restart commands
+_CMD1=		\\1 status >/dev/null 2>\\&1
+_CMD2=		\\1 restart
 _CMD_SH=if [ -x /sbin/rc-service ]; then \
-		printf '/sbin/rc-service \\1 -- --ifstarted restart'; \
+		printf '/sbin/rc-service \\1 -- -Ds restart'; \
+	elif [ -x /sbin/service ]; then \
+		printf '/sbin/service \\1 restart'; \
+	elif [ -d /usr/local/etc/rc.d ]; then \
+		printf 'if /usr/local/etc/rc.d/${_CMD1}; then'; \
+		printf ' /usr/local/etc/rc.d/${_CMD2}; '; \
+		printf 'elif /etc/rc.d/${_CMD1}; then /etc/rc.d/${_CMD2}; fi'; \
 	elif [ -d /etc/rc.d ]; then \
-		printf '/etc/rc.d/\\1 status \\&\\& /etc/rc.d/\\1 restart'; \
+		printf '/etc/rc.d/${_CMD1} \\&\\& /etc/rc.d/${_CMD2}'; \
 	elif [ -d /etc/init.d ]; then \
-		printf '/etc/init.d/\\1 status \\&\\& /etc/rc.d/\\1 restart'; \
-	fi
+		printf '/etc/init.d/${_CMD1} \\&\\& /etc/init.d/${_CMD2}'; \
+	fi;
 _CMD!=		${_CMD_SH}
 RESTARTCMD?=	${_CMD}$(shell ${_CMD_SH})
 

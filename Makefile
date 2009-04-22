@@ -1,5 +1,5 @@
 NAME=		openresolv
-VERSION=	3.2
+VERSION=	3.3
 PKG=		${NAME}-${VERSION}
 
 INSTALL?=	install
@@ -19,7 +19,7 @@ VARDIR?=	${VARBASE}/run/resolvconf
 MANDIR?=	${MANPREFIX}/man
 
 RESOLVCONF=	resolvconf resolvconf.8 resolvconf.conf.5
-SUBSCRIBERS=	libc dnsmasq named pdns_recursor
+SUBSCRIBERS=	libc dnsmasq named
 TARGET=		${RESOLVCONF} ${SUBSCRIBERS}
 
 # Try to embed correct service restart commands

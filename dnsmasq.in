@@ -43,8 +43,8 @@ newresolv="$newconf"
 # Check for DBus support in the binary
 dbus=false
 : ${dbus_pid:=/var/run/dbus/dbus.pid}
-[ -s "$dbus_pid" ] || dbuspid=/var/run/dbus.pid
-[ -s "$dbus_pid" ] || dbuspid=/var/run/dbus/pid
+[ -s "$dbus_pid" ] || dbus_pid=/var/run/dbus.pid
+[ -s "$dbus_pid" ] || dbus_pid=/var/run/dbus/pid
 if [ -s "$dbus_pid" -a -s "$dnsmasq_pid" ]; then
 	if dnsmasq --version 2>/dev/null | \
 		grep -q "^Compile time options.*[[:space:]]DBus[[:space:]]"

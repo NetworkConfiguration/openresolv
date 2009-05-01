@@ -26,9 +26,9 @@ TARGET=		${RESOLVCONF} ${SUBSCRIBERS}
 _CMD1=		\\1 status >/dev/null 2>\\&1
 _CMD2=		\\1 restart
 _CMD_SH=if [ -x /sbin/rc-service ]; then \
-		printf '/sbin/rc-service \\1 -- -Ds restart'; \
+		printf '/sbin/rc-service -e \\1 \\&\\& /sbin/rc-service \\1 -- -Ds restart'; \
 	elif [ -x /sbin/service ]; then \
-		printf '/sbin/service \\1 restart'; \
+		printf '/sbin/service ${_CMD1} \\&\\& /sbin/service ${_CMD2}'; \
 	elif [ -d /usr/local/etc/rc.d ]; then \
 		printf 'if /usr/local/etc/rc.d/${_CMD1}; then'; \
 		printf ' /usr/local/etc/rc.d/${_CMD2}; '; \

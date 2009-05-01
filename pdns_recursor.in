@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright 2009 Roy Marples
+# Copyright (c) 2009 Roy Marples
 # All rights reserved
 
 # PowerDNS Recursor subscriber for resolvconf

@@ -94,14 +94,18 @@ to write the configuration files for the name server to include.
 Set this to the same file that the dnsmasq configuaration option
 .Sy conf-file
 points to.
+This file tells dnsmasq which nameservers to use for specific domains.
 .It Sy dnsmasq_resolv
 Set this to the same file that the dnsmasq configuaration option
 .Sy resolv-file
 points to.
+This file tells dnsmasq which nameservers to use for global lookups.
 .It Sy named_options
 Include this file in the named options block.
+This file tells named which nameservers to use for global lookups.
 .It Sy named_zones
 Include this file in the named global scope, after the options block.
+This file tells named which nameservers to use for specific domains.
 .El
 .Sh SEE ALSO
 .Xr resolv.conf 5 ,

@@ -28,20 +28,21 @@ RESOLVCONF="$0"
 SYSCONFDIR=@SYSCONFDIR@
 LIBEXECDIR=@LIBEXECDIR@
 VARDIR=@VARDIR@
-IFACEDIR="$VARDIR/interfaces"
-METRICDIR="$VARDIR/metrics"
-PRIVATEDIR="$VARDIR/private"
-
 # Support original resolvconf configuration layout
 # as well as the openresolv config file
 if [ -f "$SYSCONFDIR"/resolvconf.conf ]; then
 	. "$SYSCONFDIR"/resolvconf.conf
+	[ -n "$state_dir" ] && VARDIR="$state_dir"
 elif [ -d "$SYSCONFDIR/resolvconf" ]; then
 	SYSCONFDIR="$SYSCONFDIR/resolvconf"
 	if [ -f "$SYSCONFDIR"/interface-order ]; then
 		interface_order="$(cat "$SYSCONFDIR"/interface-order)"
 	fi
 fi
+IFACEDIR="$VARDIR/interfaces"
+METRICDIR="$VARDIR/metrics"
+PRIVATEDIR="$VARDIR/private"
+
 : ${dynamic_order:=tap[0-9]* tun[0-9]* vpn vpn[0-9]* ppp[0-9]* ippp[0-9]*}
 : ${interface_order:=lo lo[0-9]*}
 
@@ -65,6 +66,7 @@ usage()
 	  -p               Mark the interface as private
 	  -d \$INTERFACE    Delete DNS information from the specified interface
 	  -f               Ignore non existant interfaces
+	  -I               Init the state dir
 	  -u               Run updates from our current DNS information
 	  -l [\$PATTERN]    Show DNS information, optionally from interfaces
 	                   that match the specified pattern
@@ -270,6 +272,14 @@ while getopts a:d:fhilm:puv OPT; do
 done
 shift $(($OPTIND - 1))
 args="$iface${iface:+ }$@"
+
+# -I inits the state dir
+if [ "$cmd" = I ]; then
+	if [ -d "$VARDIR" ]; then
+		rm -rf "$VARDIR"/*
+	fi
+	exit $?
+fi
 
 # -l lists our resolv files, optionally for a specific interface
 if [ "$cmd" = l -o "$cmd" = i ]; then

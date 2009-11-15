@@ -32,6 +32,16 @@
 .Nm
 is the configuration file for
 .Xr resolvconf 8 .
+The
+.Nm
+file is a shell script that is sourced by
+.Xr resolvconf 8 ,
+meaning that
+.Nm
+must contain valid shell commands.
+Listed below are the standard
+.Nm
+variables that may be set.
 .Pp
 After updaing this file, you may wish to run
 .Nm resolvconf -u

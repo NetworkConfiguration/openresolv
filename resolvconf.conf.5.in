@@ -22,7 +22,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.Dd November 12, 2009
+.Dd November 15, 2009
 .Dt RESOLVCONF.CONF 5 SMM
 .Os
 .Sh NAME
@@ -84,10 +84,11 @@ without any alteration.
 .El
 .Sh SUBSCRIBER OPTIONS
 openresolv ships with subscribers for the name servers
-.Xr dnsmasq 8
+.Xr dnsmasq 8 ,
+.Xr named 8
 and
-.Xr named 8 .
-These subscribers take two options each which instruct openresolv where
+.Xr unbound 8 .
+These subscribers have options which instruct openresolv where
 to write the configuration files for the name server to include.
 .Bl -tag -width indent
 .It Sy dnsmasq_conf
@@ -106,11 +107,14 @@ This file tells named which nameservers to use for global lookups.
 .It Sy named_zones
 Include this file in the named global scope, after the options block.
 This file tells named which nameservers to use for specific domains.
+.It Sy unbound_conf
+Include this file anywhere in the unbound configuration.
+This file tells unbound about specific and global nameservers.
 .El
 .Sh SEE ALSO
-.Xr resolv.conf 5 ,
-.Xr resolvconf 8 ,
-.Xr named.conf 5
+.Xr resolv.conf 5
+and
+.Xr resolvconf 8 .
 .Sh AUTHORS
 .An Roy Marples Aq roy@marples.name
 .Sh BUGS

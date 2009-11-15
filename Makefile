@@ -19,7 +19,7 @@ VARDIR?=	${VARBASE}/run/resolvconf
 MANDIR?=	${MANPREFIX}/man
 
 RESOLVCONF=	resolvconf resolvconf.8 resolvconf.conf.5
-SUBSCRIBERS=	libc dnsmasq named
+SUBSCRIBERS=	libc dnsmasq named unbound
 TARGET=		${RESOLVCONF} ${SUBSCRIBERS}
 
 # Try to embed correct service restart commands

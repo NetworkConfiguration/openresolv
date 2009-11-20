@@ -21,6 +21,8 @@ MANDIR?=	${MANPREFIX}/man
 RESOLVCONF=	resolvconf resolvconf.8 resolvconf.conf.5
 SUBSCRIBERS=	libc dnsmasq named unbound
 TARGET=		${RESOLVCONF} ${SUBSCRIBERS}
+SRCS=		${TARGET:C,$,.in,} # pmake
+SRCS:=		${TARGET:=.in} # gmake
 
 # Try to embed correct service restart commands
 _CMD1=		\\1 status >/dev/null 2>\\&1
@@ -70,11 +72,12 @@ install: ${TARGET}
 	${INSTALL} -d ${DESTDIR}${MANDIR}/man5
 	${INSTALL} -m ${MANMODE} resolvconf.conf.5 ${DESTDIR}${MANDIR}/man5
 
-dist:
+import:
+	rm -rf /tmp/${PKG}
 	${INSTALL} -d /tmp/${PKG}
-	cp -RPp . /tmp/${PKG}
-	(cd /tmp/${PKG}; ${MAKE} clean)
-	rm -rf /tmp/${PKG}/*.bz2 /tmp/${PKG}/.git /tmp/${PKG}/.gitignore
+	cp README ${SRCS} /tmp/${PKG}
+
+dist: import
 	tar cvjpf ${PKG}.tar.bz2 -C /tmp ${PKG} 
 	rm -rf /tmp/${PKG} 
 	ls -l ${PKG}.tar.bz2

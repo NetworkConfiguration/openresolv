@@ -79,6 +79,12 @@ fi
 : ${resolv_conf:=/etc/resolv.conf}
 : ${libc_restart:=@RESTARTCMD nscd@}
 : ${list_resolv:=@PREFIX@/sbin/resolvconf -l}
+if [ "${resolv_conf_head-x}" = x -a -f "$SYSCONFDIR"/resolv.conf.head ]; then
+	resolv_conf_head="$(cat "${SYSCONFDIR}"/resolv.conf.head)"
+fi
+if [ "${resolv_conf_tail-x}" = x -a -f "$SYSCONFDIR"/resolv.conf.tail ]; then
+	resolv_conf_tail="$(cat "$SYSCONFDIR"/resolv.conf.tail)"
+fi
 
 uniqify()
 {

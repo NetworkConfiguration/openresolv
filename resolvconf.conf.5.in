@@ -22,7 +22,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.Dd November 15, 2009
+.Dd November 20, 2009
 .Dt RESOLVCONF.CONF 5 SMM
 .Os
 .Sh NAME
@@ -59,6 +59,7 @@ If unset, defaults to the following:-
 .It Sy private_interfaces
 These interfaces name servers will only be queried for the domains listed
 in their resolv.conf.
+Useful for VPN domains.
 This is equivalent to the
 .Nm resolvconf -p
 option.
@@ -98,28 +99,50 @@ openresolv ships with subscribers for the name servers
 .Xr named 8
 and
 .Xr unbound 8 .
-These subscribers have options which instruct openresolv where
-to write the configuration files for the name server to include.
+Each subscriber can create configuration files which should be included in
+in the subscribers main configuration file.
 .Bl -tag -width indent
 .It Sy dnsmasq_conf
-Set this to the same file that the dnsmasq configuaration option
-.Sy conf-file
-points to.
 This file tells dnsmasq which nameservers to use for specific domains.
 .It Sy dnsmasq_resolv
-Set this to the same file that the dnsmasq configuaration option
-.Sy resolv-file
-points to.
 This file tells dnsmasq which nameservers to use for global lookups.
+.Pp
+Example resolvconf.conf for dnsmasq:
+.D1 nameservers=127.0.0.1
+.D1 dnsmasq_conf=/etc/dnsmasq-conf.conf
+.D1 dnsmasq_resolv=/etc/dnsmasq-resolv.conf
+.Pp
+Example dnsmasq.conf:
+.D1 listen-address=127.0.0.1
+.D1 conf-file=/etc/dnsmasq-conf.conf
+.D1 resolv-file=/etc/dnsmasq-resolv.conf
 .It Sy named_options
 Include this file in the named options block.
 This file tells named which nameservers to use for global lookups.
 .It Sy named_zones
 Include this file in the named global scope, after the options block.
 This file tells named which nameservers to use for specific domains.
+.Pp
+Example resolvconf.conf for named:
+.D1 nameservers=127.0.0.1
+.D1 named_options=/etc/named-options.conf
+.D1 named_zones=/etc/named-zones.conf
+.Pp
+Example named.conf:
+.D1 options {
+.D1 Ta listen-on { 127.0.0.1; };
+.D1 Ta include "/etc/named-options.conf";
+.D1 };
+.D1 include "/etc/named-zones.conf";
 .It Sy unbound_conf
-Include this file anywhere in the unbound configuration.
 This file tells unbound about specific and global nameservers.
+.Pp
+Example resolvconf.conf for unbound:
+.D1 nameservers=127.0.0.1
+.D1 unbound_conf=/etc/unbound-resolvconf.conf
+.Pp
+Example unbound.conf:
+.D1 include: /etc/unbound-resolvconf.conf
 .El
 .Sh SEE ALSO
 .Xr resolv.conf 5

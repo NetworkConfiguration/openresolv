@@ -78,6 +78,7 @@ import:
 	cp README ${SRCS} /tmp/${PKG}
 
 dist: import
+	cp Makefile resolvconf.conf /tmp/${PKG}
 	tar cvjpf ${PKG}.tar.bz2 -C /tmp ${PKG} 
 	rm -rf /tmp/${PKG} 
 	ls -l ${PKG}.tar.bz2

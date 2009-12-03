@@ -394,8 +394,13 @@ eval "$(make_vars)"
 : ${list_resolv:=list_resolv -l}
 retval=0
 for script in "$LIBEXECDIR"/*; do
-	[ -f "$script" ] || continue
-	( . "$script" "$cmd" "$iface" )
-	retval=$(($retval + $?))
-done
+	if [ -f "$script" ]; then
+		if [ -x "$script" ]; then
+			"$script" "$cmd" "$iface"
+		else
+			(. "$script" "$cmd" "$fiace")
+		fi
+		retval=$(($retval + $?))
+	fi
+    done
 exit $retval

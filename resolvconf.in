@@ -391,6 +391,7 @@ if [ "$cmd" = a ]; then
 fi
 
 eval "$(make_vars)"
+export RESOLVCONF DOMAINS SEARCH NAMESERVERS
 : ${list_resolv:=list_resolv -l}
 retval=0
 for script in "$LIBEXECDIR"/*; do
@@ -402,5 +403,5 @@ for script in "$LIBEXECDIR"/*; do
 		fi
 		retval=$(($retval + $?))
 	fi
-    done
+done
 exit $retval

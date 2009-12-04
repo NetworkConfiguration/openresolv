@@ -115,7 +115,7 @@ if $changed; then
 	eval $dnsmasq_restart
 fi
 if $dbus; then
-	$restart || kill -HUP $(cat "$dnsmasq_pid")
+	$changed || kill -HUP $(cat "$dnsmasq_pid")
 	# Send even if empty so old servers are cleared
 	dbus-send --system --dest=uk.org.thekelleys.dnsmasq \
  		/uk/org/thekelleys/dnsmasq uk.org.thekelleys.SetServers \

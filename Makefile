@@ -64,6 +64,7 @@ install: ${TARGET}
 	${INSTALL} -d ${DESTDIR}${BINDIR}
 	${INSTALL} -m ${BINMODE} resolvconf ${DESTDIR}${BINDIR}
 	${INSTALL} -d ${DESTDIR}${SYSCONFDIR}
+	test -e ${DESTDIR}${SYSCONFDIR}/resolvconf.conf || \
 	${INSTALL} -m ${DOCMODE} resolvconf.conf ${DESTDIR}${SYSCONFDIR}
 	${INSTALL} -d ${DESTDIR}${LIBEXECDIR}
 	${INSTALL} -m ${DOCMODE} ${SUBSCRIBERS} ${DESTDIR}${LIBEXECDIR}

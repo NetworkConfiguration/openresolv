@@ -104,8 +104,16 @@ parse_resolv()
 	local new=true iface= private=false p=
 
 	echo "DOMAINS="
-	echo "SEARCH="
-	echo "NAMESERVERS="
+	echo "SEARCH=\"$search_domains\""
+	# let our subscribers know about global nameservers
+	for n in $name_servers; do
+		case "$n" in
+		127.*|0.0.0.0|255.255.255.255|::1) continue;;
+		*) newns="$newns${newns:+ }$n"
+		esac
+	done
+	echo "NAMESERVERS=\"$newns\""
+	newns=
 
 	while read line; do
 		case "$line" in
@@ -130,7 +138,7 @@ parse_resolv()
 			;;
 		"nameserver "*)
 			case "${line#* }" in
-			127.*|0.0.0.0|255.255.255.255) continue;;
+			127.*|0.0.0.0|255.255.255.255|::1) continue;;
 			esac
 			ns="$ns${line#* } "
 			;;

@@ -408,7 +408,7 @@ for script in "$LIBEXECDIR"/*; do
 		if [ -x "$script" ]; then
 			"$script" "$cmd" "$iface"
 		else
-			(. "$script" "$cmd" "$fiace")
+			(. "$script" "$cmd" "$iface")
 		fi
 		retval=$(($retval + $?))
 	fi

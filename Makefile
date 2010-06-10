@@ -29,6 +29,8 @@ _CMD1=		\\1 status >/dev/null 2>\\&1
 _CMD2=		\\1 restart
 _CMD_SH=if [ -x /sbin/rc-service ]; then \
 		printf '/sbin/rc-service -e \\1 \\&\\& /sbin/rc-service \\1 -- -Ds restart'; \
+	elif [ -x /usr/sbin/invoke-rc.d ]; then \
+		printf '/usr/sbin/invoke-rc.d --query --quiet \\1 restart || [ \\\\$$? = 104 ] \\&\\& /usr/sbin/invoke-rc.d ${_CMD2}'; \
 	elif [ -x /sbin/service ]; then \
 		printf '/sbin/service ${_CMD1} \\&\\& /sbin/service ${_CMD2}'; \
 	elif [ -d /usr/local/etc/rc.d ]; then \

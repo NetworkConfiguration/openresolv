@@ -269,7 +269,7 @@ make_vars()
 }
 
 force=false
-while getopts a:d:fhilm:puv OPT; do
+while getopts a:d:fhIilm:puv OPT; do
 	case "$OPT" in
 	f) force=true;;
 	h) usage;;

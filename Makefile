@@ -19,7 +19,7 @@ VARDIR?=	${VARBASE}/run/resolvconf
 MANDIR?=	${MANPREFIX}/man
 
 RESOLVCONF=	resolvconf resolvconf.8 resolvconf.conf.5
-SUBSCRIBERS=	libc dnsmasq named unbound
+SUBSCRIBERS=	libc dnsmasq named pdnsd unbound
 TARGET=		${RESOLVCONF} ${SUBSCRIBERS}
 SRCS=		${TARGET:C,$,.in,} # pmake
 SRCS:=		${TARGET:=.in} # gmake

@@ -5,4 +5,5 @@ named
 resolvconf
 resolvconf.8
 resolvconf.conf.5
+pdnsd
 unbound

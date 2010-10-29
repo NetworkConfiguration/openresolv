@@ -138,13 +138,19 @@ Example named.conf:
 .It Sy pdnsd_conf
 This is the main pdnsd configuration file which we modify to add our
 forward domains to.
+If this variable is not set then we rely on the pdnsd configuration file
+setup to read
+.Pa pdnsd_resolv
+as documented below.
 .It Sy pdnsd_resolv
 This file tells pdnsd about global nameservers.
+If this variable is not set then it's written to
+.Pa pdnsd_conf .
 .Pp
 Example resolvconf.conf for pdnsd:
 .D1 nameservers=127.0.0.1
 .D1 pdnsd_conf=/etc/pdnsd.conf
-.D1 pdnsd_resolv=/etc/pdnsd-resolv.conf
+.D1 # pdnsd_resolv=/etc/pdnsd-resolv.conf
 .Pp
 Example pdnsd.conf:
 .D1 global {
@@ -152,8 +158,10 @@ Example pdnsd.conf:
 .D1 	status_ctl = on;
 .D1 }
 .D1 server {
-.D1 	label="resolvconf";
-.D1 	file="/etc/pdnsd-resolv.conf";
+.D1 	# A server definition is required, even if emtpy.
+.D1 	label="empty";
+.D1 	proxy_only=on;
+.D1 	# file="/etc/pdnsd-resolv.conf";
 .D1 }
 .It Sy unbound_conf
 This file tells unbound about specific and global nameservers.

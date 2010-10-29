@@ -144,7 +144,7 @@ Example resolvconf.conf for pdnsd:
 Example pdnsd.conf:
 .D1 global {
 .D1 	server_ip = 127.0.0.1;
-.D1	status_ctl = on;
+.D1 	status_ctl = on;
 .D1 }
 .D1 server {
 .D1 	label="resolvconf";

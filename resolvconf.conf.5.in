@@ -58,10 +58,14 @@ If unset, defaults to the following:-
 .D1 tap[0-9]* tun[0-9]* vpn vpn[0-9]* ppp[0-9]* ippp[0-9]*
 .It Sy search_domains
 Prepend search domains to the dynamically generated list.
+.It Sy search_domains_append
+Append search domains to the dynamically generated list.
 .It Sy name_servers
 Prepend name servers to the dynamically generated list.
 You should set this to 127.0.0.1 if you use a local name server other than
 libc.
+.It Sy name_servers_append
+Append name servers to the dynamically generated list.
 .It Sy private_interfaces
 These interfaces name servers will only be queried for the domains listed
 in their resolv.conf.

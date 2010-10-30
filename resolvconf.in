@@ -108,11 +108,12 @@ parse_resolv()
 	# let our subscribers know about global nameservers
 	for n in $name_servers; do
 		case "$n" in
-		127.*|0.0.0.0|255.255.255.255|::1) continue;;
-		*) newns="$newns${newns:+ }$n"
+		127.*|0.0.0.0|255.255.255.255|::1) :;;
+		*) newns="$newns${newns:+ }$n";;
 		esac
 	done
 	echo "NAMESERVERS=\"$newns\""
+	echo "LOCALNAMESERVERS="
 	newns=
 
 	while read line; do
@@ -138,7 +139,10 @@ parse_resolv()
 			;;
 		"nameserver "*)
 			case "${line#* }" in
-			127.*|0.0.0.0|255.255.255.255|::1) continue;;
+			127.*|0.0.0.0|255.255.255.255|::1)
+				echo "LOCALNAMESERVERS=\"\$LOCALNAMESERVERS ${line#* }\""
+				continue
+				;;
 			esac
 			ns="$ns${line#* } "
 			;;
@@ -266,6 +270,7 @@ make_vars()
 	echo "DOMAINS='$newdomains'"
 	echo "SEARCH='$(uniqify $SEARCH)'"
 	echo "NAMESERVERS='$(uniqify $NAMESERVERS)'"
+	echo "LOCALNAMESERVERS='$(uniqify $LOCALNAMESERVERS)'"
 }
 
 force=false

@@ -107,8 +107,9 @@ if [ -n "$pdnsd_conf" ]; then
 				fi
 				newconf="$newconf$n"
 			done
-			newconf="${newconf};\n}\n"
+			newconf="${newconf};\n"
 		fi
+		newconf="${newconf}}\n"
 	fi
 
 	for d in $DOMAINS; do

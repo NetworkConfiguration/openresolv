@@ -119,14 +119,14 @@ done
 
 if [ -e /etc/arch-release -a -d /etc/rc.d ]; then
 	echo "Overriding service status check for Arch Linux"
-	RESTARTCMD="[ -e /var/run/daemons/\1 ] && /etc/rc.d/\1 restart"
+	RESTARTCMD="[ -e /var/run/daemons/\1 ] \&\& /etc/rc.d/\1 restart"
 	echo "yes"
 fi
 
 if [ -z "$RESTARTCMD" ]; then
 	printf "Checking for OpenRC ... "
 	if [ -x /sbin/rc-service ]; then
-		RESTARTCMD="/sbin/rc-service -e \1 && /sbin/rc-service \1 -Ds restart"
+		RESTARTCMD="/sbin/rc-service -e \1 \&\& /sbin/rc-service \1 -Ds restart"
 		echo "yes"
 	else
 		echo "no"
@@ -135,7 +135,7 @@ fi
 if [ -z "$RESTARTCMD" ]; then
 	printf "Checking for invoke-rc.d ... "
 	if [ -x /usr/sbin/invoke-rc.d ]; then
-		RESTARTCMD="/usr/sbin/invoke-rc.d --query --quiet \1 restart || [ \\$? = 104 ] && /usr/sbin/invoke-rc.d \1 restart"
+		RESTARTCMD="/usr/sbin/invoke-rc.d --query --quiet \1 restart || [ \$\$\? = 104 ] \&\& /usr/sbin/invoke-rc.d \1 restart"
 		echo "yes"
 	else
 		echo "no"
@@ -144,7 +144,7 @@ fi
 if [ -z "$RESTARTCMD" ]; then
 	printf "Checking for service ... "
 	if [ -x /sbin/service ]; then
-		RESTARTCMD="/sbin/service \1 && /sbin/service \1 restart"
+		RESTARTCMD="/sbin/service \1 \&\& /sbin/service \1 restart"
 		echo "yes"
 	else
 		echo "no"
@@ -154,7 +154,7 @@ if [ -z "$RESTARTCMD" ]; then
 	for x in /etc/init.d/rc.d /etc/rc.d /etc/init.d; do
 		printf "Checking for $x ... "
 		if [ -d $x ]; then
-			RESTARTCMD="$x/\1 status >/dev/null 2>&1 && $x/\1 restart"
+			RESTARTCMD="$x/\1 status >/dev/null 2>&1 \&\& $x/\1 restart"
 			echo "yes"
 			break
 		else
@@ -167,12 +167,9 @@ if [ -z "$RESTARTCMD" ]; then
 	echo "WARNING! No means of interacting with system services detected!"
 	exit 1
 fi
-# Transform for a make file
-RESTARTCMD=$(echo "$RESTARTCMD" | $SED \
-	-e 's:\&:\\\&:g' \
-	-e 's:\$:\$\$:g' \
-)
-echo "RESTARTCMD=	${RESTARTCMD}" >>$CONFIG_MK
+
+# Work around bug in the dash shell as "echo 'foo \1'" does bad things
+printf "%s\n" "RESTARTCMD=	${RESTARTCMD}" >>$CONFIG_MK
 
 echo
 echo "   SYSCONFDIR =		$SYSCONFDIR"

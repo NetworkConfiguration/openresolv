@@ -154,7 +154,7 @@ if [ -z "$RESTARTCMD" ]; then
 	for x in /etc/init.d/rc.d /etc/rc.d /etc/init.d; do
 		printf "Checking for $x ... "
 		if [ -d $x ]; then
-			RESTARTCMD="$x/\1 status >/dev/null 2>&1 \&\& $x/\1 restart"
+			RESTARTCMD="$x/\1 status >/dev/null 2>\&1 \&\& $x/\1 restart"
 			echo "yes"
 			break
 		else

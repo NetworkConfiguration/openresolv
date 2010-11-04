@@ -33,7 +33,7 @@
 
 # Platform specific kludges
 if [ -z "$named_service" -a -z "$named_restart" -a \
-	-x "@RCDIR@" -a ! -x "@RCDIR@"/named ]
+	-d "@RCDIR@" -a ! -x "@RCDIR@"/named ]
 then
 	if [ -x "@RCDIR@"/bind9 ]; then
 		# Debian and derivatives

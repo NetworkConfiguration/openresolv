@@ -135,7 +135,7 @@ fi
 if [ -z "$RESTARTCMD" ]; then
 	printf "Checking for invoke-rc.d ... "
 	if [ -x /usr/sbin/invoke-rc.d ]; then
-		RESTARTCMD="/usr/sbin/invoke-rc.d --query --quiet \1 restart || [ \$\$\? = 104 ] \&\& /usr/sbin/invoke-rc.d \1 restart"
+		RESTARTCMD="/usr/sbin/invoke-rc.d --quiet \1 status >/dev/null 2>\&1 \&\& /usr/sbin/invoke-rc.d \1 restart"
 		echo "yes"
 	else
 		echo "no"

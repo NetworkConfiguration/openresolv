@@ -31,7 +31,8 @@
 [ -z "$pdns_zones" ] && exit 0
 [ -z "$RESOLVCONF" ] && eval "$(@PREFIX@/sbin/resolvconf -v)"
 
-: ${pdns_restart:=@RESTARTCMD pdns_recursor@}
+: ${pdns_service:=pdns_recursor}
+: ${pdns_restart:=@RESTARTCMD ${pdns_service}@}
 
 newzones=
 

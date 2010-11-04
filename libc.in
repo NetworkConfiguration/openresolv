@@ -77,7 +77,8 @@ elif [ -d "$SYSCONFDIR"/resolvconf ]; then
 	fi
 fi
 : ${resolv_conf:=/etc/resolv.conf}
-: ${libc_restart:=@RESTARTCMD nscd@}
+: ${libc_service:=nscd}
+: ${libc_restart:=@RESTARTCMD ${libc_service}@}
 : ${list_resolv:=@PREFIX@/sbin/resolvconf -l}
 if [ "${resolv_conf_head-x}" = x -a -f "$SYSCONFDIR"/resolv.conf.head ]; then
 	resolv_conf_head="$(cat "${SYSCONFDIR}"/resolv.conf.head)"

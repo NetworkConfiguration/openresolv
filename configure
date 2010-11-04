@@ -7,6 +7,7 @@ BUILD=
 HOST=
 TARGET=
 RESTARTCMD=
+RCDIR=
 
 for x; do
 	opt=${x%%=*}
@@ -119,6 +120,7 @@ done
 
 if [ -e /etc/arch-release -a -d /etc/rc.d ]; then
 	echo "Overriding service status check for Arch Linux"
+	RCDIR=/etc/rc.d
 	RESTARTCMD="[ -e /var/run/daemons/\1 ] \&\& /etc/rc.d/\1 restart"
 	echo "yes"
 fi
@@ -135,6 +137,7 @@ fi
 if [ -z "$RESTARTCMD" ]; then
 	printf "Checking for invoke-rc.d ... "
 	if [ -x /usr/sbin/invoke-rc.d ]; then
+		RCDIR=/etc/init.d
 		RESTARTCMD="/usr/sbin/invoke-rc.d --quiet \1 status >/dev/null 2>\&1 \&\& /usr/sbin/invoke-rc.d \1 restart"
 		echo "yes"
 	else
@@ -144,6 +147,7 @@ fi
 if [ -z "$RESTARTCMD" ]; then
 	printf "Checking for service ... "
 	if [ -x /sbin/service ]; then
+		RCDIR=/etc/init.d
 		RESTARTCMD="/sbin/service \1 \&\& /sbin/service \1 restart"
 		echo "yes"
 	else
@@ -154,6 +158,7 @@ if [ -z "$RESTARTCMD" ]; then
 	for x in /etc/init.d/rc.d /etc/rc.d /etc/init.d; do
 		printf "Checking for $x ... "
 		if [ -d $x ]; then
+			RCDIR=$x
 			RESTARTCMD="$x/\1 status >/dev/null 2>\&1 \&\& $x/\1 restart"
 			echo "yes"
 			break
@@ -168,8 +173,9 @@ if [ -z "$RESTARTCMD" ]; then
 	exit 1
 fi
 
+echo "RCDIR=		$RCDIR" >>$CONFIG_MK
 # Work around bug in the dash shell as "echo 'foo \1'" does bad things
-printf "%s\n" "RESTARTCMD=	${RESTARTCMD}" >>$CONFIG_MK
+printf "%s\n" "RESTARTCMD=	$RESTARTCMD" >>$CONFIG_MK
 
 echo
 echo "   SYSCONFDIR =		$SYSCONFDIR"

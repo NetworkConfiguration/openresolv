@@ -405,7 +405,7 @@ if [ "$cmd" = a ]; then
 fi
 
 eval "$(make_vars)"
-export RESOLVCONF DOMAINS SEARCH NAMESERVERS
+export RESOLVCONF DOMAINS SEARCH NAMESERVERS LOCALNAMESERVERS
 : ${list_resolv:=list_resolv -l}
 retval=0
 for script in "$LIBEXECDIR"/*; do

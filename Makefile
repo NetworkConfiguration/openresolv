@@ -1,7 +1,7 @@
 include config.mk
 
 NAME=		openresolv
-VERSION=	3.3.6
+VERSION=	3.4.0
 PKG=		${NAME}-${VERSION}
 
 INSTALL?=	install
@@ -36,6 +36,9 @@ all: ${TARGET}
 clean:
 	rm -f ${TARGET} openresolv-${VERSION}.tar.bz2
 
+distclean: clean
+	rm -f config.mk
+
 installdirs:
 
 install: ${TARGET}
@@ -57,7 +60,7 @@ import:
 	cp README ${SRCS} /tmp/${PKG}
 
 dist: import
-	cp Makefile resolvconf.conf /tmp/${PKG}
+	cp configure Makefile resolvconf.conf /tmp/${PKG}
 	tar cvjpf ${PKG}.tar.bz2 -C /tmp ${PKG} 
 	rm -rf /tmp/${PKG} 
 	ls -l ${PKG}.tar.bz2

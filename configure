@@ -128,7 +128,7 @@ fi
 if [ -z "$RESTARTCMD" ]; then
 	printf "Checking for OpenRC ... "
 	if [ -x /sbin/rc-service ]; then
-		RESTARTCMD="/sbin/rc-service -e \1 \&\& /sbin/rc-service \1 -Ds restart"
+		RESTARTCMD="/sbin/rc-service -e \1 \&\& /sbin/rc-service \1 -- -Ds restart"
 		echo "yes"
 	else
 		echo "no"

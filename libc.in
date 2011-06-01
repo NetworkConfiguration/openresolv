@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright (c) 2007-2009 Roy Marples
+# Copyright (c) 2007-2011 Roy Marples
 # All rights reserved
 
 # libc subscriber for resolvconf
@@ -160,7 +160,7 @@ for script in "$LIBEXECDIR"/libc.d/*; do
 		if [ -x "$script" ]; then
 			"$script" "$@"
 		else
-			(. "$script" "$@")
+			(. "$script")
 		fi
 		retval=$(($retval + $?))
 	fi

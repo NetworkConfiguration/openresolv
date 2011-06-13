@@ -152,7 +152,7 @@ if [ -e "$resolv_conf" ]; then
 fi
 
 # Create our resolv.conf now
-(umask 022; echo "$newconf" >"$resolv_conf")
+(umask 022; printf %s "$newconf" >"$resolv_conf")
 eval $libc_restart
 
 retval=0

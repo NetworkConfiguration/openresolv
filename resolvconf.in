@@ -230,7 +230,7 @@ list_resolv()
 		fi
 		
 		if [ "$cmd" = i -o "$cmd" = "-i" ]; then
-			printf "$i "
+			printf %s "$i "
 		else
 			echo_resolv "$i"
 		fi

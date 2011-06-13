@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright (c) 2009 Roy Marples
+# Copyright (c) 2009-2011 Roy Marples
 # All rights reserved
 
 # PowerDNS Recursor subscriber for resolvconf
@@ -30,6 +30,8 @@
 . "@SYSCONFDIR@/resolvconf.conf" || exit 1
 [ -z "$pdns_zones" ] && exit 0
 [ -z "$RESOLVCONF" ] && eval "$(@PREFIX@/sbin/resolvconf -v)"
+NL="
+"
 
 : ${pdns_service:=pdns_recursor}
 : ${pdns_restart:=@RESTARTCMD ${pdns_service}@}
@@ -42,7 +44,7 @@ newzones=
 #for n in $NAMESERVERS; do
 #	newzones="$newzones${newzones:+,}$n"
 #done
-#[ -n "$newzones" ] && newzones=".=$newzones\n"
+#[ -n "$newzones" ] && newzones=".=$newzones$NL"
 
 for d in $DOMAINS; do
 	newns=
@@ -52,12 +54,12 @@ for d in $DOMAINS; do
 		[ "$ns" = "${ns#*,}" ] && break
 		ns="${ns#*,}"
 	done
-	[ -n "$newns" ] && newzones="$newzones${d%%:*}=$newns\n"
+	[ -n "$newns" ] && newzones="$newzones${d%%:*}=$newns$NL"
 done
 
 if [ ! -f "$pdns_zones" ] || \
-	[ "$(cat "$pdns_zones")" != "$(printf "$newzones")" ]
+	[ "$(cat "$pdns_zones")" != "$(printf %s "$newzones")" ]
 then
-	printf "$newzones" >"$pdns_zones"
+	printf %s "$newzones" >"$pdns_zones"
 	eval $pdns_restart
 fi

@@ -1,7 +1,7 @@
 include config.mk
 
 NAME=		openresolv
-VERSION=	3.4.1
+VERSION=	3.4.2
 PKG=		${NAME}-${VERSION}
 
 INSTALL?=	install

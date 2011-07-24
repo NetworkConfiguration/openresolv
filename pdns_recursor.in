@@ -57,6 +57,13 @@ for d in $DOMAINS; do
 	[ -n "$newns" ] && newzones="$newzones${d%%:*}=$newns$NL"
 done
 
+# Try to ensure that config dirs exist
+if type config_mkdirs >/dev/null 2>&1; then
+	config_mkdirs "$pdnsd_zones"
+else
+	@PREFIX@/sbin/resolvconf -D "$pdnsd_zones"
+fi
+
 if [ ! -f "$pdns_zones" ] || \
 	[ "$(cat "$pdns_zones")" != "$(printf %s "$newzones")" ]
 then

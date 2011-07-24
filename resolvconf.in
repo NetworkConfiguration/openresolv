@@ -187,6 +187,41 @@ uniqify()
 	echo "${result# *}"
 }
 
+dirname()
+{
+	local dir= OIFS="$IFS"
+	local IFS=/
+	set -- $@
+	IFS="$OIFS"
+	if [ -n "$1" ]; then
+		printf %s .
+	else
+		shift
+	fi
+	while [ -n "$2" ]; do
+		printf "/%s" "$1"
+		shift
+	done
+	printf "\n"
+}
+
+config_mkdirs()
+{
+	local e=0 f d
+	for f; do
+		[ -n "$f" ] || continue
+		d="$(dirname "$f")"
+		if [ ! -d "$d" ]; then
+			if type install >/dev/null 2>&1; then
+				install -d "$d" || e=$?
+			else
+				mkdir "$d" || e=$?
+			fi
+		fi
+	done
+	return $e
+}
+
 list_resolv()
 {
 	[ -d "$IFACEDIR" ] || return 0
@@ -274,7 +309,7 @@ make_vars()
 }
 
 force=false
-while getopts a:d:fhIilm:puv OPT; do
+while getopts a:Dd:fhIilm:puv OPT; do
 	case "$OPT" in
 	f) force=true;;
 	h) usage;;
@@ -292,6 +327,12 @@ if [ "$cmd" = I ]; then
 	if [ -d "$VARDIR" ]; then
 		rm -rf "$VARDIR"/*
 	fi
+	exit $?
+fi
+
+# -D ensures that the listed config file base dirs exist
+if [ "$cmd" = D ]; then
+	config_mkdirs "$@"
 	exit $?
 fi
 

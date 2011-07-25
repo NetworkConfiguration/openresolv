@@ -98,7 +98,8 @@ if [ -n "$pdnsd_resolv" ]; then
 	done
 fi
 
-if [ -n "$pdnsd_conf" ]; then
+# Only modify the configuration if it exists and we can write to it
+if [ -w "$pdnsd_conf" ]; then
 	cf="$pdnsd_conf.new"
 	newconf=
 

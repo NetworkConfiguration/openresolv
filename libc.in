@@ -70,6 +70,7 @@ elif [ -d "$SYSCONFDIR"/resolvconf ]; then
 			search_domains="$(key_get_value "domain " "$base")"
 		fi
 		resolv_conf_options="$(key_get_value "options " "$base")"
+		resolv_conf_sortlist="$(key_get_value "sortlist " "$base")"
 	fi
 	if [ -f "$SYSCONFDIR"/resolv.conf.d/head ]; then
 		resolv_conf_head="$(cat "${SYSCONFDIR}"/resolv.conf.d/head)"
@@ -134,6 +135,17 @@ case "${resolv_conf_passthrough:-NO}" in
 	opts="$opts$($list_resolv | key_get_value "options ")"
 	if [ -n "$opts" ]; then
 		newconf="${newconf}options"
+		for opt in $(uniqify $opts); do
+			newconf="${newconf} $opt"
+		done
+		newconf="$newconf$NL"
+	fi
+
+	# and any sortlists
+	opts="$resolv_conf_sortlist${resolv_conf_sortlist:+ }"
+	opts="$opts$($list_resolv | key_get_value "sortlist ")"
+	if [ -n "$opts" ]; then
+		newconf="${newconf}sortlist"
 		for opt in $(uniqify $opts); do
 			newconf="${newconf} $opt"
 		done

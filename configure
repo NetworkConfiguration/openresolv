@@ -46,14 +46,14 @@ done
 : ${PREFIX:=$prefix}
 : ${SYSCONFDIR:=$PREFIX/etc}
 : ${SBINDIR:=$PREFIX/sbin}
-: ${LIBEXECDIR:=$PREFIX/libexec}
+: ${LIBEXECDIR:=$PREFIX/libexec/resolvconf}
 : ${STATEDIR:=/var}
 : ${RUNDIR:=$STATEDIR/run}
 : ${MANDIR:=${PREFIX:-/usr}/share/man}
 
 eval SYSCONFDIR="$SYSCONFDIR"
 eval SBINDIR="$SBINDIR"
-eval LIBEXECDIR="$LIBEXECDIR/resolvconf"
+eval LIBEXECDIR="$LIBEXECDIR"
 eval VARDIR="$RUNDIR/resolvconf"
 eval MANDIR="$MANDIR"
 

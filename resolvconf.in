@@ -108,8 +108,9 @@ echo_resolv()
 parse_resolv()
 {
 	local line= ns= ds= search= d= n= newns=
-	local new=true iface= private=false p=
+	local new=true iface= private=false p= domain=
 
+	echo "DOMAIN="
 	echo "DOMAINS="
 	echo "SEARCH=\"$search_domains\""
 	# let our subscribers know about global nameservers
@@ -153,7 +154,14 @@ parse_resolv()
 			esac
 			ns="$ns${line#* } "
 			;;
-		"domain "*|"search "*)
+		"domain "*)
+			if [ -z "$domain" ]; then
+				domain="${line#* }"
+				echo "DOMAIN=\"$domain\""
+			fi
+			search="${line#* }"
+			;;
+		"search "*)
 			search="${line#* }"
 			;;
 		*)
@@ -309,10 +317,11 @@ make_vars()
 		done
 		newdomains="$newdomains$newns"
 	done
-	echo "DOMAINS='$newdomains'"
+	echo "DOMAIN='$DOMAIN'"
 	echo "SEARCH='$(uniqify $SEARCH)'"
 	echo "NAMESERVERS='$(uniqify $NAMESERVERS)'"
 	echo "LOCALNAMESERVERS='$(uniqify $LOCALNAMESERVERS)'"
+	echo "DOMAINS='$newdomains'"
 }
 
 force=false

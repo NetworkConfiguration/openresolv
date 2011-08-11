@@ -84,16 +84,23 @@ usage()
 
 echo_resolv()
 {
-	local line=
+	local line= OIFS="$IFS"
+
 	[ -n "$1" -a -e "$IFACEDIR/$1" ] || return 1
 	echo "# resolv.conf from $1"
 	# Our variable maker works of the fact each resolv.conf per interface
 	# is separated by blank lines.
 	# So we remove them when echoing them.
 	while read line; do
-		[ -n "$line" ] && echo "$line"
+		IFS="$OIFS"
+		if [ -n "$line" ]; then
+			# We need to set IFS here to preserve any whitespace
+			IFS=''
+			printf "%s\n" "$line"
+		fi
 	done < "$IFACEDIR/$1"
 	echo
+	IFS="$OIFS"
 }
 
 # Parse resolv.conf's and make variables

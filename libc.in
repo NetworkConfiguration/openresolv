@@ -36,7 +36,7 @@ NL="
 # sed may not be available, and this is faster on small files
 key_get_value()
 {
-	local key="$1" value= x= line=
+	local key="$1" x= line=
 
 	shift
 	if [ $# -eq 0 ]; then
@@ -46,7 +46,7 @@ key_get_value()
 			esac
 		done
 	else
-		for x; do
+		for x do
 			while read line; do
 				case "$line" in
 				"$key"*) echo "${line##$key}";;
@@ -54,6 +54,22 @@ key_get_value()
 			done < "$x"
 		done
 	fi
+}
+
+keys_remove()
+{
+	local key x line found
+
+	while read line; do
+		found=false
+		for key do
+			case "$line" in
+			"$key"*|"#"*|" "*|"	"*|"") found=true;;
+			esac
+			$found && break
+		done
+		$found || echo "$line"
+	done
 }
 
 # Support original resolvconf configuration layout
@@ -130,26 +146,18 @@ case "${resolv_conf_passthrough:-NO}" in
 		newconf="${newconf}nameserver $n$NL"
 	done
 
-	# Now get any configured options
-	opts="$resolv_conf_options${resolv_conf_options:+ }"
-	opts="$opts$($list_resolv | key_get_value "options ")"
-	if [ -n "$opts" ]; then
-		newconf="${newconf}options"
-		for opt in $(uniqify $opts); do
-			newconf="${newconf} $opt"
-		done
-		newconf="$newconf$NL"
+	# Now add anything we don't care about such as sortlist and options
+	stuff="$($list_resolv | keys_remove nameserver domain search)"
+	if [ -n "$stuff" ]; then
+		newconf="$newconf$stuff$NL"
 	fi
 
-	# and any sortlists
-	opts="$resolv_conf_sortlist${resolv_conf_sortlist:+ }"
-	opts="$opts$($list_resolv | key_get_value "sortlist ")"
-	if [ -n "$opts" ]; then
-		newconf="${newconf}sortlist"
-		for opt in $(uniqify $opts); do
-			newconf="${newconf} $opt"
-		done
-		newconf="$newconf$NL"
+	# Append any user defined ones
+	if [ -n "$resolv_conf_options" ]; then
+		newconf="${newconf}options $resolv_conf_options$NL"
+	fi
+	if [ -n "$resolv_conf_sortlist" ]; then
+		newconf="${newconf}sortlist $resolv_conf_sortlist$NL"
 	fi
 
 	if [ -n "$resolv_conf_tail" ]; then

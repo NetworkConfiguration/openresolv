@@ -40,14 +40,14 @@ key_get_value()
 
 	shift
 	if [ $# -eq 0 ]; then
-		while read line; do
+		while read -r line; do
 			case "$line" in
 			"$key"*) echo "${line##$key}";;
 			esac
 		done
 	else
 		for x do
-			while read line; do
+			while read -r line; do
 				case "$line" in
 				"$key"*) echo "${line##$key}";;
 				esac
@@ -60,7 +60,7 @@ keys_remove()
 {
 	local key x line found
 
-	while read line; do
+	while read -r line; do
 		found=false
 		for key do
 			case "$line" in

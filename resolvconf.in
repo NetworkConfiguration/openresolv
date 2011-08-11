@@ -91,7 +91,7 @@ echo_resolv()
 	# Our variable maker works of the fact each resolv.conf per interface
 	# is separated by blank lines.
 	# So we remove them when echoing them.
-	while read line; do
+	while read -r line; do
 		IFS="$OIFS"
 		if [ -n "$line" ]; then
 			# We need to set IFS here to preserve any whitespace
@@ -123,7 +123,7 @@ parse_resolv()
 	echo "LOCALNAMESERVERS="
 	newns=
 
-	while read line; do
+	while read -r line; do
 		case "$line" in
 		"# resolv.conf from "*)
 			if ${new}; then

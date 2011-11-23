@@ -426,39 +426,54 @@ fi
 if [ "$cmd" = a ]; then
 	# Read resolv.conf from stdin
 	resolv="$(cat)"
+	changed=false
 	# If what we are given matches what we have, then do nothing
 	if [ -e "$IFACEDIR/$iface" ]; then
-		if [ "$(echo "$resolv")" = \
+		if [ "$(echo "$resolv")" != \
 			"$(cat "$IFACEDIR/$iface")" ]
 		then
-			exit 0
+			rm "$IFACEDIR/$iface"
+			changed=true
 		fi
-		rm "$IFACEDIR/$iface"
+	else
+		changed=true
 	fi
-	echo "$resolv" >"$IFACEDIR/$iface" || exit $?
+	if $changed; then
+		echo "$resolv" >"$IFACEDIR/$iface" || exit $?
+	fi
 	[ ! -d "$METRICDIR" ] && mkdir "$METRICDIR"
-	rm -f "$METRICDIR/"*" $iface"
+	oldmetric="$METRICDIR/"*" $iface"
+	newmetric=
 	if [ -n "$IF_METRIC" ]; then
 		# Pad metric to 6 characters, so 5 is less than 10
 		while [ ${#IF_METRIC} -le 6 ]; do
 			IF_METRIC="0$IF_METRIC"
 		done
-		echo " " >"$METRICDIR/$IF_METRIC $iface"
+		newmetric="$METRICDIR/$IF_METRIC $iface"
 	fi
+	rm -f "$METRICDIR/"*" $iface"
+	[ "$oldmetric" != "$newmetric" -a \
+	    "$oldmetric" != "$METRICDIR/* $iface" ] &&
+		changed=true
+	[ -n "$newmetric" ] && echo " " >"$newmetric"
 	case "$IF_PRIVATE" in
 	[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1)
 		if [ ! -d "$PRIVATEDIR" ]; then
 			[ -e "$PRIVATEDIR" ] && rm "$PRIVATEDIR"
 			mkdir "$PRIVATEDIR"
 		fi
+		[ -e "$PRIVATEDIR/$iface" ] || changed=true
 		[ -d "$PRIVATEDIR" ] && echo " " >"$PRIVATEDIR/$iface"
 		;;
 	*)
 		if [ -e "$PRIVATEDIR/$iface" ]; then
 			rm -f "$PRIVATEDIR/$iface"
+			changed=true
 		fi
 		;;
 	esac
+	$changed || exit 0
+	unset changed oldmetric newmetric
 fi
 
 eval "$(make_vars)"

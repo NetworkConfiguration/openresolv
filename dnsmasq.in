@@ -58,8 +58,6 @@ if [ -s "$dbus_pid" -a -s "$dnsmasq_pid" ]; then
 			kill -0 $(cat "$dnsmasq_pid") 2>/dev/null
 		then
 			dbus=true
-			newconf="$newconf$NL# Domain specific servers will"
-			newconf="$newconf be sent over dbus${NL}enable-dbus$NL"
 		fi
 	fi
 fi
@@ -69,10 +67,15 @@ for n in $NAMESERVERS; do
 done
 
 dbusdest=
+conf=
 for d in $DOMAINS; do
 	dn="${d%%:*}"
 	ns="${d#*:}"
 	while [ -n "$ns" ]; do
+		case "$ns" in
+		*.*.*.*) ;;
+		*) dbus=false;;
+		esac
 		if $dbus; then
 			SIFS=${IFS-y} OIFS=$IFS
 			IFS=.
@@ -85,13 +88,18 @@ for d in $DOMAINS; do
 			fi
 			dbusdest="$dbusdest uint32:$(printf %u $num)"
 			dbusdest="$dbusdest string:$dn"
-		else
-			newconf="${newconf}server=/$dn/${ns%%,*}$NL"
 		fi
+		conf="${conf}server=/$dn/${ns%%,*}$NL"
 		[ "$ns" = "${ns#*,}" ] && break
 		ns="${ns#*,}"
 	done
 done
+if $dbus; then
+	newconf="$newconf$NL# Domain specific servers will"
+	newconf="$newconf be sent over dbus${NL}enable-dbus$NL"
+else
+	newconf="$newconf$conf"
+fi
 
 # Try to ensure that config dirs exist
 if type config_mkdirs >/dev/null 2>&1; then

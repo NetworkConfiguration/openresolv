@@ -73,22 +73,44 @@ for d in $DOMAINS; do
 	ns="${d#*:}"
 	while [ -n "$ns" ]; do
 		case "$ns" in
-		*.*.*.*) ;;
-		*) dbus=false;;
-		esac
-		if $dbus; then
+		*.*.*.*)
 			SIFS=${IFS-y} OIFS=$IFS
 			IFS=.
 			set -- ${ns%%,*}
 			num="0x$(printf %02x $1 $2 $3 $4)"
-			if [ "$SIFS" = yi ]; then
+			if [ "$SIFS" = y ]; then
 				unset IFS
 			else
 				IFS=$OIFS
 			fi
 			dbusdest="$dbusdest uint32:$(printf %u $num)"
 			dbusdest="$dbusdest string:$dn"
-		fi
+			;;
+		*:*:*:*:*:*:*:*)
+			SIFS=${IFS-y} OIFS=$IFS bytes=
+			IFS=:
+			set -- ${ns%%,*}
+			while [ -n "$1" ]; do
+				addr="$1"
+				shift
+				while [ ${#addr} -lt 4 ]; do
+					addr="0${addr}"
+				done
+				byte1="$(printf %d 0x${addr%??})"
+				byte2="$(printf %d 0x${addr#??})"
+				dbusdest="$dbusdest byte:$byte1 byte:$byte2"
+			done
+			if [ "$SIFS" = y ]; then
+				unset IFS
+			else
+				IFS=$OIFS
+			fi
+			dbusdest="$dbusdest string:$dn"
+			;;
+		*)
+			dbus=false
+			;;
+		esac
 		conf="${conf}server=/$dn/${ns%%,*}$NL"
 		[ "$ns" = "${ns#*,}" ] && break
 		ns="${ns#*,}"

@@ -1,4 +1,4 @@
-.\" Copyright (c) 2009-2011 Roy Marples
+.\" Copyright (c) 2009-2012 Roy Marples
 .\" All rights reserved
 .\"
 .\" Redistribution and use in source and binary forms, with or without
@@ -99,6 +99,12 @@ without any alteration.
 .It Sy resolv_conf_sortlist
 A libc resolver sortlist, as specified in
 .Xr resolv.conf 5 .
+.It Sy resolv_conf_local_only
+If a local nameserver is configured then the default is just to specify that
+and ignore all other entries as they will be configured for the local
+nameserver.
+Set this to YES to list them instead, if you need working DNS and the local
+nameserver stops functioning at the expense of duplicated server queries.
 .El
 .Sh SUBSCRIBER OPTIONS
 openresolv ships with subscribers for the name servers

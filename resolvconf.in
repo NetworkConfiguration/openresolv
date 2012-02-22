@@ -297,6 +297,7 @@ list_remove() {
 	eval list=\"\$$1\"
 	shift
 
+	set -f
 	for e; do
 		found=false
 		for l in $list; do
@@ -311,6 +312,7 @@ list_remove() {
 			result="$result $e"
 		fi
 	done
+	set +f
 	echo "${result# *}"
 	return $retval
 }

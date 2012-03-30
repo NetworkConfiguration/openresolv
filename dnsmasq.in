@@ -142,14 +142,13 @@ if [ -n "$dnsmasq_conf" ]; then
 	fi
 fi
 if [ -n "$dnsmasq_resolv" ]; then
+	# dnsmasq polls this file so no need to set changed=true
 	if [ -f "$dnsmasq_resolv" ]; then
 		if [ "$(cat "$dnsmasq_resolv")" != "$(printf %s "$newresolv")" ]
 		then
-			changed=true
 			printf %s "$newresolv" >"$dnsmasq_resolv"
 		fi
 	else
-		# dnsmasq polls this file so no need to set changed=true
 		printf %s "$newresolv" >"$dnsmasq_resolv"
 	fi
 fi

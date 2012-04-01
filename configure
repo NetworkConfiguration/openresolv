@@ -18,7 +18,7 @@ for x do
 	--debug) DEBUG=$var;;
 	--disable-debug) DEBUG=no;;
 	--enable-debug) DEBUG=yes;;
-	--prefix) prefix=$var;;
+	--prefix) PREFIX=$var;;
 	--sysconfdir) SYSCONFDIR=$var;;
 	--bindir|--sbindir) SBINDIR=$var;;
 	--libexecdir) LIBEXECDIR=$var;;
@@ -41,9 +41,29 @@ for x do
 	esac
 done
 
+if [ -z "$LIBEXECDIR" ]; then
+	printf "Checking for directory /libexec ... "
+	if [ -d /libexec ]; then
+		echo "yes"
+		LIBEXECDIR=$PREFIX/libexec/resolvconf
+	else
+		echo "no"
+		LIBEXECDIR=$PREFIX/lib/resolvconf
+	fi
+fi
+if [ -z "$RUNDIR" ]; then
+	printf "Checking for directory /run ... "
+	if [ -d /run ]; then
+		echo "yes"
+		RUNDIR=/run
+	else
+		echo "no"
+		RUNDIR=/var/run
+	fi
+fi	
+
 : ${SED:=sed}
 
-: ${PREFIX:=$prefix}
 : ${SYSCONFDIR:=$PREFIX/etc}
 : ${SBINDIR:=$PREFIX/sbin}
 : ${LIBEXECDIR:=$PREFIX/libexec/resolvconf}
@@ -128,7 +148,7 @@ fi
 if [ -z "$RESTARTCMD" ]; then
 	printf "Checking for OpenRC ... "
 	if [ -x /sbin/rc-service ]; then
-		RESTARTCMD="/sbin/rc-service -e \1 \&\& /sbin/rc-service \1 -- -Ds restart"
+		RESTARTCMD="if /sbin/rc-service -e \1; then /sbin/rc-service \1 -- -Ds restart; fi"
 		echo "yes"
 	else
 		echo "no"
@@ -138,7 +158,7 @@ if [ -z "$RESTARTCMD" ]; then
 	printf "Checking for invoke-rc.d ... "
 	if [ -x /usr/sbin/invoke-rc.d ]; then
 		RCDIR=/etc/init.d
-		RESTARTCMD="/usr/sbin/invoke-rc.d --quiet \1 status >/dev/null 2>\&1 \&\& /usr/sbin/invoke-rc.d \1 restart"
+		RESTARTCMD="if /usr/sbin/invoke-rc.d --quiet \1 status >/dev/null 2>\&1; then /usr/sbin/invoke-rc.d \1 restart; fi"
 		echo "yes"
 	else
 		echo "no"
@@ -148,7 +168,7 @@ if [ -z "$RESTARTCMD" ]; then
 	printf "Checking for service ... "
 	if [ -x /sbin/service ]; then
 		RCDIR=/etc/init.d
-		RESTARTCMD="/sbin/service \1 \&\& /sbin/service \1 restart"
+		RESTARTCMD="if /sbin/service \1; then /sbin/service \1 restart; fi"
 		echo "yes"
 	else
 		echo "no"
@@ -159,7 +179,7 @@ if [ -z "$RESTARTCMD" ]; then
 		printf "Checking for $x ... "
 		if [ -d $x ]; then
 			RCDIR=$x
-			RESTARTCMD="$x/\1 status >/dev/null 2>\&1 \&\& $x/\1 restart"
+			RESTARTCMD="if $x/\1 status >/dev/null 2>\&1; then $x/\1 restart; fi"
 			echo "yes"
 			break
 		else

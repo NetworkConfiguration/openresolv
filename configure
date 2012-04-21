@@ -189,7 +189,7 @@ if [ -z "$RESTARTCMD" ]; then
 fi
 
 if [ -z "$RESTARTCMD" ]; then
-	echo "WARNING! No means of interacting with system services detected!"
+	echo "$0: WARNING: No means of interacting with system services detected!"
 	exit 1
 fi
 

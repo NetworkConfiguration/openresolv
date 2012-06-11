@@ -71,8 +71,8 @@ conf=
 for d in $DOMAINS; do
 	dn="${d%%:*}"
 	ns="${d#*:}"
-	n="${ns%%,*}"
 	while [ -n "$ns" ]; do
+		n="${ns%%,*}"
 		case "$n" in
 		*.*.*.*)
 			SIFS=${IFS-y} OIFS=$IFS

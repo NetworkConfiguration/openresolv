@@ -87,26 +87,41 @@ for d in $DOMAINS; do
 			dbusdest="$dbusdest uint32:$(printf %u $num)"
 			dbusdest="$dbusdest string:$dn"
 			;;
-		*:*:*:*:*:*:*:*)
-			SIFS=${IFS-y} OIFS=$IFS bytes=
+		*:*)
+			SIFS=${IFS-y} OIFS=$IFS bytes= front= back=
+			empty=false i=0
 			IFS=:
 			set -- $n
-			while [ -n "$1" ]; do
+			while [ -n "$1" -o -n "$2" ]; do
 				addr="$1"
 				shift
+				if [ -z "$addr" ]; then
+					empty=true
+					continue
+				fi
+				i=$(($i + 1))
 				while [ ${#addr} -lt 4 ]; do
 					addr="0${addr}"
 				done
 				byte1="$(printf %d 0x${addr%??})"
 				byte2="$(printf %d 0x${addr#??})"
-				dbusdest="$dbusdest byte:$byte1 byte:$byte2"
+				if $empty; then
+					back="$back byte:$byte1 byte:$byte2"
+				else
+					front="$front byte:$byte1 byte:$byte2"
+				fi
 			done
+			while [ $i != 8 ]; do
+				i=$(($i + 1))
+				front="$front byte:0 byte:0"
+			done
+			front="${front}$back"
 			if [ "$SIFS" = y ]; then
 				unset IFS
 			else
 				IFS=$OIFS
 			fi
-			dbusdest="$dbusdest string:$dn"
+			dbusdest="${dbusdest}$front string:$dn"
 			;;
 		*)
 			dbus=false

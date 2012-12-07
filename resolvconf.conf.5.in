@@ -211,8 +211,6 @@ To accomodate this, the subscribers have these files in configurable
 variables, documented below.
 .Pp
 .Bl -tag -width indent
-.It Sy dbus_pid
-Locaiton of the dbus pidfile.
 .It Sy dnsmasq_service
 Location of the dnsmasq service.
 .It Sy dnsmasq_restart
@@ -243,7 +241,7 @@ and
 .An Roy Marples Aq roy@marples.name
 .Sh BUGS
 Each distribution is a special snowflake and likes to name the same thing
-differently, namely the named service script and the dbus pidfile location.
+differently, namely the named service script.
 .Pp
 Please report them to
 .Lk http://roy.marples.name/projects/openresolv

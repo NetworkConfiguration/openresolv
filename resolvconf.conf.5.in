@@ -136,8 +136,8 @@ Example resolvconf.conf for dnsmasq:
 .Pp
 Example dnsmasq.conf:
 .D1 listen-address=127.0.0.1
-.D1 # If dnsmasq is compiled for DBus then we can take advantage of not
-.D1 # having to restart dnsmasq.
+.D1 # If dnsmasq is compiled for DBus then we can take
+.D1 # advantage of not having to restart dnsmasq.
 .D1 enable-dbus
 .D1 conf-file=/etc/dnsmasq-conf.conf
 .D1 resolv-file=/etc/dnsmasq-resolv.conf

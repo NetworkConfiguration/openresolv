@@ -59,7 +59,9 @@ if [ -s "$dbus_pid" -a -s "$dnsmasq_pid" ]; then
 			kill -0 $(cat "$dnsmasq_pid") 2>/dev/null
 		then
 			dbus=true
-			if dbus-send --print-reply --system --dest=uk.org.thekelleys.dnsmasq /uk/org/thekelleys/dnsmasq org.freedesktop.DBus.Introspectable.Introspect | grep -q '<method name="SetDomainServers">'
+			# Stupid test as it relies on dnsmasq running AND
+			# being configured for DBus
+			if dbus-send --print-reply --system --dest=uk.org.thekelleys.dnsmasq /uk/org/thekelleys/dnsmasq org.freedesktop.DBus.Introspectable.Introspect 2>/dev/null | grep -q '<method name="SetDomainServers">'
 			then
 				dbus_ex=true
 			fi

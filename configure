@@ -138,11 +138,30 @@ for x in SYSCONFDIR SBINDIR LIBEXECDIR VARDIR MANDIR; do
 	echo "$x=$t	$v" >>$CONFIG_MK
 done
 
-if [ -e /etc/arch-release -a -d /etc/rc.d ]; then
-	echo "Overriding service status check for Arch Linux"
-	RCDIR=/etc/rc.d
-	RESTARTCMD="[ -e /var/run/daemons/\1 ] \&\& /etc/rc.d/\1 restart"
-	echo "yes"
+if [ -z "$RESTARTCMD" ]; then
+	printf "Checking for systemd ... "
+	if [ -x /bin/systemctl ]; then
+		RESTARTCMD="/bin/systemctl try-restart \1"
+		echo "yes"
+	elif [ -x /usr/bin/systemctl ]; then
+		RESTARTCMD="/usr/bin/systemctl try-restart \1"
+		echo "yes"
+	else
+		echo "no"
+	fi
+fi
+
+# Arch upgraded to systemd, so this check has to be just after systemd
+# but higher than the others
+if [ -z "$RESTARTCMD" ]; then
+	printf "Checking for Arch ... "
+	if [ -e /etc/arch-release -a -d /etc/rc.d ]; then
+		RCDIR=/etc/rc.d
+		RESTARTCMD="[ -e /var/run/daemons/\1 ] \&\& /etc/rc.d/\1 restart"
+		echo "yes"
+	else
+		echo "no"
+	fi
 fi
 
 if [ -z "$RESTARTCMD" ]; then

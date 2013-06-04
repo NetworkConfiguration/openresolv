@@ -97,7 +97,7 @@ fi
 : ${resolv_conf:=/etc/resolv.conf}
 : ${libc_service:=nscd}
 : ${libc_restart:=@RESTARTCMD ${libc_service}@}
-: ${list_resolv:=@PREFIX@/sbin/resolvconf -l}
+: ${list_resolv:=@SBINDIR@/resolvconf -l}
 if [ "${resolv_conf_head-x}" = x -a -f "$SYSCONFDIR"/resolv.conf.head ]; then
 	resolv_conf_head="$(cat "${SYSCONFDIR}"/resolv.conf.head)"
 fi
@@ -130,7 +130,7 @@ case "${resolv_conf_passthrough:-NO}" in
 	newconf="$(cat "$newest")$NL"
 	;;
 *)
-	[ -z "$RESOLVCONF" ] && eval "$(@PREFIX@/sbin/resolvconf -v)"
+	[ -z "$RESOLVCONF" ] && eval "$(@SBINDIR@/resolvconf -v)"
 	newsearch="$(uniqify $search_domains $SEARCH $search_domains_append)"
 	NS="$LOCALNAMESERVERS $NAMESERVERS"
 	newns=

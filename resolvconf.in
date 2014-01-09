@@ -52,6 +52,11 @@ PRIVATEDIR="$VARDIR/private"
 : ${interface_order:=lo lo[0-9]*}
 : ${name_server_blacklist:=0.0.0.0}
 
+warn()
+{
+	echo "$*" >&2
+}
+
 error_exit()
 {
 	echo "$*" >&2
@@ -490,15 +495,21 @@ else
 	# Delete any existing information about the interface
 	if [ "$cmd" = d ]; then
 		cd "$IFACEDIR"
+		changed=false
 		for i in $args; do
-			if [ "$cmd" = d -a ! -e "$i" ]; then
-				$force && continue
-				error_exit "No resolv.conf for" \
-					"interface $i"
+			if [ -e "$i" ]; then
+				changed=true
+			elif ! ${force}; then
+				warn "No resolv.conf for interface $i"
 			fi
 			rm -f "$i" "$METRICDIR/"*" $i" \
 				"$PRIVATEDIR/$i" || exit $?
 		done
+		if ! ${changed}; then
+			# Set the return code based on the forced flag
+			${force}
+			exit $?
+		fi
 	fi
 fi
 

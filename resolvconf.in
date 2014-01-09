@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright (c) 2007-2012 Roy Marples
+# Copyright (c) 2007-2014 Roy Marples
 # All rights reserved
 
 # Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,7 @@ TMPDIR="$VARDIR/tmp"
 IFACEDIR="$VARDIR/interfaces"
 METRICDIR="$VARDIR/metrics"
 PRIVATEDIR="$VARDIR/private"
+LOCKDIR="$VARDIR/lock"
 
 : ${dynamic_order:=tap[0-9]* tun[0-9]* vpn vpn[0-9]* ppp[0-9]* ippp[0-9]*}
 : ${interface_order:=lo lo[0-9]*}
@@ -580,6 +581,29 @@ if [ "$cmd" = a ]; then
 	$changed || exit 0
 	unset changed oldmetric newmetric
 fi
+
+# An interface was added, deleted or changed.
+# These above actions are atomic, however calling our subcribers is not.
+# Even if we do our very best, the action of restarting the subscriber daemon
+# is not guaranteed to be serialised due to our many flavours of OS we support.
+# As such we spinlock at this point as best we can.
+# We don't use flock(1) because it's not widely available and normally resides
+# in /usr which we do our very best to operate without.
+: ${lock_timeout:=10}
+while true; do
+	if mkdir "$LOCKDIR" 2>/dev/null; then
+		trap 'rm -rf "$LOCKDIR";' EXIT
+		trap 'rm -rf "$LOCKDIR"; exit 1' INT QUIT ABRT SEGV ALRM TERM
+		echo $$ >"$LOCKDIR/pid"
+		break
+	fi
+	lock_timeout=$(($lock_timeout - 1))
+	if [ "$lock_timeout" -le 0 ]; then
+		pid=$(cat "$LOCKDIR/pid")
+		error_exit "timed out waiting for lock from pid $pid"
+	fi
+	sleep 1
+done
 
 eval "$(make_vars)"
 export RESOLVCONF DOMAINS SEARCH NAMESERVERS LOCALNAMESERVERS

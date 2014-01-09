@@ -43,6 +43,7 @@ elif [ -d "$SYSCONFDIR/resolvconf" ]; then
 		interface_order="$(cat "$SYSCONFDIR"/interface-order)"
 	fi
 fi
+TMPDIR="$VARDIR/tmp"
 IFACEDIR="$VARDIR/interfaces"
 METRICDIR="$VARDIR/metrics"
 PRIVATEDIR="$VARDIR/private"
@@ -449,6 +450,7 @@ elif [ "$cmd" != u ]; then
 	[ -n "$cmd" -a "$cmd" != h ] && usage "Unknown option $cmd"
 	usage
 fi
+
 if [ "$cmd" = a ]; then
 	for x in '/' \\ ' ' '*'; do
 		case "$iface" in
@@ -464,23 +466,24 @@ if [ "$cmd" = a ]; then
 	[ "$cmd" = a -a -t 0 ] && error_exit "No file given via stdin"
 fi
 
-if [ ! -d "$IFACEDIR" ]; then
-	if [ ! -d "$VARDIR" ]; then
-		if [ -L "$VARDIR" ]; then
-			dir="$(readlink "$VARDIR")"
-			# link maybe relative
-			cd "${VARDIR%/*}"
-			if ! mkdir -m 0755 -p "$dir"; then
-				error_exit "Failed to create needed" \
-					"directory $dir"
-			fi
-		else
-			if ! mkdir -m 0755 -p "$VARDIR"; then
-				error_exit "Failed to create needed" \
-					"directory $VARDIR"
-			fi
+if [ ! -d "$VARDIR" ]; then
+	if [ -L "$VARDIR" ]; then
+		dir="$(readlink "$VARDIR")"
+		# link maybe relative
+		cd "${VARDIR%/*}"
+		if ! mkdir -m 0755 -p "$dir"; then
+			error_exit "Failed to create needed" \
+				"directory $dir"
+		fi
+	else
+		if ! mkdir -m 0755 -p "$VARDIR"; then
+			error_exit "Failed to create needed" \
+				"directory $VARDIR"
 		fi
 	fi
+fi
+
+if [ ! -d "$IFACEDIR" ]; then
 	mkdir -m 0755 -p "$IFACEDIR" || \
 		error_exit "Failed to create needed directory $IFACEDIR"
 else
@@ -503,20 +506,21 @@ if [ "$cmd" = a ]; then
 	# Read resolv.conf from stdin
 	resolv="$(cat)"
 	changed=false
+	changedfile=false
 	# If what we are given matches what we have, then do nothing
 	if [ -e "$IFACEDIR/$iface" ]; then
 		if [ "$(echo "$resolv")" != \
 			"$(cat "$IFACEDIR/$iface")" ]
 		then
-			rm "$IFACEDIR/$iface"
 			changed=true
+			changedfile=true
 		fi
 	else
 		changed=true
+		changedfile=true
 	fi
-	if $changed; then
-		echo "$resolv" >"$IFACEDIR/$iface" || exit $?
-	fi
+	# Set metric and private before creating the interface resolv.conf file
+	# to ensure that it will have the correct flags
 	[ ! -d "$METRICDIR" ] && mkdir "$METRICDIR"
 	oldmetric="$METRICDIR/"*" $iface"
 	newmetric=
@@ -548,6 +552,20 @@ if [ "$cmd" = a ]; then
 		fi
 		;;
 	esac
+	if $changedfile; then
+		# Ensure that creating the file is an atomic operation
+		if [ ! -d "$TMPDIR" ]; then
+			mkdir -m 0755 -p "$TMPDIR" || \
+			    error_exit \
+				"Failed to create needed directory $TMPDIR"
+		fi
+		TMPFILE="$TMPDIR/$iface.$$"
+		cleanup() { [ -n "$TMPFILE" ] && rm -f "$TMPFILE"; }
+		trap cleanup EXIT
+		echo "$resolv" >"$TMPFILE" || exit $?
+		mv -f "$TMPFILE" "$IFACEDIR/$iface" || exit $?
+		TMPFILE=
+	fi
 	$changed || exit 0
 	unset changed oldmetric newmetric
 fi

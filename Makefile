@@ -1,3 +1,7 @@
+NAME=		openresolv
+VERSION=	3.5.6
+PKG=		${NAME}-${VERSION}
+
 # Nasty hack so that make clean works without configure being run
 _CONFIG_MK_SH=	test -e config.mk && echo config.mk || echo config-null.mk
 _CONFIG_MK!=	${_CONFIG_MK_SH}
@@ -12,10 +16,6 @@ RCDIR?=		/etc/rc.d
 RESTARTCMD?=	if ${RCDIR}/\1 status >/dev/null 2>\&1; then \
 			${RCDIR}/\1 restart; \
 		fi
-
-NAME=		openresolv
-VERSION=	3.5.6
-PKG=		${NAME}-${VERSION}
 
 INSTALL?=	install
 SED?=		sed

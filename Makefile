@@ -3,9 +3,8 @@ VERSION=	3.5.6
 PKG=		${NAME}-${VERSION}
 
 # Nasty hack so that make clean works without configure being run
-_CONFIG_MK_SH=	test -e config.mk && echo config.mk || echo config-null.mk
-_CONFIG_MK!=	${_CONFIG_MK_SH}
-CONFIG_MK=	${_CONFIG_MK}$(shell ${_CONFIG_MK_SH})
+_CONFIG_MK!=	test -e config.mk && echo config.mk || echo config-null.mk
+CONFIG_MK?=	${_CONFIG_MK}
 include		${CONFIG_MK}
 
 SBINDIR?=	/sbin

@@ -1,5 +1,5 @@
 NAME=		openresolv
-VERSION=	3.5.6
+VERSION=	3.5.7
 PKG=		${NAME}-${VERSION}
 
 # Nasty hack so that make clean works without configure being run
@@ -72,7 +72,8 @@ import:
 	cp README ${SRCS} /tmp/${PKG}
 
 dist: import
-	cp configure Makefile resolvconf.conf /tmp/${PKG}
+	cp configure Makefile GNUmakefile config-null.mk resolvconf.conf \
+	    /tmp/${PKG}
 	tar cvjpf ${PKG}.tar.bz2 -C /tmp ${PKG} 
 	rm -rf /tmp/${PKG} 
 	ls -l ${PKG}.tar.bz2

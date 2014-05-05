@@ -53,7 +53,7 @@ distclean: clean
 
 installdirs:
 
-install: ${TARGET}
+proginstall: ${TARGET}
 	${INSTALL} -d ${DESTDIR}${SBINDIR}
 	${INSTALL} -m ${BINMODE} resolvconf ${DESTDIR}${SBINDIR}
 	${INSTALL} -d ${DESTDIR}${SYSCONFDIR}
@@ -61,10 +61,14 @@ install: ${TARGET}
 	${INSTALL} -m ${DOCMODE} resolvconf.conf ${DESTDIR}${SYSCONFDIR}
 	${INSTALL} -d ${DESTDIR}${LIBEXECDIR}
 	${INSTALL} -m ${DOCMODE} ${SUBSCRIBERS} ${DESTDIR}${LIBEXECDIR}
+
+maninstall:
 	${INSTALL} -d ${DESTDIR}${MANDIR}/man8
 	${INSTALL} -m ${MANMODE} resolvconf.8 ${DESTDIR}${MANDIR}/man8
 	${INSTALL} -d ${DESTDIR}${MANDIR}/man5
 	${INSTALL} -m ${MANMODE} resolvconf.conf.5 ${DESTDIR}${MANDIR}/man5
+
+install: proginstall maninstall
 
 import:
 	rm -rf /tmp/${PKG}

@@ -381,7 +381,7 @@ make_vars()
 					case ",$newns," in
 					*,${ns%%,*},*) ;;
 					*) list_remove name_server_blacklist \
-						"$ns" >/dev/null \
+						"${ns%%,*}" >/dev/null \
 					&& newns="$newns${newns:+,}${ns%%,*}";;
 					esac
 					[ "$ns" = "${ns#*,}" ] && break

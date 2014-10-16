@@ -193,7 +193,7 @@ Example pdnsd.conf:
 .It Sy unbound_conf
 This file tells unbound about specific and global name servers.
 .It Sy unbound_insecure
-Instructs unbound to mark the domains as insecure, thus ignoring DNSSEC.
+When set to YES, unbound marks the domains as insecure, thus ignoring DNSSEC.
 .Pp
 Example resolvconf.conf for unbound:
 .D1 name_servers=127.0.0.1

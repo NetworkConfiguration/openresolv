@@ -22,7 +22,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.Dd April 17, 2014
+.Dd October 19, 2014
 .Dt RESOLVCONF 8 SMM
 .Os
 .Sh NAME
@@ -76,6 +76,20 @@ or
 then
 .Nm
 will supply files that the resolver should be configured to include.
+.Pp
+.Nm
+assumes it has a job to do.
+In some situations
+.Nm
+needs to act as a deterent to writing to
+.Pa /etc/resolv.conf .
+Where this file cannot be made immutable or you just need to toggle this
+behaviour,
+.Nm
+can be disabled by adding
+.Sy resolvconf Ns = Ns NO
+to
+.Xr resolvconf.conf 5 .
 .Pp
 .Nm
 can mark an interfaces

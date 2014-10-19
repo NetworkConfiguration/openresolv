@@ -587,6 +587,11 @@ if [ "$cmd" = a ]; then
 	unset changed oldmetric newmetric
 fi
 
+case "${resolvconf:-YES}" in
+[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1) ;;
+*) exit 0;;
+esac
+
 # An interface was added, deleted or changed.
 # These above actions are atomic, however calling our subcribers is not.
 # Even if we do our very best, the action of restarting the subscriber daemon
@@ -616,6 +621,11 @@ export RESOLVCONF DOMAINS SEARCH NAMESERVERS LOCALNAMESERVERS
 retval=0
 for script in "$LIBEXECDIR"/*; do
 	if [ -f "$script" ]; then
+		eval script_enabled="\$${script##*/}"
+		case "${script_enabled:-YES}" in
+		[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1) ;;
+		*) continue;;
+		esac
 		if [ -x "$script" ]; then
 			"$script" "$cmd" "$iface"
 		else

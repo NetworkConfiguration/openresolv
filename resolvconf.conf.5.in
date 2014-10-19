@@ -50,6 +50,11 @@ After updating this file, you may wish to run
 to apply the new configuration.
 .Sh RESOLVCONF OPTIONS
 .Bl -tag -width indent
+.It Sy resolvconf
+Set to NO to disable
+.Nm resolvconf
+from running any subscribers.
+Defaults to YES.
 .It Sy interface_order
 These interfaces will always be processed first.
 If unset, defaults to the following:-
@@ -129,6 +134,10 @@ and
 .Xr unbound 8 .
 Each subscriber can create configuration files which should be included in
 in the subscribers main configuration file.
+.Pp
+To disable a subscriber, simply set it's name to NO.
+For example, to disable the libc subscriber you would set:
+.D1 libc=NO
 .Bl -tag -width indent
 .It Sy dnsmasq_conf
 This file tells dnsmasq which name servers to use for specific domains.

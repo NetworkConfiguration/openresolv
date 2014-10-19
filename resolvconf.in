@@ -32,6 +32,11 @@ VARDIR=@VARDIR@
 # Disregard dhcpcd setting
 unset interface_order state_dir
 
+local_nameservers="127.* 0.0.0.0 255.255.255.255 ::1"
+dynamic_order="tap[0-9]* tun[0-9]* vpn vpn[0-9]* ppp[0-9]* ippp[0-9]*"
+interface_order="lo lo[0-9]*"
+name_server_blacklist="0.0.0.0"
+
 # Support original resolvconf configuration layout
 # as well as the openresolv config file
 if [ -f "$SYSCONFDIR"/resolvconf.conf ]; then
@@ -48,11 +53,6 @@ IFACEDIR="$VARDIR/interfaces"
 METRICDIR="$VARDIR/metrics"
 PRIVATEDIR="$VARDIR/private"
 LOCKDIR="$VARDIR/lock"
-
-: ${dynamic_order:=tap[0-9]* tun[0-9]* vpn vpn[0-9]* ppp[0-9]* ippp[0-9]*}
-: ${interface_order:=lo lo[0-9]*}
-: ${name_server_blacklist:=0.0.0.0}
-: ${local_nameservers:=127.* 0.0.0.0 255.255.255.255 ::1}
 
 warn()
 {

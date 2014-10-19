@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright (c) 2007-2012 Roy Marples
+# Copyright (c) 2007-2014 Roy Marples
 # All rights reserved
 
 # libc subscriber for resolvconf
@@ -98,6 +98,7 @@ fi
 : ${libc_service:=nscd}
 : ${libc_restart:=@RESTARTCMD ${libc_service}@}
 : ${list_resolv:=@SBINDIR@/resolvconf -l}
+: ${local_nameservers:=127.* 0.0.0.0 255.255.255.255 ::1}
 if [ "${resolv_conf_head-x}" = x -a -f "$SYSCONFDIR"/resolv.conf.head ]; then
 	resolv_conf_head="$(cat "${SYSCONFDIR}"/resolv.conf.head)"
 fi
@@ -137,14 +138,18 @@ case "${resolv_conf_passthrough:-NO}" in
 	gotlocal=false
 	for n in $(uniqify $prepend_nameservers $NS); do
 		add=true
-		case "$n" in
-		127.*|0.0.0.0|255.255.255.255|::1) gotlocal=true;;
-		*)
+		islocal=false
+		for l in $local_nameservers; do
+			case "$n" in
+			$l) islocal=true; gotlocal=true; break;;
+			esac
+		done
+		if ! $islocal; then
 			case "${resolv_conf_local_only:-YES}" in
 			[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1)
 				$gotlocal && add=false;;
 			esac
-		esac
+		fi
 		$add && newns="$newns $n"
 	done
 

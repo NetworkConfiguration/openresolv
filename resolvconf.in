@@ -52,6 +52,7 @@ LOCKDIR="$VARDIR/lock"
 : ${dynamic_order:=tap[0-9]* tun[0-9]* vpn vpn[0-9]* ppp[0-9]* ippp[0-9]*}
 : ${interface_order:=lo lo[0-9]*}
 : ${name_server_blacklist:=0.0.0.0}
+: ${local_nameservers:=127.* 0.0.0.0 255.255.255.255 ::1}
 
 warn()
 {
@@ -120,7 +121,7 @@ echo_resolv()
 parse_resolv()
 {
 	local line= ns= ds= search= d= n= newns=
-	local new=true iface= private=false p= domain=
+	local new=true iface= private=false p= domain= l= islocal=
 
 	newns=
 
@@ -145,13 +146,17 @@ parse_resolv()
 			fi
 			;;
 		"nameserver "*)
-			case "${line#* }" in
-			127.*|0.0.0.0|255.255.255.255|::1)
-				echo "LOCALNAMESERVERS=\"\$LOCALNAMESERVERS ${line#* }\""
-				continue
-				;;
-			esac
-			ns="$ns${line#* } "
+			islocal=false
+			for l in $local_nameservers; do
+				case "${line#* }" in
+				$l)
+					islocal=true
+					echo "LOCALNAMESERVERS=\"\$LOCALNAMESERVERS ${line#* }\""
+					break
+					;;
+				esac
+			done
+			$islocal || ns="$ns${line#* } "
 			;;
 		"domain "*)
 			if [ -z "$domain" ]; then

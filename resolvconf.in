@@ -603,6 +603,7 @@ esac
 # As such we spinlock at this point as best we can.
 # We don't use flock(1) because it's not widely available and normally resides
 # in /usr which we do our very best to operate without.
+[ -w "$VARDIR" ] || error_exit "Cannot write to $LOCKDIR"
 : ${lock_timeout:=10}
 while true; do
 	if mkdir "$LOCKDIR" 2>/dev/null; then

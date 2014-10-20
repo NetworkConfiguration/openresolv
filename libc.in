@@ -130,8 +130,17 @@ case "${resolv_conf_passthrough:-NO}" in
 	[ -z "$newest" ] && exit 0
 	newconf="$(cat "$newest")$NL"
 	;;
+/dev/null|[Nn][Uu][Ll][Ll])
+	[ -z "$RESOLVCONF" ] && eval "$(@SBINDIR@/resolvconf -V)"
+	;;
+
 *)
 	[ -z "$RESOLVCONF" ] && eval "$(@SBINDIR@/resolvconf -v)"
+	;;
+esac
+case "${resolv_conf_passthrough:-NO}" in
+[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1) ;;
+*)
 	newsearch="$(uniqify $prepend_search $SEARCH)"
 	NS="$LOCALNAMESERVERS $NAMESERVERS"
 	newns=

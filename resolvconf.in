@@ -366,7 +366,9 @@ make_vars()
 	if [ -n "$name_servers" -o -n "$search_domains" ]; then
 		eval "$(echo_prepend | parse_resolv)"
 	fi
-	eval "$(list_resolv -l "$@" | parse_resolv)"
+	if [ -z "$VFLAG" ]; then
+		eval "$(list_resolv -l "$@" | parse_resolv)"
+	fi
 	if [ -n "$name_servers_append" -o -n "$search_domains_append" ]; then
 		eval "$(echo_append | parse_resolv)"
 	fi
@@ -413,12 +415,14 @@ make_vars()
 }
 
 force=false
-while getopts a:Dd:fhIilm:puv OPT; do
+VFLAG=
+while getopts a:Dd:fhIilm:puvV OPT; do
 	case "$OPT" in
 	f) force=true;;
 	h) usage;;
 	m) IF_METRIC="$OPTARG";;
 	p) IF_PRIVATE=1;;
+	V) VFLAG=1;;
 	'?') ;;
 	*) cmd="$OPT"; iface="$OPTARG";;
 	esac
@@ -447,7 +451,7 @@ if [ "$cmd" = l -o "$cmd" = i ]; then
 fi
 
 # Not normally needed, but subscribers should be able to run independently
-if [ "$cmd" = v ]; then
+if [ "$cmd" = v -o -n "$VFLAG" ]; then
 	make_vars "$iface"
 	exit $?
 fi

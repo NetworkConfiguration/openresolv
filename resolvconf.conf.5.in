@@ -22,7 +22,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.Dd October 19, 2014
+.Dd October 20, 2014
 .Dt RESOLVCONF.CONF 5 SMM
 .Os
 .Sh NAME
@@ -114,6 +114,10 @@ A list of libc resolver options, as specified in
 When set to YES the latest resolv.conf is written to
 .Sy resolv_conf
 without any alteration.
+When set to /dev/null or NULL only the information set in
+.Nm
+is written to
+.Sy resolv_conf .
 .It Sy resolv_conf_sortlist
 A libc resolver sortlist, as specified in
 .Xr resolv.conf 5 .

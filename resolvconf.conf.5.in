@@ -114,7 +114,11 @@ A list of libc resolver options, as specified in
 When set to YES the latest resolv.conf is written to
 .Sy resolv_conf
 without any alteration.
-When set to /dev/null or NULL only the information set in
+When set to /dev/null or NULL,
+.Sy resolv_conf_local_only
+is defaulted to NO,
+.Sy local_nameservers
+is unset unless overriden and only the information set in
 .Nm
 is written to
 .Sy resolv_conf .

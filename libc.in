@@ -72,6 +72,8 @@ keys_remove()
 	done
 }
 
+local_nameservers="127.* 0.0.0.0 255.255.255.255 ::1"
+
 # Support original resolvconf configuration layout
 # as well as the openresolv config file
 if [ -f "$SYSCONFDIR"/resolvconf.conf ]; then
@@ -93,12 +95,10 @@ elif [ -d "$SYSCONFDIR"/resolvconf ]; then
 		resolv_conf_tail="$(cat "$SYSCONFDIR"/resolv.conf.d/tail)"
 	fi
 fi
-: ${domain:=$DOMAIN}
 : ${resolv_conf:=/etc/resolv.conf}
 : ${libc_service:=nscd}
 : ${libc_restart:=@RESTARTCMD ${libc_service}@}
 : ${list_resolv:=@SBINDIR@/resolvconf -l}
-: ${local_nameservers:=127.* 0.0.0.0 255.255.255.255 ::1}
 if [ "${resolv_conf_head-x}" = x -a -f "$SYSCONFDIR"/resolv.conf.head ]; then
 	resolv_conf_head="$(cat "${SYSCONFDIR}"/resolv.conf.head)"
 fi
@@ -131,7 +131,12 @@ case "${resolv_conf_passthrough:-NO}" in
 	newconf="$(cat "$newest")$NL"
 	;;
 /dev/null|[Nn][Uu][Ll][Ll])
-	[ -z "$RESOLVCONF" ] && eval "$(@SBINDIR@/resolvconf -V)"
+	: ${resolv_conf_local_only:=NO}
+	if [ "$local_nameservers" = "127.* 0.0.0.0 255.255.255.255 ::1" ]; then
+		local_nameservers=
+	fi
+	# Need to overwrite our variables.
+	eval "$(@SBINDIR@/resolvconf -V)"
 	;;
 
 *)
@@ -141,6 +146,7 @@ esac
 case "${resolv_conf_passthrough:-NO}" in
 [Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1) ;;
 *)
+	: ${domain:=$DOMAIN}
 	newsearch="$(uniqify $prepend_search $SEARCH)"
 	NS="$LOCALNAMESERVERS $NAMESERVERS"
 	newns=

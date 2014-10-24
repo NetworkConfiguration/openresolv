@@ -510,6 +510,17 @@ fi
 if [ ! -d "$IFACEDIR" ]; then
 	mkdir -m 0755 -p "$IFACEDIR" || \
 		error_exit "Failed to create needed directory $IFACEDIR"
+	if [ "$cmd" = d ]; then
+		# Provide the same error messages as below
+		if ! ${force}; then
+			cd "$IFACEDIR"
+			for i in $args; do
+				warn "No resolv.conf for interface $i"
+			done
+		fi
+		${force}
+		exit $?
+	fi
 else
 	# Delete any existing information about the interface
 	if [ "$cmd" = d ]; then

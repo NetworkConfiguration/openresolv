@@ -220,6 +220,8 @@ as private.
 .El
 .Sh FILES
 .Bl -ohang
+.It Pa /etc/resolv.conf.bak
+Backup file of the original resolv.conf.
 .It Pa @SYSCONFDIR@/resolvconf.conf
 Configuration file for
 .Nm .

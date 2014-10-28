@@ -151,11 +151,11 @@ case "${resolv_conf_passthrough:-NO}" in
 [Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1) ;;
 *)
 	: ${domain:=$DOMAIN}
-	newsearch="$(uniqify $prepend_search $SEARCH)"
+	newsearch="$(uniqify $prepend_search $SEARCH $append_search)"
 	NS="$LOCALNAMESERVERS $NAMESERVERS"
 	newns=
 	gotlocal=false
-	for n in $(uniqify $prepend_nameservers $NS); do
+	for n in $(uniqify $prepend_nameservers $NS $append_nameservers); do
 		add=true
 		islocal=false
 		for l in $local_nameservers; do

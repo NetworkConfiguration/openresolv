@@ -1,5 +1,5 @@
 NAME=		openresolv
-VERSION=	3.6.0
+VERSION=	3.6.1
 PKG=		${NAME}-${VERSION}
 
 # Nasty hack so that make clean works without configure being run

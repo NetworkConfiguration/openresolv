@@ -81,7 +81,7 @@ will supply files that the resolver should be configured to include.
 assumes it has a job to do.
 In some situations
 .Nm
-needs to act as a deterent to writing to
+needs to act as a deterrent to writing to
 .Pa /etc/resolv.conf .
 Where this file cannot be made immutable or you just need to toggle this
 behaviour,

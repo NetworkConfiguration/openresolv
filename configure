@@ -182,6 +182,18 @@ if [ -z "$RESTARTCMD" ]; then
 	fi
 fi
 if [ -z "$RESTARTCMD" ]; then
+	printf "Checking for runit... "
+	if [ -x /bin/sv ]; then
+		RESTARTCMD="/bin/sv try-restart \1"
+		echo "yes"
+	elif [ -x /usr/bin/sv ]; then
+		RESTARTCMD="/usr/bin/sv try-restart \1"
+		echo "yes"
+	else
+		echo "no"
+	fi
+fi
+if [ -z "$RESTARTCMD" ]; then
 	for x in /etc/init.d/rc.d /etc/rc.d /etc/init.d; do
 		printf "Checking for $x ... "
 		if [ -d $x ]; then

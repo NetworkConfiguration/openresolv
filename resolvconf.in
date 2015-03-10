@@ -101,7 +101,7 @@ echo_resolv()
 {
 	local line= OIFS="$IFS"
 
-	[ -n "$1" -a -e "$IFACEDIR/$1" ] || return 1
+	[ -n "$1" -a -f "$IFACEDIR/$1" ] || return 1
 	echo "# resolv.conf from $1"
 	# Our variable maker works of the fact each resolv.conf per interface
 	# is separated by blank lines.
@@ -258,9 +258,9 @@ list_resolv()
 	else
 		cd "$IFACEDIR"
 		for i in $interface_order; do
-			[ -e "$i" ] && list="$list $i"
+			[ -f "$i" ] && list="$list $i"
 			for ii in "$i":* "$i".*; do
-				[ -e "$ii" ] && list="$list $ii"
+				[ -f "$ii" ] && list="$list $ii"
 			done
 		done
 		for i in $dynamic_order; do
@@ -268,7 +268,7 @@ list_resolv()
 				list="$list $i"
 			fi
 			for ii in "$i":* "$i".*; do
-				if [ -e "$ii" -a ! -e "$METRICDIR/"*" $ii" ]; then
+				if [ -f "$ii" -a ! -e "$METRICDIR/"*" $ii" ]; then
 					list="$list $ii"
 				fi
 			done
@@ -276,7 +276,7 @@ list_resolv()
 		if [ -d "$METRICDIR" ]; then
 			cd "$METRICDIR"
 			for i in *; do
-				list="$list ${i#* }"
+				[ -f "$i" ] && list="$list ${i#* }"
 			done
 		fi
 		list="$list *"
@@ -285,7 +285,7 @@ list_resolv()
 	cd "$IFACEDIR"
 	for i in $(uniqify $list); do
 		# Only list interfaces which we really have
-		if ! [ -e "$i" ]; then
+		if ! [ -f "$i" ]; then
 			if $report; then
 				echo "No resolv.conf for interface $i" >&2
 				retval=$(($retval + 1))

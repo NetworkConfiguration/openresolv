@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright (c) 2007-2014 Roy Marples
+# Copyright (c) 2007-2015 Roy Marples
 # All rights reserved
 
 # Redistribution and use in source and binary forms, with or without
@@ -259,7 +259,7 @@ list_resolv()
 		cd "$IFACEDIR"
 		for i in $interface_order; do
 			[ -e "$i" ] && list="$list $i"
-			for ii in "$i":*; do
+			for ii in "$i":* "$i".*; do
 				[ -e "$ii" ] && list="$list $ii"
 			done
 		done
@@ -267,7 +267,7 @@ list_resolv()
 			if [ -e "$i" -a ! -e "$METRICDIR/"*" $i" ]; then
 				list="$list $i"
 			fi
-			for ii in "$i":*; do
+			for ii in "$i":* "$i".*; do
 				if [ -e "$ii" -a ! -e "$METRICDIR/"*" $ii" ]; then
 					list="$list $ii"
 				fi

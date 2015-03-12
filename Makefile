@@ -1,6 +1,5 @@
-NAME=		openresolv
+PKG=		openresolv
 VERSION=	3.6.1
-PKG=		${NAME}-${VERSION}
 
 # Nasty hack so that make clean works without configure being run
 _CONFIG_MK!=	test -e config.mk && echo config.mk || echo config-null.mk
@@ -36,6 +35,11 @@ SED_VARDIR=		-e 's:@VARDIR@:${VARDIR}:g'
 SED_RCDIR=		-e 's:@RCDIR@:${RCDIR}:g'
 SED_RESTARTCMD=		-e 's:@RESTARTCMD \(.*\)@:${RESTARTCMD}:g'
 
+DISTPREFIX?=	${PKG}-${VERSION}
+DISTFILEGZ?=	${DISTPREFIX}.tar.gz
+DISTFILE?=	${DISTPREFIX}.tar.bz2
+FOSSILID?=	current
+
 .SUFFIXES: .in
 
 all: ${TARGET}
@@ -46,10 +50,10 @@ all: ${TARGET}
 		$< > $@
 
 clean:
-	rm -f ${TARGET} openresolv-${VERSION}.tar.bz2
+	rm -f ${TARGET}
 
 distclean: clean
-	rm -f config.mk
+	rm -f config.mk ${DISTFILE}
 
 installdirs:
 
@@ -71,13 +75,11 @@ maninstall:
 install: proginstall maninstall
 
 import:
-	rm -rf /tmp/${PKG}
-	${INSTALL} -d /tmp/${PKG}
-	cp README ${SRCS} /tmp/${PKG}
+	rm -rf /tmp/${DISTPREFIX}
+	${INSTALL} -d /tmp/${DISTPREFIX}
+	cp README ${SRCS} /tmp/${DISPREFIX}
 
-dist: import
-	cp configure Makefile GNUmakefile config-null.mk resolvconf.conf \
-	    /tmp/${PKG}
-	tar cvjpf ${PKG}.tar.bz2 -C /tmp ${PKG} 
-	rm -rf /tmp/${PKG} 
-	ls -l ${PKG}.tar.bz2
+dist:
+	fossil tarball --name ${DISTPREFIX} ${FOSSILID} ${DISTFILEGZ}
+	gunzip -c ${DISTFILEGZ} |  bzip2 >${DISTFILE}
+	rm ${DISTFILEGZ}

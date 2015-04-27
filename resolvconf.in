@@ -54,6 +54,7 @@ TMPDIR="$VARDIR/tmp"
 IFACEDIR="$VARDIR/interfaces"
 METRICDIR="$VARDIR/metrics"
 PRIVATEDIR="$VARDIR/private"
+EXCLUSIVEDIR="$VARDIR/exclusive"
 LOCKDIR="$VARDIR/lock"
 
 warn()
@@ -79,6 +80,7 @@ usage()
 	                   (DNS supplied via stdin in resolv.conf format)
 	  -m metric        Give the added DNS information a metric
 	  -p               Mark the interface as private
+	  -x               Mark the interface as exclusive
 	  -d \$INTERFACE    Delete DNS information from the specified interface
 	  -f               Ignore non existant interfaces
 	  -I               Init the state dir
@@ -247,15 +249,38 @@ list_resolv()
 {
 	[ -d "$IFACEDIR" ] || return 0
 
-	local report=false list= retval=0 cmd="$1"
+	local report=false list= retval=0 cmd="$1" excl=
 	shift
+
+	if [ "$cmd" = "-x" ]; then
+		IF_EXCLUSIVE=1
+		shift
+	fi
+
+	case "$IF_EXCLUSIVE" in
+	[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1)
+		if [ -d "$EXCLUSIVEDIR" ]; then
+			cd "$EXCLUSIVEDIR"
+			for i in *; do
+				if [ -f "$i" ]; then
+					list="${i#* }"
+					break
+				fi
+			done
+		fi
+		excl=true
+		;;
+	*)
+		excl=false
+		;;
+	esac
 
 	# If we have an interface ordering list, then use that.
 	# It works by just using pathname expansion in the interface directory.
 	if [ -n "$1" ]; then
 		list="$*"
 		$force || report=true
-	else
+	elif ! $excl; then
 		cd "$IFACEDIR"
 		for i in $interface_order; do
 			[ -f "$i" ] && list="$list $i"
@@ -283,12 +308,13 @@ list_resolv()
 	fi
 
 	cd "$IFACEDIR"
+	retval=1
 	for i in $(uniqify $list); do
 		# Only list interfaces which we really have
 		if ! [ -f "$i" ]; then
 			if $report; then
 				echo "No resolv.conf for interface $i" >&2
-				retval=$(($retval + 1))
+				retval=2
 			fi
 			continue
 		fi
@@ -298,6 +324,7 @@ list_resolv()
 		else
 			echo_resolv "$i"
 		fi
+		[ $? = 0 -a "$retval" = 1 ] && retval=0
 	done
 	[ "$cmd" = i -o "$cmd" = "-i" ] && echo
 	return $retval
@@ -397,7 +424,7 @@ replace()
 
 make_vars()
 {
-	local newdomains= d= dn= newns= ns=
+	local newdomains= d= dn= newns= ns= x=
 
 	# Clear variables
 	DOMAIN=
@@ -405,12 +432,14 @@ make_vars()
 	SEARCH=
 	NAMESERVERS=
 	LOCALNAMESERVERS=
+	
 
 	if [ -n "$name_servers" -o -n "$search_domains" ]; then
 		eval "$(echo_prepend | parse_resolv)"
 	fi
 	if [ -z "$VFLAG" ]; then
-		eval "$(list_resolv -l "$@" | replace | parse_resolv)"
+		list_resolv -x -l "$@" >/dev/null && x="-x"
+		eval "$(list_resolv $x -l "$@" | replace | parse_resolv)"
 	fi
 	if [ -n "$name_servers_append" -o -n "$search_domains_append" ]; then
 		eval "$(echo_append | parse_resolv)"
@@ -459,7 +488,7 @@ make_vars()
 
 force=false
 VFLAG=
-while getopts a:Dd:fhIilm:puvV OPT; do
+while getopts a:Dd:fhIilm:puvVx OPT; do
 	case "$OPT" in
 	f) force=true;;
 	h) usage;;
@@ -473,6 +502,7 @@ while getopts a:Dd:fhIilm:puvV OPT; do
 			local_nameservers=
 		fi
 		;;
+	x) IF_EXCLUSIVE=1;;
 	'?') ;;
 	*) cmd="$OPT"; iface="$OPTARG";;
 	esac
@@ -574,7 +604,8 @@ else
 				warn "No resolv.conf for interface $i"
 			fi
 			rm -f "$i" "$METRICDIR/"*" $i" \
-				"$PRIVATEDIR/$i" || exit $?
+				"$PRIVATEDIR/$i" \
+				"$EXCLUSIVEDIR/"*" $i" || exit $?
 		done
 		if ! ${changed}; then
 			# Set the return code based on the forced flag
@@ -601,6 +632,7 @@ if [ "$cmd" = a ]; then
 		changed=true
 		changedfile=true
 	fi
+
 	# Set metric and private before creating the interface resolv.conf file
 	# to ensure that it will have the correct flags
 	[ ! -d "$METRICDIR" ] && mkdir "$METRICDIR"
@@ -618,6 +650,7 @@ if [ "$cmd" = a ]; then
 	    "$oldmetric" != "$METRICDIR/* $iface" ] &&
 		changed=true
 	[ -n "$newmetric" ] && echo " " >"$newmetric"
+
 	case "$IF_PRIVATE" in
 	[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1)
 		if [ ! -d "$PRIVATEDIR" ]; then
@@ -634,6 +667,49 @@ if [ "$cmd" = a ]; then
 		fi
 		;;
 	esac
+
+	oldexcl=
+	for x in "$EXCLUSIVEDIR/"*" $iface"; do
+		if [ -f "$x" ]; then
+			oldexcl="$x"
+			break
+		fi
+	done
+	case "$IF_EXCLUSIVE" in
+	[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1)
+		if [ ! -d "$EXCLUSIVEDIR" ]; then
+			[ -e "$EXCLUSIVEDIR" ] && rm "$EXCLUSIVEDIR"
+			mkdir "$EXCLUSIVEDIR"
+		fi
+		cd "$EXCLUSIVEDIR"
+		for x in *; do
+			[ -f "$x" ] && break
+		done
+		if [ "${x#* }" != "$iface" ]; then
+			if [ "$x" = "${x% *}" ]; then
+				x=10000000
+			else
+				x="${x% *}"
+			fi
+			if [ "$x" = "0000000" ]; then
+				warn "exclusive underflow"
+			else
+				x=$(($x - 1))
+			fi
+			if [ -d "$EXCLUSIVEDIR" ]; then
+				echo " " >"$EXCLUSIVEDIR/$x $iface"
+			fi
+			changed=true
+		fi
+		;;
+	*)
+		if [ -f "$oldexcl" ]; then
+			rm -f "$oldexcl"
+			changed=true
+		fi
+		;;
+	esac
+
 	if $changedfile; then
 		# Ensure that creating the file is an atomic operation
 		if [ ! -d "$TMPDIR" ]; then

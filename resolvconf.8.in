@@ -22,7 +22,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.Dd March 10, 2014
+.Dd April 27, 2014
 .Dt RESOLVCONF 8
 .Os
 .Sh NAME
@@ -34,12 +34,14 @@
 .Nm
 .Op Fl m Ar metric
 .Op Fl p
+.Op Fl x
 .Fl a Ar interface Ns Op Ar .protocol
 .No < Ns Pa file
 .Nm
 .Op Fl f
 .Fl d Ar interface Ns Op Ar .protocol
 .Nm
+.Op Fl x
 .Fl il Ar pattern
 .Nm
 .Fl u
@@ -106,6 +108,12 @@ for how to configure
 .Nm
 to use a local name server.
 .Pp
+.Nm
+can mark an interfaces
+.Pa resolv.conf
+as exclusive.
+Only the latest exclusive interface is used for processing, otherwise all are.
+.Pp
 When an interface goes down, it should then call
 .Nm
 with
@@ -164,6 +172,10 @@ to update all its subscribers.
 .Nm
 does not update the subscribers when adding a resolv.conf that matches
 what it already has for that interface.
+.It Fl x
+Mark the interface
+.Pa resolv.conf
+as exclusive when adding, otherwise only use the latest exclusive interface.
 .El
 .Pp
 .Nm
@@ -244,6 +256,10 @@ for the metric.
 Marks the interface
 .Pa resolv.conf
 as private.
+.It Va IF_EXCLUSIVE
+Marks the interface
+.Pa resolv.conf
+as exclusive.
 .El
 .Sh FILES
 .Bl -ohang

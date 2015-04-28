@@ -252,11 +252,6 @@ list_resolv()
 	local report=false list= retval=0 cmd="$1" excl=
 	shift
 
-	if [ "$cmd" = "-x" ]; then
-		IF_EXCLUSIVE=1
-		shift
-	fi
-
 	case "$IF_EXCLUSIVE" in
 	[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1)
 		if [ -d "$EXCLUSIVEDIR" ]; then
@@ -424,7 +419,7 @@ replace()
 
 make_vars()
 {
-	local newdomains= d= dn= newns= ns= x=
+	local newdomains= d= dn= newns= ns=
 
 	# Clear variables
 	DOMAIN=
@@ -433,13 +428,13 @@ make_vars()
 	NAMESERVERS=
 	LOCALNAMESERVERS=
 	
-
 	if [ -n "$name_servers" -o -n "$search_domains" ]; then
 		eval "$(echo_prepend | parse_resolv)"
 	fi
 	if [ -z "$VFLAG" ]; then
-		list_resolv -x -l "$@" >/dev/null && x="-x"
-		eval "$(list_resolv $x -l "$@" | replace | parse_resolv)"
+		IF_EXCLUSIVE=1
+		list_resolv -i "$@" >/dev/null || IF_EXCLUSIVE=0
+		eval "$(list_resolv -l "$@" | replace | parse_resolv)"
 	fi
 	if [ -n "$name_servers_append" -o -n "$search_domains_append" ]; then
 		eval "$(echo_append | parse_resolv)"
@@ -592,7 +587,6 @@ if [ ! -d "$IFACEDIR" ]; then
 		${force}
 		exit $?
 	fi
-else
 fi
 
 # An interface was added, changed, deleted or a general update was called.
@@ -721,7 +715,7 @@ a)
 
 	if $changedfile; then
 		printf %s "$resolv" >"$IFACEDIR/$iface" || exit $?
-	else
+	elif ! $changed; then
 		exit 0
 	fi
 	unset changed changedfile oldmetric newmetric x oldexcl

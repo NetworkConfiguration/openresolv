@@ -593,29 +593,38 @@ if [ ! -d "$IFACEDIR" ]; then
 		exit $?
 	fi
 else
-	# Delete any existing information about the interface
-	if [ "$cmd" = d ]; then
-		cd "$IFACEDIR"
-		changed=false
-		for i in $args; do
-			if [ -e "$i" ]; then
-				changed=true
-			elif ! ${force}; then
-				warn "No resolv.conf for interface $i"
-			fi
-			rm -f "$i" "$METRICDIR/"*" $i" \
-				"$PRIVATEDIR/$i" \
-				"$EXCLUSIVEDIR/"*" $i" || exit $?
-		done
-		if ! ${changed}; then
-			# Set the return code based on the forced flag
-			${force}
-			exit $?
-		fi
-	fi
 fi
 
-if [ "$cmd" = a ]; then
+# An interface was added, changed, deleted or a general update was called.
+# Due to exclusivity we need to ensure that this is an atomic operation.
+# Our subscribers *may* need this as well if the init system is sub par.
+# As such we spinlock at this point as best we can.
+# We don't use flock(1) because it's not widely available and normally resides
+# in /usr which we do our very best to operate without.
+[ -w "$VARDIR" ] || error_exit "Cannot write to $LOCKDIR"
+: ${lock_timeout:=10}
+while true; do
+	if mkdir "$LOCKDIR" 2>/dev/null; then
+		trap 'rm -rf "$LOCKDIR";' EXIT
+		trap 'rm -rf "$LOCKDIR"; exit 1' INT QUIT ABRT SEGV ALRM TERM
+		echo $$ >"$LOCKDIR/pid"
+		break
+	fi
+	pid=$(cat "$LOCKDIR/pid")
+	if ! kill -0 "$pid"; then
+		warn "clearing stale lock pid $pid"
+		rm -rf "$LOCKDIR"
+		continue
+	fi
+	lock_timeout=$(($lock_timeout - 1))
+	if [ "$lock_timeout" -le 0 ]; then
+		error_exit "timed out waiting for lock from pid $pid"
+	fi
+	sleep 1
+done
+
+case "$cmd" in
+a)
 	# Read resolv.conf from stdin
 	resolv="$(cat)"
 	changed=false
@@ -711,51 +720,40 @@ if [ "$cmd" = a ]; then
 	esac
 
 	if $changedfile; then
-		# Ensure that creating the file is an atomic operation
-		if [ ! -d "$TMPDIR" ]; then
-			mkdir -m 0755 -p "$TMPDIR" || \
-			    error_exit \
-				"Failed to create needed directory $TMPDIR"
-		fi
-		TMPFILE="$TMPDIR/$iface.$$"
-		cleanup() { [ -n "$TMPFILE" ] && rm -f "$TMPFILE"; }
-		trap cleanup EXIT
-		echo "$resolv" >"$TMPFILE" || exit $?
-		mv -f "$TMPFILE" "$IFACEDIR/$iface" || exit $?
-		TMPFILE=
+		printf %s "$resolv" >"$IFACEDIR/$iface" || exit $?
+	else
+		exit 0
 	fi
-	$changed || exit 0
-	unset changed oldmetric newmetric
-fi
+	unset changed changedfile oldmetric newmetric x oldexcl
+	;;
+
+d)
+	# Delete any existing information about the interface
+	cd "$IFACEDIR"
+	changed=false
+	for i in $args; do
+		if [ -e "$i" ]; then
+			changed=true
+		elif ! ${force}; then
+			warn "No resolv.conf for interface $i"
+		fi
+		rm -f "$i" "$METRICDIR/"*" $i" \
+			"$PRIVATEDIR/$i" \
+			"$EXCLUSIVEDIR/"*" $i" || exit $?
+	done
+	if ! ${changed}; then
+		# Set the return code based on the forced flag
+		${force}
+		exit $?
+	fi
+	unset changed i
+	;;
+esac
 
 case "${resolvconf:-YES}" in
 [Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1) ;;
 *) exit 0;;
 esac
-
-# An interface was added, deleted or changed.
-# These above actions are atomic, however calling our subcribers is not.
-# Even if we do our very best, the action of restarting the subscriber daemon
-# is not guaranteed to be serialised due to our many flavours of OS we support.
-# As such we spinlock at this point as best we can.
-# We don't use flock(1) because it's not widely available and normally resides
-# in /usr which we do our very best to operate without.
-[ -w "$VARDIR" ] || error_exit "Cannot write to $LOCKDIR"
-: ${lock_timeout:=10}
-while true; do
-	if mkdir "$LOCKDIR" 2>/dev/null; then
-		trap 'rm -rf "$LOCKDIR";' EXIT
-		trap 'rm -rf "$LOCKDIR"; exit 1' INT QUIT ABRT SEGV ALRM TERM
-		echo $$ >"$LOCKDIR/pid"
-		break
-	fi
-	lock_timeout=$(($lock_timeout - 1))
-	if [ "$lock_timeout" -le 0 ]; then
-		pid=$(cat "$LOCKDIR/pid")
-		error_exit "timed out waiting for lock from pid $pid"
-	fi
-	sleep 1
-done
 
 eval "$(make_vars)"
 export RESOLVCONF DOMAINS SEARCH NAMESERVERS LOCALNAMESERVERS

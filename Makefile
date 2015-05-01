@@ -77,7 +77,7 @@ install: proginstall maninstall
 import:
 	rm -rf /tmp/${DISTPREFIX}
 	${INSTALL} -d /tmp/${DISTPREFIX}
-	cp README ${SRCS} /tmp/${DISPREFIX}
+	cp README ${SRCS} /tmp/${DISTPREFIX}
 
 dist:
 	fossil tarball --name ${DISTPREFIX} ${FOSSILID} ${DISTFILEGZ}

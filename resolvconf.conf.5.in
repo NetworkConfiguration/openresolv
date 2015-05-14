@@ -149,7 +149,7 @@ When set to /dev/null or NULL,
 .Sy resolv_conf_local_only
 is defaulted to NO,
 .Sy local_nameservers
-is unset unless overriden and only the information set in
+is unset unless overridden and only the information set in
 .Nm
 is written to
 .Sy resolv_conf .
@@ -271,7 +271,7 @@ Each subscriber attempts to automatically configure itself, but not every
 distribution has been catered for.
 Also, users could equally want to use a different version from the one
 installed by default, such as bind8 and bind9.
-To accomodate this, the subscribers have these files in configurable
+To accommodate this, the subscribers have these files in configurable
 variables, documented below.
 .Pp
 .Bl -tag -width indent

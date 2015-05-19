@@ -37,7 +37,7 @@ SED_RESTARTCMD=		-e 's:@RESTARTCMD \(.*\)@:${RESTARTCMD}:g'
 
 DISTPREFIX?=	${PKG}-${VERSION}
 DISTFILEGZ?=	${DISTPREFIX}.tar.gz
-DISTFILE?=	${DISTPREFIX}.tar.bz2
+DISTFILE?=	${DISTPREFIX}.tar.xz
 FOSSILID?=	current
 
 .SUFFIXES: .in
@@ -81,5 +81,5 @@ import:
 
 dist:
 	fossil tarball --name ${DISTPREFIX} ${FOSSILID} ${DISTFILEGZ}
-	gunzip -c ${DISTFILEGZ} |  bzip2 >${DISTFILE}
+	gunzip -c ${DISTFILEGZ} | xz >${DISTFILE}
 	rm ${DISTFILEGZ}

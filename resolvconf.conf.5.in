@@ -91,6 +91,11 @@ To remove a block, you can use 192.168.*
 These interfaces name servers will only be queried for the domains listed
 in their resolv.conf.
 Useful for VPN domains.
+Setting
+.Sy private_interfaces Ns ="*"
+will stop the forwarding of the root zone and allows the local resolver to
+recursively query the root servers directly.
+Requires a local nameserver other than libc.
 This is equivalent to the
 .Nm resolvconf -p
 option.

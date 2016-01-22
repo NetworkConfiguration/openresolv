@@ -55,6 +55,7 @@ METRICDIR="$VARDIR/metrics"
 PRIVATEDIR="$VARDIR/private"
 EXCLUSIVEDIR="$VARDIR/exclusive"
 LOCKDIR="$VARDIR/lock"
+_PWD="$PWD"
 
 warn()
 {
@@ -752,6 +753,10 @@ eval "$(make_vars)"
 export RESOLVCONF DOMAINS SEARCH NAMESERVERS LOCALNAMESERVERS
 : ${list_resolv:=list_resolv -l}
 retval=0
+
+# Run scripts in the same directory resolvconf is run from
+# in case any scripts accidently dump files in the wrong place.
+cd "$_PWD"
 for script in "$LIBEXECDIR"/*; do
 	if [ -f "$script" ]; then
 		eval script_enabled="\$${script##*/}"

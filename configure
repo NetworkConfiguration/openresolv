@@ -6,6 +6,8 @@ OS=
 BUILD=
 HOST=
 TARGET=
+RESTARTCMD=
+RCDIR=
 
 for x do
 	opt=${x%%=*}
@@ -31,6 +33,7 @@ for x do
 	--target) TARGET=$var;;
 	--libdir) LIBDIR=$var;;
 	--restartcmd) RESTARTCMD=$var;;
+	--rcdir) RCDIR=$var;;
 	--includedir) eval INCLUDEDIR="$INCLUDEDIR${INCLUDEDIR:+ }$var";;
 	--datadir|--infodir) ;; # ignore autotools
 	--disable-maintainer-mode|--disable-dependency-tracking) ;;

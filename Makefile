@@ -1,5 +1,5 @@
 PKG=		openresolv
-VERSION=	3.7.3
+VERSION=	3.8.0
 
 # Nasty hack so that make clean works without configure being run
 _CONFIG_MK!=	test -e config.mk && echo config.mk || echo config-null.mk
@@ -10,10 +10,6 @@ SBINDIR?=	/sbin
 SYSCONFDIR?=	/etc
 LIBEXECDIR?=	/libexec/resolvconf
 VARDIR?=	/var/run/resolvconf
-RCDIR?=		/etc/rc.d
-RESTARTCMD?=	if ${RCDIR}/\1 status >/dev/null 2>\&1; then \
-			${RCDIR}/\1 restart; \
-		fi
 
 INSTALL?=	install
 SED?=		sed
@@ -33,7 +29,8 @@ SED_SYSCONFDIR=		-e 's:@SYSCONFDIR@:${SYSCONFDIR}:g'
 SED_LIBEXECDIR=		-e 's:@LIBEXECDIR@:${LIBEXECDIR}:g'
 SED_VARDIR=		-e 's:@VARDIR@:${VARDIR}:g'
 SED_RCDIR=		-e 's:@RCDIR@:${RCDIR}:g'
-SED_RESTARTCMD=		-e 's:@RESTARTCMD \(.*\)@:${RESTARTCMD}:g'
+SED_RESTARTCMD=		-e 's:@RESTARTCMD@:${RESTARTCMD}:g'
+SED_RCDIR=		-e 's:@RCDIR@:${RCDIR}:g'
 
 DISTPREFIX?=	${PKG}-${VERSION}
 DISTFILEGZ?=	${DISTPREFIX}.tar.gz
@@ -46,7 +43,7 @@ all: ${TARGET}
 
 .in:
 	${SED}	${SED_SBINDIR} ${SED_SYSCONFDIR} ${SED_LIBEXECDIR} \
-		${SED_VARDIR} ${SED_RCDIR} ${SED_RESTARTCMD} \
+		${SED_VARDIR} ${SED_RCDIR} ${SED_RESTARTCMD} ${SED_RCDIR} \
 		$< > $@
 
 clean:

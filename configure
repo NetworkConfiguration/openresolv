@@ -129,13 +129,16 @@ done
 if [ -z "$RESTARTCMD" ]; then
 	printf "Checking for systemd ... "
 	if [ -x /bin/systemctl ]; then
-		RESTARTCMD="/bin/systemctl try-restart \1"
+		RESTARTCMD="/bin/systemctl"
 		echo "yes"
 	elif [ -x /usr/bin/systemctl ]; then
-		RESTARTCMD="/usr/bin/systemctl try-restart \1"
+		RESTARTCMD="/usr/bin/systemctl"
 		echo "yes"
 	else
 		echo "no"
+	fi
+	if [ -n "$RESTARTCMD"]; then
+		RESTARTCMD="if $RESTARTCMD --quiet is-active \1.service; then $RESTARTCMD restart \1.service; fi"
 	fi
 fi
 

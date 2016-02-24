@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright (c) 2007-2014 Roy Marples
+# Copyright (c) 2007-2016 Roy Marples
 # All rights reserved
 
 # libc subscriber for resolvconf

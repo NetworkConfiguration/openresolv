@@ -320,8 +320,9 @@ fi"
 	/etc/rc.d/rc.\$1 restart;
 fi"
 	elif [ -e /etc/rc.d/rc.subr -a -d /etc/rc.d ]; then
-		RESTARTCMD="if /etc/rc.d/rc.\$1 check 1>/dev/null 2>&1; then
-	/etc/rc.d/rc.\$1 restart;
+		# OpenBSD
+		RESTARTCMD="if /etc/rc.d/\$1 check 1>/dev/null 2>&1; then
+	/etc/rc.d/\$1 restart;
 fi"
 	else
 		for x in /etc/init.d/rc.d /etc/rc.d /etc/init.d; do

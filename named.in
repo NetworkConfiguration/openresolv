@@ -105,12 +105,7 @@ if [ -n "$named_zones" ]; then
 	fi
 fi
 
-# Try to send SIGHUP first
-if $changed && [ -s "$named_pid" ]; then
-	echo "SENDING HUP"
-	kill -SIGHUP $(cat "$named_pid") && changed=false
-fi
-
+# named does not seem to work with SIGHUP which is a same
 if $changed; then
 	echo "RESTARTING"
 	if [ -n "$named_restart" ]; then

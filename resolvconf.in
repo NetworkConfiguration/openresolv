@@ -421,13 +421,8 @@ list_resolv()
 		if [ "$cmd" = i -o "$cmd" = "-i" ]; then
 			printf %s "$i "
 		else
-			# To avoid trailing a blank line at the end
-			if $excl; then
-				excl=false
-			else
-				echo
-			fi
 			echo_resolv "$i"
+			echo
 		fi
 		[ $? = 0 -a "$retval" = 1 ] && retval=0
 	done

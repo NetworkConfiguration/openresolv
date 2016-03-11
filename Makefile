@@ -1,5 +1,4 @@
 PKG=		openresolv
-VERSION=	3.8.0
 
 # Nasty hack so that make clean works without configure being run
 _CONFIG_MK!=	test -e config.mk && echo config.mk || echo config-null.mk
@@ -13,6 +12,8 @@ VARDIR?=	/var/run/resolvconf
 
 INSTALL?=	install
 SED?=		sed
+
+VERSION!=	${SED} -n 's/OPENRESOLV_VERSION="\(.*\)".*/\1/p' resolvconf.in
 
 BINMODE?=	0755
 DOCMODE?=	0644

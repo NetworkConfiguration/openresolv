@@ -8,6 +8,7 @@ HOST=
 TARGET=
 RESTARTCMD=
 RCDIR=
+STATUSARG=
 
 for x do
 	opt=${x%%=*}
@@ -34,6 +35,7 @@ for x do
 	--libdir) LIBDIR=$var;;
 	--restartcmd) RESTARTCMD=$var;;
 	--rcdir) RCDIR=$var;;
+	--statusarg) STATUSARG=$var;;
 	--includedir) eval INCLUDEDIR="$INCLUDEDIR${INCLUDEDIR:+ }$var";;
 	--datadir|--infodir) ;; # ignore autotools
 	--disable-maintainer-mode|--disable-dependency-tracking) ;;
@@ -118,7 +120,17 @@ echo "Configuring openresolv for ... $OS"
 rm -rf $CONFIG_MK
 echo "# $OS" >$CONFIG_MK
 
-for x in SYSCONFDIR SBINDIR LIBEXECDIR VARDIR MANDIR RESTARTCMD RCDIR; do
+# On FreeBSD, /etc/init.d/foo status returns 0 if foo is not enabled
+# regardless of if it's not running.
+# So we force onestatus to work around this silly bug.
+if [ -z "$STATUSARG" ]; then
+	case "$OS" in
+	freebsd*)	STATUSARG="onestatus";;
+	esac
+fi
+
+for x in SYSCONFDIR SBINDIR LIBEXECDIR VARDIR MANDIR RESTARTCMD RCDIR STATUSARG
+do
 	eval v=\$$x
 	# Make files look nice for import
 	l=$((10 - ${#x}))
@@ -136,4 +148,5 @@ echo "   MANDIR =		$MANDIR"
 echo
 echo "   RESTARTCMD =		$RESTARTCMD"
 echo "   RCDIR =		$RCDIR"
+echo "   STATUSARG =		$STATUSARG"
 echo

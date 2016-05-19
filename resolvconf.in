@@ -153,7 +153,7 @@ parse_resolv()
 					for p in $private_interfaces; do
 						case "$iface" in
 						"$p"|"$p":*)
-							private=true;
+							private=true
 							break
 							;;
 						esac

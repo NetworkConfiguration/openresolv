@@ -32,6 +32,12 @@ VARDIR=@VARDIR@
 RCDIR=@RCDIR@
 RESTARTCMD=@RESTARTCMD@
 
+if [ "$1" = "--version" ]; then
+	echo "openresolv $OPENRESOLV_VERSION"
+	echo "Copyright (c) 2007-2016 Roy Marples"
+	exit 0
+fi
+
 # Disregard dhcpcd setting
 unset interface_order state_dir
 
@@ -90,6 +96,7 @@ usage()
 	                   that match the specified pattern
 
 	  -u               Run updates from our current DNS information
+	  --version        Echo the ${RESOLVCONF##*/} version
 
 	Options:
 	  -f               Ignore non existent interfaces

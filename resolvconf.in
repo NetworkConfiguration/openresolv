@@ -326,9 +326,9 @@ fi"
 	/usr/sbin/service \$1 restart;
 fi"
 	elif [ -x /bin/sv ]; then
-		RESTARTCMD="/bin/sv try-restart \$1"
+		RESTARTCMD="/bin/sv status \$1 >/dev/null 2>&1 && /bin/sv try-restart \$1"
 	elif [ -x /usr/bin/sv ]; then
-		RESTARTCMD="/usr/bin/sv try-restart \$1"
+		RESTARTCMD="/usr/bin/sv status \$1 >/dev/null 2>&1 && /usr/bin/sv try-restart \$1"
 	elif [ -e /etc/arch-release -a -d /etc/rc.d ]; then
 		RCDIR=/etc/rc.d
 		RESTARTCMD="if [ -e /var/run/daemons/\$1 ]; then

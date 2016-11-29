@@ -136,6 +136,34 @@ strip_trailing_dots()
 	printf "\n"
 }
 
+private_iface()
+{
+	local p
+
+	# Allow expansion
+	cd "$IFACEDIR"
+
+	# Public interfaces override private ones.
+	for p in $public_interfaces; do
+		case "$iface" in
+		"$p"|"$p":*) return 1;;
+		esac
+	done
+
+	if [ -e "$PRIVATEDIR/$iface" ]; then
+		return 0
+	fi
+	
+	for p in $private_interfaces; do
+		case "$iface" in
+		"$p"|"$p":*) return 0;;
+		esac
+	done
+
+	# Not a private interface
+	return 1
+}
+
 # Parse resolv.conf's and make variables
 # for domain name servers, search name servers and global nameservers
 parse_resolv()
@@ -151,20 +179,10 @@ parse_resolv()
 			if ${new}; then
 				iface="${line#\# resolv.conf from *}"
 				new=false
-				if [ -e "$PRIVATEDIR/$iface" ]; then
+				if private_iface "$iface"; then
 					private=true
 				else
-					# Allow expansion
-					cd "$IFACEDIR"
 					private=false
-					for p in $private_interfaces; do
-						case "$iface" in
-						"$p"|"$p":*)
-							private=true
-							break
-							;;
-						esac
-					done
 				fi
 			fi
 			;;

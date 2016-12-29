@@ -403,6 +403,14 @@ list_resolv()
 			done
 		fi
 		excl=true
+		cd "$IFACEDIR"
+		for i in $inclusive_interfaces; do
+			if [ -f "$i" -a "$list" = "$i" ]; then
+				list=
+				excl=false
+				break
+			fi
+		done
 		;;
 	*)
 		excl=false
@@ -443,7 +451,6 @@ list_resolv()
 
 	cd "$IFACEDIR"
 	retval=1
-	excl=true
 	for i in $(uniqify $list); do
 		# Only list interfaces which we really have
 		if ! [ -f "$i" ]; then
@@ -457,8 +464,7 @@ list_resolv()
 		if [ "$cmd" = i -o "$cmd" = "-i" ]; then
 			printf %s "$i "
 		else
-			echo_resolv "$i"
-			echo
+			echo_resolv "$i" && echo
 		fi
 		[ $? = 0 -a "$retval" = 1 ] && retval=0
 	done

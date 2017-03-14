@@ -54,7 +54,7 @@ bar.org will go to 5.6.7.8.
 This does require the resolvers to be configured to pickup the resolvconf
 generated configuration for them though.
 openresolv ships with helpers for:
-  *  [unbound](http://www.unbound.net/).
+  *  [unbound](http://www.unbound.net/)
   *  [dnsmasq](http://www.thekelleys.org.uk/dnsmasq/doc.html)
   *  [ISC BIND](http://www.isc.org/software/bind)
   *  [PowerDNS Recursor](http://wiki.powerdns.com/trac)

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright (c) 2007-2016 Roy Marples
+# Copyright (c) 2007-2018 Roy Marples
 # All rights reserved
 
 # Redistribution and use in source and binary forms, with or without
@@ -127,8 +127,7 @@ usage()
 # This also solves setting up duplicate zones in our subscribers.
 strip_trailing_dots()
 {
-	local n= d=
-
+	d=
 	for n; do
 		printf "$d%s" "${n%.}"
 		d=" "
@@ -138,8 +137,6 @@ strip_trailing_dots()
 
 private_iface()
 {
-	local p
-
 	# Allow expansion
 	cd "$IFACEDIR"
 
@@ -168,10 +165,12 @@ private_iface()
 # for domain name servers, search name servers and global nameservers
 parse_resolv()
 {
-	local line= ns= ds= search= d= n= newns=
-	local new=true iface= private=false p= domain= l= islocal=
-
+	domain=
+	new=true
 	newns=
+	ns=
+	private=false
+	search=
 
 	while read -r line; do
 		case "$line" in
@@ -236,7 +235,7 @@ parse_resolv()
 
 uniqify()
 {
-	local result=
+	result=
 	while [ -n "$1" ]; do
 		case " $result " in
 		*" $1 "*);;
@@ -249,8 +248,8 @@ uniqify()
 
 dirname()
 {
-	local dir= OIFS="$IFS"
-	local IFS=/
+	OIFS="$IFS"
+	IFS=/
 	set -- $@
 	IFS="$OIFS"
 	if [ -n "$1" ]; then
@@ -267,7 +266,7 @@ dirname()
 
 config_mkdirs()
 {
-	local e=0 f d
+	e=0
 	for f; do
 		[ -n "$f" ] || continue
 		d="$(dirname "$f")"
@@ -295,7 +294,7 @@ detect_init()
 	# Detect the running init system.
 	# As systemd and OpenRC can be installed on top of legacy init
 	# systems we try to detect them first.
-	local status="@STATUSARG@"
+	status="@STATUSARG@"
 	: ${status:=status}
 	if [ -x /bin/systemctl -a -S /run/systemd/private ]; then
 		RESTARTCMD="if /bin/systemctl --quiet is-active \$1.service; then
@@ -366,7 +365,7 @@ fi"
 
 echo_resolv()
 {
-	local line= OIFS="$IFS"
+	OIFS="$IFS"
 
 	[ -n "$1" -a -f "$IFACEDIR/$1" ] || return 1
 	echo "# resolv.conf from $1"
@@ -388,11 +387,16 @@ list_resolv()
 {
 	[ -d "$IFACEDIR" ] || return 0
 
-	local report=false list= retval=0 cmd="$1" excl=
+	cmd="$1"
 	shift
+	excl=false
+	list=
+	report=false
+	retval=0
 
 	case "$IF_EXCLUSIVE" in
 	[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1)
+		excl=true
 		if [ -d "$EXCLUSIVEDIR" ]; then
 			cd "$EXCLUSIVEDIR"
 			for i in *; do
@@ -402,7 +406,6 @@ list_resolv()
 				fi
 			done
 		fi
-		excl=true
 		cd "$IFACEDIR"
 		for i in $inclusive_interfaces; do
 			if [ -f "$i" -a "$list" = "$i" ]; then
@@ -411,9 +414,6 @@ list_resolv()
 				break
 			fi
 		done
-		;;
-	*)
-		excl=false
 		;;
 	esac
 
@@ -472,12 +472,13 @@ list_resolv()
 	return $retval
 }
 
-list_remove() {
-	local list= e= l= result= found= retval=0
-
+list_remove()
+{
 	[ -z "$2" ] && return 0
 	eval list=\"\$$1\"
 	shift
+	result=
+	retval=0
 
 	set -f
 	for e; do
@@ -525,8 +526,6 @@ echo_append()
 
 replace()
 {
-	local r= k= f= v= val= sub=
-
 	while read -r keyword value; do
 		for r in $replace; do
 			k="${r%%/*}"
@@ -566,8 +565,6 @@ replace()
 
 make_vars()
 {
-	local newdomains= d= dn= newns= ns=
-
 	# Clear variables
 	DOMAIN=
 	DOMAINS=
@@ -588,6 +585,7 @@ make_vars()
 	fi
 
 	# Ensure that we only list each domain once
+	newdomains=
 	for d in $DOMAINS; do
 		dn="${d%%:*}"
 		list_remove domain_blacklist "$dn" >/dev/null || continue

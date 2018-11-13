@@ -461,13 +461,18 @@ list_resolv()
 				fi
 			done
 		done
+		# Interfaces have an implicit metric of 0 if not specified.
+		for i in *; do
+			if [ -f "$i" ] && ! [ -e "$METRICDIR/"*" $i" ]; then
+				list="$list $i"
+			fi
+		done
 		if [ -d "$METRICDIR" ]; then
 			cd "$METRICDIR"
 			for i in *; do
 				[ -f "$i" ] && list="$list ${i#* }"
 			done
 		fi
-		list="$list *"
 	fi
 
 	cd "$IFACEDIR"

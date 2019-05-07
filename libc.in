@@ -77,7 +77,7 @@ local_nameservers="127.* 0.0.0.0 255.255.255.255 ::1"
 if [ -f "$SYSCONFDIR"/resolvconf.conf ]; then
 	. "$SYSCONFDIR"/resolvconf.conf
 elif [ -d "$SYSCONFDIR"/resolvconf ]; then
-	SYSCONFDIR="$SYSCONFDIR/resolvconf/resolv.conf.d"
+	SYSCONFDIR="$SYSCONFDIR/resolvconf"
 	base="$SYSCONFDIR/resolv.conf.d/base"
 	if [ -f "$base" ]; then
 		prepend_nameservers="$(key_get_value "nameserver " "$base")"

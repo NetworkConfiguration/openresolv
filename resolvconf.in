@@ -201,7 +201,7 @@ parse_resolv()
 				esac
 			done
 			if $islocal; then
-				echo "LOCALNAMESERVERS=\"\$LOCALNAMESERVERS ${stripped_line}\""
+				echo "LOCALNAMESERVERS=\"\$LOCALNAMESERVERS $stripped_line\""
 			else
 				ns="$ns$stripped_line "
 			fi

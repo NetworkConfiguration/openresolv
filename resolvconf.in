@@ -125,10 +125,14 @@ usage()
 # If you think otherwise, capture a DNS trace and you'll see libc
 # will strip it regardless.
 # This also solves setting up duplicate zones in our subscribers.
-strip_trailing_dots()
+# Also strip any comments denoted by #.
+resolv_strip()
 {
 	d=
 	for n; do
+		case "$n" in
+		\#*) break;;
+		esac
 		printf "$d%s" "${n%.}"
 		d=" "
 	done
@@ -173,6 +177,7 @@ parse_resolv()
 	search=
 
 	while read -r line; do
+		stripped_line="$(resolv_strip ${line#* })"
 		case "$line" in
 		"# resolv.conf from "*)
 			if ${new}; then
@@ -188,25 +193,28 @@ parse_resolv()
 		"nameserver "*)
 			islocal=false
 			for l in $local_nameservers; do
-				case "${line#* }" in
+				case "$stripped_line" in
 				$l)
 					islocal=true
-					echo "LOCALNAMESERVERS=\"\$LOCALNAMESERVERS ${line#* }\""
 					break
 					;;
 				esac
 			done
-			$islocal || ns="$ns${line#* } "
+			if $islocal; then
+				echo "LOCALNAMESERVERS=\"\$LOCALNAMESERVERS ${stripped_line}\""
+			else
+				ns="$ns$stripped_line "
+			fi
 			;;
 		"domain "*)
-			search="$(strip_trailing_dots ${line#* })"
+			search="$stripped_line"
 			if [ -z "$domain" ]; then
 				domain="$search"
 				echo "DOMAIN=\"$domain\""
 			fi
 			;;
 		"search "*)
-			search="$(strip_trailing_dots ${line#* })"
+			search="$stripped_line"
 			;;
 		*)
 			[ -n "$line" ] && continue

@@ -128,13 +128,13 @@ usage()
 # Also strip any comments denoted by #.
 resolv_strip()
 {
-	d=
-	for n; do
-		case "$n" in
+	space=
+	for word; do
+		case "$word" in
 		\#*) break;;
 		esac
-		printf "$d%s" "${n%.}"
-		d=" "
+		printf "%s%s" "$space${word%.}"
+		space=" "
 	done
 	printf "\n"
 }

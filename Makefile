@@ -42,7 +42,7 @@ DISTINFOSIGN=	${DISTINFO}.asc
 CKSUM?=		cksum -a SHA256
 PGP?=		netpgp
 
-FOSSILID?=	current
+GITREF?=	HEAD
 
 .SUFFIXES: .in
 
@@ -84,10 +84,17 @@ import:
 	${INSTALL} -d /tmp/${DISTPREFIX}
 	cp README ${SRCS} /tmp/${DISTPREFIX}
 
-dist:
-	fossil tarball --name ${DISTPREFIX} ${FOSSILID} ${DISTFILEGZ}
-	gunzip -c ${DISTFILEGZ} | xz >${DISTFILE}
-	rm ${DISTFILEGZ}
+dist-git:
+	git archive --prefix=${DISTPREFIX}/ ${GITREF} | xz >${DISTFILE}
+
+dist-inst:
+	mkdir /tmp/${DISTPREFIX}
+	cp -RPp * /tmp/${DISTPREFIX}
+	(cd /tmp/${DISTPREFIX}; make clean)
+	tar -cvjpf ${DISTFILE} -C /tmp ${DISTPREFIX}
+	rm -rf /tmp/${DISTPREFIX}
+
+dist: dist-git
 
 distinfo: dist
 	rm -f ${DISTINFO} ${DISTINFOSIGN}

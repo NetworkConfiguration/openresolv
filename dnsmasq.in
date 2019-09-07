@@ -206,4 +206,6 @@ if $dbus; then
 	dbus-send --system --dest=uk.org.thekelleys.dnsmasq \
  		/uk/org/thekelleys/dnsmasq uk.org.thekelleys.$method \
   		$dbusdest
+	dbus-send --system --dest=uk.org.thekelleys.dnsmasq \
+		/uk/org/thekelleys/dnsmasq uk.org.thekelleys.ClearCache
 fi

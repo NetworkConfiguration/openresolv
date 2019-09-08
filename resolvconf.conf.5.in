@@ -303,7 +303,6 @@ Also, users could equally want to use a different version from the one
 installed by default, such as bind8 and bind9.
 To accommodate this, the subscribers have these files in configurable
 variables, documented below.
-.Pp
 .Bl -tag -width indent
 .It Sy dnsmasq_service
 Name of the dnsmasq service.

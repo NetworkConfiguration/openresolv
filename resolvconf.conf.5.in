@@ -294,7 +294,7 @@ global {
 	status_ctl = on;
 }
 server {
-	# A server definition is required, even if emtpy.
+	# A server definition is required, even if empty.
 	label="empty";
 	proxy_only=on;
 	# file="/etc/pdnsd-resolv.conf";

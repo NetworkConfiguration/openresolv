@@ -89,7 +89,7 @@ echo "# $OS" >$CONFIG_MK
 case "$OS" in
 dragonfly*)
 	# This means /usr HAS to be mounted not via dhcpcd
-	: ${LIBEXECDIR:=${PREFIX:-/usr}/libexec}
+	: ${LIBEXECDIR:=${PREFIX:-/usr}/libexec/resolvconf}
 	;;
 freebsd*)
 	# On FreeBSD, /etc/init.d/foo status returns 0 if foo is not enabled

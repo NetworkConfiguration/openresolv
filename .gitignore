@@ -1,3 +1,5 @@
+config.mk
+
 resolvconf
 resolvconf.8
 resolvconf.conf.5

@@ -22,7 +22,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.Dd December 29, 2016
+.Dd September 8, 2019
 .Dt RESOLVCONF.CONF 5
 .Os
 .Sh NAME
@@ -195,7 +195,8 @@ Prepend search domains to the dynamically generated list.
 openresolv ships with subscribers for the name servers
 .Xr dnsmasq 8 ,
 .Xr named 8 ,
-.Xr pdnsd 8
+.Xr pdnsd 8 ,
+.Xr pdns_recursor 8 ,
 and
 .Xr unbound 8 .
 Each subscriber can create configuration files which should be included in
@@ -268,6 +269,16 @@ Example pdnsd.conf:
 .D1 	proxy_only=on;
 .D1 	# file="/etc/pdnsd-resolv.conf";
 .D1 }
+.It Sy pdns_zones
+This file tells pdns_recursor about specific and global name servers.
+.Pp
+Example resolvconf.conf for pdns_recursor:
+.D1 name_servers=127.0.0.1
+.D1 pdns_zones=/etc/pdns/recursor-zones.conf
+.Pp
+Example recursor.conf:
+.D1 allow-from=127.0.0.0/8, ::1/128
+.D1 forward-zones-file=/etc/pdns/recursor-zones.conf
 .It Sy unbound_conf
 This file tells unbound about specific and global name servers.
 .It Sy unbound_insecure
@@ -310,6 +321,10 @@ Name of the named service.
 Command to restart the named service.
 .It Sy pdnsd_restart
 Command to restart the pdnsd service.
+.It Sy pdns_service
+Command to restart the pdns_recursor service.
+.It Sy pdns_restart
+Command to restart the pdns_recursor service.
 .It Sy unbound_service
 Name of the unbound service.
 .It Sy unbound_restart

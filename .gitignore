@@ -6,4 +6,5 @@ dnsmasq
 libc
 named
 pdnsd
+pdns_recursor
 unbound

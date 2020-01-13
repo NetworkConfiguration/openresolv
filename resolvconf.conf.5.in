@@ -71,7 +71,7 @@ lo lo[0-9]*
 These interfaces will be processed next, unless they have a metric.
 If unset, defaults to the following:-
 .Bd -compact -literal -offset indent
-tap[0-9]* tun[0-9]* vpn vpn[0-9]* ppp[0-9]* ippp[0-9]*
+tap[0-9]* tun[0-9]* vpn vpn[0-9]* wg[0-9]* ppp[0-9]* ippp[0-9]*
 .Ed
 .It Sy inclusive_interfaces
 Ignore any exclusive marking for these interfaces.

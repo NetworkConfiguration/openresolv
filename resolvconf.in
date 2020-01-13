@@ -44,7 +44,7 @@ unset interface_order state_dir
 # If you change this, change the test in VFLAG and libc.in as well
 local_nameservers="127.* 0.0.0.0 255.255.255.255 ::1"
 
-dynamic_order="tap[0-9]* tun[0-9]* vpn vpn[0-9]* ppp[0-9]* ippp[0-9]*"
+dynamic_order="tap[0-9]* tun[0-9]* vpn vpn[0-9]* wg[0-9]* ppp[0-9]* ippp[0-9]*"
 interface_order="lo lo[0-9]*"
 name_server_blacklist="0.0.0.0"
 

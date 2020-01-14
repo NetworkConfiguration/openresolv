@@ -494,6 +494,21 @@ list_resolv()
 			fi
 			continue
 		fi
+
+		if [ -n "$allow_interfaces" ]; then
+			x=false
+			for j in $allow_interfaces; do
+				if [ "$i" = "$j" ]; then
+					x=true
+				fi
+			done
+			$x || continue
+		fi
+		for j in $deny_interfaces; do
+			if [ "$i" = "$j" ]; then
+				continue 2
+			fi
+		done
 		
 		if [ "$cmd" = i ] || [ "$cmd" = "-i" ]; then
 			printf %s "$i "

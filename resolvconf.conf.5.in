@@ -61,6 +61,10 @@ Set to NO to disable
 .Nm resolvconf
 from running any subscribers.
 Defaults to YES.
+.It Sy allow_interfaces
+If set, only these interfaces will be processed.
+.It Sy deny_interfaces
+If set, these interfaces will not be processed.
 .It Sy interface_order
 These interfaces will always be processed first.
 If unset, defaults to the following:-

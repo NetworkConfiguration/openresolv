@@ -59,6 +59,7 @@ elif [ -d "$SYSCONFDIR/resolvconf" ]; then
 		interface_order="$(cat "$SYSCONFDIR"/interface-order)"
 	fi
 fi
+
 IFACEDIR="$VARDIR/interfaces"
 METRICDIR="$VARDIR/metrics"
 PRIVATEDIR="$VARDIR/private"
@@ -495,20 +496,22 @@ list_resolv()
 			continue
 		fi
 
-		if [ -n "$allow_interfaces" ]; then
-			x=false
-			for j in $allow_interfaces; do
+		if ! $ALLIFACES; then
+			if [ -n "$allow_interfaces" ]; then
+				x=false
+				for j in $allow_interfaces; do
+					if [ "$i" = "$j" ]; then
+						x=true
+					fi
+				done
+				$x || continue
+			fi
+			for j in $deny_interfaces; do
 				if [ "$i" = "$j" ]; then
-					x=true
+					continue 2
 				fi
 			done
-			$x || continue
 		fi
-		for j in $deny_interfaces; do
-			if [ "$i" = "$j" ]; then
-				continue 2
-			fi
-		done
 		
 		if [ "$cmd" = i ] || [ "$cmd" = "-i" ]; then
 			printf %s "$i "
@@ -620,7 +623,7 @@ make_vars()
 	SEARCH=
 	NAMESERVERS=
 	LOCALNAMESERVERS=
-	
+
 	if [ -n "${name_servers}${search_domains}" ]; then
 		eval "$(echo_prepend | parse_resolv)"
 	fi
@@ -715,9 +718,11 @@ fi
 
 # -l lists our resolv files, optionally for a specific interface
 if [ "$cmd" = l ] || [ "$cmd" = i ]; then
+	ALLIFACES=true
 	list_resolv "$cmd" "$args"
 	exit $?
 fi
+ALLIFACES=false
 
 # Restart a service or echo the command to restart a service
 if [ "$cmd" = r ] || [ "$cmd" = R ]; then

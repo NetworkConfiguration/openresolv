@@ -20,9 +20,10 @@ BINMODE?=	0755
 DOCMODE?=	0644
 MANMODE?=	0444
 
-RESOLVCONF=	resolvconf resolvconf.8 resolvconf.conf.5
-SUBSCRIBERS=	libc dnsmasq named pdnsd pdns_recursor unbound
-TARGET=		${RESOLVCONF} ${SUBSCRIBERS}
+RESOLVCONF=		resolvconf resolvconf.8 resolvconf.conf.5
+SUBSCRIBERS=		libc dnsmasq named pdnsd pdns_recursor unbound
+LIBC_SUBSCRIBERS=	avahi-daemon mdnsd
+TARGET=		${RESOLVCONF} ${SUBSCRIBERS} ${LIBC_SUBSCRIBERS}
 SRCS=		${TARGET:C,$,.in,} # pmake
 SRCS:=		${TARGET:=.in} # gmake
 
@@ -71,6 +72,9 @@ proginstall: ${TARGET}
 	${INSTALL} -m ${DOCMODE} resolvconf.conf ${DESTDIR}${SYSCONFDIR}
 	${INSTALL} -d ${DESTDIR}${LIBEXECDIR}
 	${INSTALL} -m ${DOCMODE} ${SUBSCRIBERS} ${DESTDIR}${LIBEXECDIR}
+	${INSTALL} -d ${DESTDIR}${LIBEXECDIR}/libc.d
+	${INSTALL} -m ${DOCMODE} ${LIBC_SUBSCRIBERS} \
+		${DESTDIR}${LIBEXECDIR}/libc.d
 
 maninstall:
 	${INSTALL} -d ${DESTDIR}${MANDIR}/man8

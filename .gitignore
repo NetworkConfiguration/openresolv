@@ -10,3 +10,6 @@ named
 pdnsd
 pdns_recursor
 unbound
+
+avahi-daemon
+mdnsd

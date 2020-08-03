@@ -220,7 +220,7 @@ openresolv ships with subscribers for the name servers
 and
 .Xr unbound 8 .
 Each subscriber can create configuration files which should be included in
-in the subscribers main configuration file.
+the subscribers main configuration file.
 .Pp
 To disable a subscriber, simply set it's name to NO.
 For example, to disable the libc subscriber you would set:

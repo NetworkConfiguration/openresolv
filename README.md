@@ -60,7 +60,7 @@ openresolv ships with helpers for:
   *  [PowerDNS Recursor](http://wiki.powerdns.com/trac)
 
 See the
-[configuration section](https://roy.marples.name/projects/openresolv/config)
+[configuration section](https://roy.marples.name/projects/openresolv/configuration.html)
 for more details.
 
 If openresolv updates `/etc/resolv.conf` it can notify the following of this:

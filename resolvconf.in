@@ -448,12 +448,14 @@ list_resolv()
 		$force || report=true
 	elif ! $excl; then
 		cd "$IFACEDIR"
+
 		for i in $interface_order; do
 			[ -f "$i" ] && list="$list $i"
 			for ii in "$i":* "$i".*; do
 				[ -f "$ii" ] && list="$list $ii"
 			done
 		done
+
 		for i in $dynamic_order; do
 			if [ -e "$i" ] && ! [ -e "$METRICDIR/"*" $i" ]; then
 				list="$list $i"
@@ -465,6 +467,7 @@ list_resolv()
 				fi
 			done
 		done
+
 		# Interfaces have an implicit metric of 0 if not specified.
 		for i in *; do
 			if [ -f "$i" ] && ! [ -e "$METRICDIR/"*" $i" ]; then
@@ -942,9 +945,9 @@ d)
 			"$PRIVATEDIR/$i" \
 			"$EXCLUSIVEDIR/"*" $i" || exit $?
 	done
-	if ! ${changed}; then
+	if ! $changed; then
 		# Set the return code based on the forced flag
-		${force}
+		$force
 		exit $?
 	fi
 	unset changed i

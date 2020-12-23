@@ -275,19 +275,14 @@ dirname()
 
 config_mkdirs()
 {
-	e=0
 	for f; do
 		[ -n "$f" ] || continue
 		d="$(dirname "$f")"
 		if [ ! -d "$d" ]; then
-			if type install >/dev/null 2>&1; then
-				install -d "$d" || e=$?
-			else
-				mkdir "$d" || e=$?
-			fi
+			mkdir -p "$d" || return $?
 		fi
 	done
-	return $e
+	return 0
 }
 
 # With the advent of alternative init systems, it's possible to have

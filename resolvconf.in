@@ -64,7 +64,7 @@ IFACEDIR="$VARDIR/interfaces"
 METRICDIR="$VARDIR/metrics"
 PRIVATEDIR="$VARDIR/private"
 EXCLUSIVEDIR="$VARDIR/exclusive"
-INACTIVEDIR="$VARDIR/inactive"
+DEPRECATEDDIR="$VARDIR/deprecated"
 LOCKDIR="$VARDIR/lock"
 _PWD="$PWD"
 
@@ -410,16 +410,16 @@ echo_resolv()
 	IFS="$OIFS"
 }
 
-inactive_interface()
+deprecated_interface()
 {
-	[ -d "$INACTIVEDIR" ] || return 1
+	[ -d "$DEPRECATEDDIR" ] || return 1
 
-	cd "$INACTIVEDIR"
-	for ia; do
-		for iaf in *; do
-			[ -f "$iaf" ] || continue
-			case "$ia" in
-			$iaf) return 0;;
+	cd "$DEPRECATEDDIR"
+	for da; do
+		for daf in *; do
+			[ -f "$daf" ] || continue
+			case "$da" in
+			$daf) return 0;;
 			esac
 		done
 	done
@@ -501,17 +501,17 @@ list_resolv()
 			done
 		fi
 
-		# Move inactive interfaces to the back
+		# Move deprecated interfaces to the back
 		active=
-		inactive=
+		deprecated=
 		for i in $list; do
-			if inactive_interface "$i"; then
-				inactive="$inactive $i"
+			if deprecated_interface "$i"; then
+				deprecated="$deprecated $i"
 			else
 				active="$active $i"
 			fi
 		done
-		list="$active $inactive"
+		list="$active $deprecated"
 	fi
 
 	cd "$IFACEDIR"
@@ -993,9 +993,9 @@ d)
 	;;
 
 C)
-	# Mark interface as inactive
-	[ ! -d "$INACTIVEDIR" ] && mkdir "$INACTIVEDIR"
-	cd "$INACTIVEDIR"
+	# Mark interface as deprecated
+	[ ! -d "$DEPRECATEDDIR" ] && mkdir "$DEPRECATEDDIR"
+	cd "$DEPRECATEDDIR"
 	changed=false
 	for i in $args; do
 		if [ ! -e "$i" ]; then
@@ -1009,8 +1009,8 @@ C)
 
 c)
 	# Mark interface as active
-	if [ -d "$INACTIVEDIR" ]; then
-		cd "$INACTIVEDIR"
+	if [ -d "$DEPRECATEDDIR" ]; then
+		cd "$DEPRECATEDDIR"
 		changed=false
 		for i in $args; do
 			if [ -e "$i" ]; then

@@ -845,6 +845,9 @@ fi
 # in /usr which we do our very best to operate without.
 [ -w "$VARDIR" ] || error_exit "Cannot write to $LOCKDIR"
 : ${lock_timeout:=10}
+: ${clear_nopids:=5}
+have_pid=false
+had_pid=false
 while true; do
 	if mkdir "$LOCKDIR" 2>/dev/null; then
 		trap 'rm -rf "$LOCKDIR";' EXIT
@@ -852,18 +855,43 @@ while true; do
 		echo $$ >"$LOCKDIR/pid"
 		break
 	fi
-	pid=$(cat "$LOCKDIR/pid")
-	if ! kill -0 "$pid"; then
+	pid=$(cat "$LOCKDIR/pid" 2>/dev/null)
+	if [ "$pid" -gt 0 ] 2>/dev/null; then
+		have_pid=true
+		had_pid=true
+	else
+		have_pid=false
+		clear_nopids=$(($clear_nopids - 1))
+		if [ "$clear_nopids" -le 0 ]; then
+			warn "not seen a pid, clearing lock directory"
+			rm -rf "$LOCKDIR"
+		else
+			lock_timeout=$(($lock_timeout - 1))
+			sleep 1
+		fi
+		continue
+	fi
+	if $have_pid && ! kill -0 "$pid"; then
 		warn "clearing stale lock pid $pid"
 		rm -rf "$LOCKDIR"
 		continue
 	fi
 	lock_timeout=$(($lock_timeout - 1))
 	if [ "$lock_timeout" -le 0 ]; then
-		error_exit "timed out waiting for lock from pid $pid"
+		if $have_pid; then
+			error_exit "timed out waiting for lock from pid $pid"
+		else
+			if $had_pid; then
+				error_exit "timed out waiting for lock" \
+					"from some pids"
+			else
+				error_exit "timed out waiting for lock"
+			fi
+		fi
 	fi
 	sleep 1
 done
+unset have_pid had_pid clear_nopids
 
 case "$cmd" in
 a)

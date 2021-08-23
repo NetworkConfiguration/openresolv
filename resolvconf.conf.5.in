@@ -134,7 +134,7 @@ search foo.org dead.beef
 nameserver 1.2.3.4
 nameserver 2.3.4.5
 .Ed
-and this configuaration:
+and this configuration:
 .Bd -compact -literal -offset indent
 replace="search/foo*/bar.com"
 replace="$replace nameserver/1.2.3.4/5.6.7.8"
@@ -385,4 +385,4 @@ Each distribution is a special snowflake and likes to name the same thing
 differently, namely the named service script.
 .Pp
 Please report them to
-.Lk http://roy.marples.name/projects/openresolv
+.Lk https://roy.marples.name/projects/openresolv

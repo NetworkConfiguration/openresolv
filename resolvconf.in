@@ -158,7 +158,7 @@ private_iface()
 	if [ -e "$PRIVATEDIR/$iface" ]; then
 		return 0
 	fi
-	
+
 	for p in $private_interfaces; do
 		case "$iface" in
 		"$p"|"$p":*) return 0;;
@@ -292,7 +292,7 @@ config_mkdirs()
 # more than one installed. So we need to try and guess what one we're
 # using unless overriden by configure.
 # Note that restarting a service is a last resort - the subscribers
-# should make a reasonable attempt to reconfigre the service via some
+# should make a reasonable attempt to reconfigure the service via some
 # method, normally SIGHUP.
 detect_init()
 {
@@ -542,7 +542,7 @@ list_resolv()
 				fi
 			done
 		fi
-		
+
 		if [ "$cmd" = i ] || [ "$cmd" = "-i" ]; then
 			printf %s "$i "
 		else

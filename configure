@@ -92,7 +92,7 @@ dragonfly*)
 	: ${LIBEXECDIR:=${PREFIX:-/usr}/libexec/resolvconf}
 	;;
 linux*)
-	# cksum does't support -a and netpgp is rare
+	# cksum doesn't support -a and netpgp is rare
 	echo "CKSUM=		sha256sum --tag" >>$CONFIG_MK
 	echo "PGP=		gpg2" >>$CONFIG_MK
 	;;

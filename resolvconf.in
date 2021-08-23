@@ -292,7 +292,7 @@ config_mkdirs()
 # more than one installed. So we need to try and guess what one we're
 # using unless overriden by configure.
 # Note that restarting a service is a last resort - the subscribers
-# should make a reasonable attempt to reconfigre the service via some
+# should make a reasonable attempt to reconfigure the service via some
 # method, normally SIGHUP.
 detect_init()
 {

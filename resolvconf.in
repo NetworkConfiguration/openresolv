@@ -158,7 +158,7 @@ private_iface()
 	if [ -e "$PRIVATEDIR/$iface" ]; then
 		return 0
 	fi
-	
+
 	for p in $private_interfaces; do
 		case "$iface" in
 		"$p"|"$p":*) return 0;;
@@ -542,7 +542,7 @@ list_resolv()
 				fi
 			done
 		fi
-		
+
 		if [ "$cmd" = i ] || [ "$cmd" = "-i" ]; then
 			printf %s "$i "
 		else

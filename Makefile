@@ -119,4 +119,4 @@ _import-src:
 	@${ECHO} "openresolv-${VERSION} imported to ${DESTDIR}"
 
 import-src:
-	${MAKE} _import-src DESTDIR=`if [ -n "${DESTDIR}" ]; then echo "${DESTDIR}"; else  echo /tmp/${DISTPREFIX}; fi`
+	${MAKE} _import-src DESTDIR=`if [ -n "${DESTDIR}" ]; then echo "${DESTDIR}"; else echo /tmp/${DISTPREFIX}; fi`

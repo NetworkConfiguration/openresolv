@@ -229,7 +229,7 @@ in the correct order.
 .Nm
 first processes interfaces from the
 .Sy interface_order
-list, then interfaces without a metic and that match the
+list, then interfaces without a metric and that match the
 .Sy dynamic_order
 list, then interfaces with a metric in order and finally the rest in
 the operating systems lexical order.

@@ -64,7 +64,7 @@ if [ -n "$NAMESERVERS" ]; then
 fi
 
 # Try to ensure that config dirs exist
-if type config_mkdirs >/dev/null 2>&1; then
+if command -v config_mkdirs >/dev/null 2>&1; then
 	config_mkdirs "$unbound_conf"
 else
 	@SBINDIR@/resolvconf -D "$unbound_conf"

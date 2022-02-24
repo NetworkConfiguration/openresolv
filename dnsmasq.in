@@ -151,7 +151,7 @@ else
 fi
 
 # Try to ensure that config dirs exist
-if type config_mkdirs >/dev/null 2>&1; then
+if command -v config_mkdirs >/dev/null 2>&1; then
 	config_mkdirs "$dnsmasq_conf" "$dnsmasq_resolv"
 else
 	@SBINDIR@/resolvconf -D "$dnsmasq_conf" "$dnsmasq_resolv"

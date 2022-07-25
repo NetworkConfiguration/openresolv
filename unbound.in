@@ -58,6 +58,9 @@ done
 
 if [ -n "$NAMESERVERS" ]; then
 	newconf="$newconf${NL}forward-zone:$NL	name: \".\"$NL"
+	if [ "${NAMESERVERS#*\#}" != "$NAMESERVERS" ]; then
+		newconf="$newconf	forward-tls-upstream: yes$NL"
+	fi
 	for n in $NAMESERVERS; do
 		newconf="$newconf	forward-addr: $n$NL"
 	done

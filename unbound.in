@@ -49,6 +49,9 @@ for d in $DOMAINS; do
 		;;
 	esac
 	newconf="$newconf${NL}forward-zone:$NL	name: \"$dn\"$NL"
+	if [ "${ns#*\#}" != "$ns" ]; then
+		newconf="$newconf	forward-tls-upstream: yes$NL"
+	fi
 	while [ -n "$ns" ]; do
 		newconf="$newconf	forward-addr: ${ns%%,*}$NL"
 		[ "$ns" = "${ns#*,}" ] && break

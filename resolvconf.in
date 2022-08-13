@@ -327,6 +327,12 @@ detect_init()
 		   then
 			/usr/sbin/invoke-rc.d $1 restart
 		   fi'
+	elif [ -x /usr/bin/s6-rc ] && [ -x /usr/bin/s6-svc ]; then
+		RESTARTCMD='
+		   if s6-rc -a list | grep -qFx $1-srv
+		   then
+			s6-svc -r /run/service/$1-srv
+		   fi'
 	elif [ -x /sbin/service ]; then
 		# Old RedHat
 		RCDIR=/etc/init.d

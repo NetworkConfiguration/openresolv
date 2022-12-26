@@ -222,7 +222,7 @@ and
 Each subscriber can create configuration files which should be included in
 the subscribers main configuration file.
 .Pp
-To disable a subscriber, simply set it's name to NO.
+To disable a subscriber, simply set its name to NO.
 For example, to disable the libc subscriber you would set:
 .Bd -compact -literal -offset indent
 libc=NO

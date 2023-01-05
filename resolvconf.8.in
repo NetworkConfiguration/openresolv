@@ -189,7 +189,7 @@ Echo the resolvconf version to
 .El
 .Pp
 .Nm
-also has some commands designed to be used by it's subscribers and
+also has some commands designed to be used by its subscribers and
 system startup:-
 .Bl -tag -width pattern_opt
 .It Fl I

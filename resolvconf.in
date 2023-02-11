@@ -440,6 +440,8 @@ list_resolv()
 
 	cmd="$1"
 	shift
+	pattern_specified="$1"
+
 	excl=false
 	list=
 	report=false
@@ -470,7 +472,7 @@ list_resolv()
 
 	# If we have an interface ordering list, then use that.
 	# It works by just using pathname expansion in the interface directory.
-	if [ -n "$1" ]; then
+	if [ -n "$pattern_specified" ]; then
 		list="$*"
 		$force || report=true
 	elif ! $excl; then
@@ -523,7 +525,11 @@ list_resolv()
 	fi
 
 	cd "$IFACEDIR"
-	retval=1
+	if [ -n "$pattern_specified" ]; then
+		retval=1
+	else
+		retval=0
+	fi
 	for i in $(uniqify $list); do
 		# Only list interfaces which we really have
 		if ! [ -f "$i" ]; then

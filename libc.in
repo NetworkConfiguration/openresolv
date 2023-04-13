@@ -94,6 +94,7 @@ elif [ -d "$SYSCONFDIR"/resolvconf ]; then
 	fi
 fi
 : ${resolv_conf:=/etc/resolv.conf}
+: ${resolv_conf_tmp:="$resolv_conf.$$.openresolv"}
 : ${libc_service:=nscd}
 : ${list_resolv:=@SBINDIR@/resolvconf -l}
 if [ "${resolv_conf_head-x}" = x ] && [ -f "$SYSCONFDIR"/resolv.conf.head ]
@@ -226,8 +227,14 @@ if $backup; then
 	fi
 fi
 
+# Protect against symlink attack, ensure new file does not exist
+rm -f "$resolv_conf_tmp"
+# Keep original file owner, group and mode
+[ -r "$resolv_conf" ] && cp -p "$resolv_conf" "$resolv_conf_tmp"
 # Create our resolv.conf now
-(umask 022; printf %s "$newconf" >"$resolv_conf")
+if (umask 022; printf %s "$newconf" >"$resolv_conf_tmp"); then
+	mv "$resolv_conf_tmp" "$resolv_conf"
+fi
 if [ -n "$libc_restart" ]; then
 	eval $libc_restart
 elif [ -n "$RESTARTCMD" ]; then

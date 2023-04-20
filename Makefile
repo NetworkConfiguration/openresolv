@@ -5,6 +5,9 @@ _CONFIG_MK!=	test -e config.mk && echo config.mk || echo config-null.mk
 CONFIG_MK?=	${_CONFIG_MK}
 include		${CONFIG_MK}
 
+DIST!=		if test -d .git; then echo "dist-git"; \
+		else echo "dist-inst"; fi
+
 SBINDIR?=	/sbin
 SYSCONFDIR?=	/etc
 LIBEXECDIR?=	/libexec/resolvconf
@@ -37,12 +40,12 @@ SED_RCDIR=		-e 's:@RCDIR@:${RCDIR}:g'
 SED_STATUSARG=		-e 's:@STATUSARG@:${STATUSARG}:g'
 
 DISTPREFIX?=	${PKG}-${VERSION}
-DISTFILEGZ?=	${DISTPREFIX}.tar.gz
 DISTFILE?=	${DISTPREFIX}.tar.xz
 DISTINFO=	${DISTFILE}.distinfo
-DISTINFOSIGN=	${DISTINFO}.asc
-CKSUM?=		cksum -a SHA256
-PGP?=		netpgp
+DISTINFOMD=	${DISTINFO}.md
+DISTSIGN=	${DISTFILE}.asc
+SHA256?=	sha256
+PGP?=		gpg
 
 GITREF?=	HEAD
 
@@ -60,7 +63,7 @@ clean:
 	rm -f ${TARGET}
 
 distclean: clean
-	rm -f config.mk ${DISTFILE} ${DISTINFO} ${DISTINFOSIGN}
+	rm -f config.mk ${DISTFILE} ${DISTINFO} ${DISTINFOMD} ${DISTSIGN}
 
 installdirs:
 
@@ -91,18 +94,28 @@ dist-inst:
 	mkdir /tmp/${DISTPREFIX}
 	cp -RPp * /tmp/${DISTPREFIX}
 	(cd /tmp/${DISTPREFIX}; make clean)
-	tar -cvjpf ${DISTFILE} -C /tmp ${DISTPREFIX}
+	tar -cvJpf ${DISTFILE} -C /tmp ${DISTPREFIX}
 	rm -rf /tmp/${DISTPREFIX}
 
-dist: dist-git
+dist: ${DIST}
 
 distinfo: dist
-	rm -f ${DISTINFO} ${DISTINFOSIGN}
-	${CKSUM} ${DISTFILE} >${DISTINFO}
-	#printf "SIZE (${DISTFILE}) = %s\n" $$(wc -c <${DISTFILE}) >>${DISTINFO}
-	${PGP} --clearsign --output=${DISTINFOSIGN} ${DISTINFO}
-	chmod 644 ${DISTINFOSIGN}
-	ls -l ${DISTFILE} ${DISTINFO} ${DISTINFOSIGN}
+	rm -f ${DISTINFO} ${DISTSIGN}
+	${SHA256} ${DISTFILE} >${DISTINFO}
+	${PGP} --armour --detach-sign ${DISTFILE}
+	chmod 644 ${DISTSIGN}
+	ls -l ${DISTFILE} ${DISTINFO} ${DISTSIGN}
+
+${DISTINFOMD}: ${DISTINFO}
+	echo '```' >${DISTINFOMD}
+	cat ${DISTINFO} >>${DISTINFOMD}
+	echo '```' >>${DISTINFOMD}
+
+release: distinfo ${DISTINFOMD}
+	gh release create v${VERSION} \
+		--title "openresolv ${VERSION}" --draft --generate-notes \
+		--notes-file ${DISTINFOMD} \
+		${DISTFILE} ${DISTSIGN}
 
 import: dist
 	rm -rf /tmp/${DISTPREFIX}

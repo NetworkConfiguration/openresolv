@@ -525,7 +525,7 @@ list_resolv()
 	fi
 
 	cd "$IFACEDIR"
-	if [ -n "$pattern_specified" ]; then
+	if $excl || [ -n "$pattern_specified" ]; then
 		retval=1
 	else
 		retval=0

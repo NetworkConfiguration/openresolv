@@ -227,23 +227,53 @@ if $backup; then
 	fi
 fi
 
+resolv_conf_mk_tmp()
+{
+	# Protect against symlink attack, ensure new file does not exist
+	rm -f "$resolv_conf_tmp"
+	# Keep original file owner, group and mode
+	[ -r "$resolv_conf" ] && cp -p "$resolv_conf" "$resolv_conf_tmp"
+}
+
+resolv_conf_do_mv()
+{
+	# Create our resolv.conf now
+	if (umask 022; printf %s "$newconf" >"$resolv_conf_tmp"); then
+		mv "$resolv_conf_tmp" "$resolv_conf"
+	fi
+}
+
+resolv_conf_do_print()
+{
+	(umask 022; printf %s "$newconf" >"$resolv_conf")
+}
+
 # There are pros and cons for writing directly to resolv.conf
 # instead of a temporary file and then moving it over.
 # The default is to write to resolv.conf as it has the least
 # issues and has been the long standing default behaviour.
 case "${resolv_conf_mv:-NO}" in
 [Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1)
-	# Protect against symlink attack, ensure new file does not exist
-	rm -f "$resolv_conf_tmp"
-	# Keep original file owner, group and mode
-	[ -r "$resolv_conf" ] && cp -p "$resolv_conf" "$resolv_conf_tmp"
-	# Create our resolv.conf now
-	if (umask 022; printf %s "$newconf" >"$resolv_conf_tmp"); then
-		mv "$resolv_conf_tmp" "$resolv_conf"
+	resolv_conf_mk_tmp
+	resolv_conf_do_mv
+	;;
+# Do mv only if resolv_conf_tmp and resolv_conf are on
+# the same filesystem. Use print method for bind-mounted file
+[Aa][Uu][Tt][Oo])
+	if [ -r "$resolv_conf" ] && STAT=$(type -p stat 2>/dev/null) && [ -x "$STAT" ]; then
+		resolv_conf_mk_tmp
+		if [ "$($STAT -c %d "$resolv_conf_tmp")" = "$($STAT -c %d "$resolv_conf")" ]; then
+			resolv_conf_do_mv
+		else
+			rm -f "$resolv_conf_tmp"
+			resolv_conf_do_print
+		fi
+	else
+		resolv_conf_do_print
 	fi
 	;;
 *)
-	(umask 022; printf %s "$newconf" >"$resolv_conf")
+	resolv_conf_do_print
 	;;
 esac
 

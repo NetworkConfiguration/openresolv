@@ -260,9 +260,9 @@ case "${resolv_conf_mv:-NO}" in
 # Do mv only if resolv_conf_tmp and resolv_conf are on
 # the same filesystem. Use print method for bind-mounted file
 [Aa][Uu][Tt][Oo])
-	if [ -r "$resolv_conf" ] && STAT=$(type -p stat 2>/dev/null) && [ -x "$STAT" ]; then
+	if [ -r "$resolv_conf" ] && [ -n "@STAT_FMT@" ]; then
 		resolv_conf_mk_tmp
-		if [ "$($STAT -c %d "$resolv_conf_tmp")" = "$($STAT -c %d "$resolv_conf")" ]; then
+		if [ "$(@STAT_FMT@ %d "$resolv_conf_tmp")" = "$(@STAT_FMT@ %d "$resolv_conf")" ]; then
 			resolv_conf_do_mv
 		else
 			rm -f "$resolv_conf_tmp"

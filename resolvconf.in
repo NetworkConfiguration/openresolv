@@ -672,8 +672,10 @@ make_vars()
 		eval "$(echo_prepend | parse_resolv)"
 	fi
 	if [ -z "$VFLAG" ]; then
-		IF_EXCLUSIVE=1
-		list_resolv -i "$@" >/dev/null || IF_EXCLUSIVE=0
+		IF_EXCLUSIVE=0
+		if [ -n "$*" ]; then
+			list_resolv -i "$@" >/dev/null && IF_EXCLUSIVE=1
+		fi
 		eval "$(list_resolv -l "$@" | replace | parse_resolv)"
 	fi
 	if [ -n "${name_servers_append}${search_domains_append}" ]; then

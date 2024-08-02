@@ -22,7 +22,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.Dd May 23, 2023
+.Dd Aug 02, 2024
 .Dt RESOLVCONF.CONF 5
 .Os
 .Sh NAME
@@ -328,6 +328,8 @@ forward-zones-file=/etc/pdns/recursor-zones.conf
 This file tells unbound about specific and global name servers.
 .It Sy unbound_insecure
 When set to YES, unbound marks the domains as insecure, thus ignoring DNSSEC.
+.It Sy unbound_private
+When set to YES, unbound marks the domains as private, allowing it and its subdomains to contain private addresses.
 .It Sy unbound_forward_zone_options
 Options appended to each forward zone.
 Each option should be separated by an embedded new line.

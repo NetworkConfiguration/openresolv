@@ -98,7 +98,12 @@ To remove a sub domain, you can use *.bar
 .It Sy name_servers
 Prepend name servers to the dynamically generated list.
 You should set this to 127.0.0.1 if you use a local name server other than
-libc.
+libc. Multiple entries should be double-quoted and space-separated.
+.Pp
+Example resolvconf.conf for multiple name servers:
+.Bd -compact -literal -offset indent
+name_servers="198.51.100.1 198.51.100.2"
+.Ed
 .It Sy name_servers_append
 Append name servers to the dynamically generated list.
 .It Sy name_server_blacklist

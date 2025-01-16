@@ -95,6 +95,7 @@ linux*)
 	# cksum doesn't support -a and netpgp is rare
 	echo "CKSUM=		sha256sum --tag" >>$CONFIG_MK
 	echo "PGP=		gpg2" >>$CONFIG_MK
+	echo "STAT_FMT=         stat -c" >>$CONFIG_MK
 	;;
 esac
 
@@ -106,6 +107,10 @@ dragonfly*|freebsd*)
 	if [ -z "$STATUSARG" ]; then
 		STATUSARG="onestatus"
 	fi
+	echo "STAT_FMT=         stat -f" >>$CONFIG_MK
+	;;
+*bsd*)
+	echo "STAT_FMT=         stat -f" >>$CONFIG_MK
 	;;
 esac
 
@@ -164,4 +169,5 @@ echo
 echo "   RESTARTCMD =		$RESTARTCMD"
 echo "   RCDIR =		$RCDIR"
 echo "   STATUSARG =		$STATUSARG"
+echo "   STAT_FMT =		$STAT_FMT"
 echo

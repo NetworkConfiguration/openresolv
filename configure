@@ -39,7 +39,7 @@ for x do
 	--includedir) eval INCLUDEDIR="$INCLUDEDIR${INCLUDEDIR:+ }$var";;
 	--datadir|--infodir) ;; # ignore autotools
 	--disable-maintainer-mode|--disable-dependency-tracking) ;;
-	--help) echo "See the README file for available options"; exit 0;;
+	--help) echo "See the source for available options"; exit 0;;
 	*) echo "$0: WARNING: unknown option $opt" >&2;;
 	esac
 done

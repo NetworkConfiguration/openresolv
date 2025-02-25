@@ -45,7 +45,7 @@ DISTINFO=	${DISTFILE}.distinfo
 DISTINFOMD=	${DISTINFO}.md
 DISTSIGN=	${DISTFILE}.asc
 SHA256?=	sha256
-PGP?=		gpg
+PGP?=		gpg2
 
 GITREF?=	HEAD
 
@@ -104,7 +104,7 @@ distinfo: dist
 	${SHA256} ${DISTFILE} >${DISTINFO}
 	wc -c <${DISTFILE} \
 		| xargs printf 'Size   (${DISTFILE}) = %s\n' >>${DISTINFO}
-	${PGP} --armour --detach-sign ${DISTFILE}
+	${PGP} --sign --armour --detach ${DISTFILE}
 	chmod 644 ${DISTSIGN}
 	ls -l ${DISTFILE} ${DISTINFO} ${DISTSIGN}
 

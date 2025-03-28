@@ -508,8 +508,8 @@ list_resolv()
 {
 	[ -d "$IFACEDIR" ] || return 0
 
-	OPTIND=
 	list_cmd=
+	OPTIND=1
 	while getopts iLl OPT; do
 		case "$OPT" in
 		'?') exit 1;;

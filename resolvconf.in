@@ -167,6 +167,8 @@ resolv_strip()
 
 private_iface()
 {
+	iface="$1"
+
 	# Allow expansion
 	cd "$IFACEDIR"
 
@@ -650,6 +652,19 @@ list_resolv()
 	return $retval
 }
 
+list_private()
+{
+	IFACES=
+	for i in $(list_resolv -i $@ 2>/dev/null); do
+		if private_iface "$i"; then
+			IFACES="${IFACES}${IFACES:+ }$i"
+		fi
+	done
+	if [ -n "$IFACES" ]; then
+		echo "$IFACES"
+	fi
+}
+
 list_remove()
 {
 	[ -z "$2" ] && return 0
@@ -828,6 +843,10 @@ done
 shift $(($OPTIND - 1))
 args="$iface${iface:+ }$*"
 
+if [ -z "$cmd" ] && [ "$IF_PRIVATE" = 1 ]; then
+	cmd=p
+fi
+
 # -I inits the state dir
 if [ "$cmd" = I ]; then
 	if [ -d "$VARDIR" ]; then
@@ -850,7 +869,12 @@ fi
 # -L is the same as -l, but post-processed from our config
 if [ "$cmd" = L ]; then
 	list_resolv "-$cmd" "$args" | replace
-	exit $?2
+	exit $?
+fi
+
+if [ "$cmd" = p ]; then
+	list_private "$args"
+	exit $?
 fi
 
 # Restart a service or echo the command to restart a service

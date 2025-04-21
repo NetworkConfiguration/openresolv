@@ -9,6 +9,7 @@ libc
 named
 pdnsd
 pdns_recursor
+resolvectl
 unbound
 
 avahi-daemon

@@ -24,7 +24,7 @@ DOCMODE?=	0644
 MANMODE?=	0444
 
 RESOLVCONF=		resolvconf resolvconf.8 resolvconf.conf.5
-SUBSCRIBERS=		libc dnsmasq named pdnsd pdns_recursor unbound
+SUBSCRIBERS=		libc dnsmasq named pdnsd pdns_recursor resolvectl unbound
 LIBC_SUBSCRIBERS=	avahi-daemon mdnsd
 TARGET=		${RESOLVCONF} ${SUBSCRIBERS} ${LIBC_SUBSCRIBERS}
 SRCS=		${TARGET:C,$,.in,} # pmake

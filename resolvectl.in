@@ -1,0 +1,93 @@
+#!/bin/sh
+# Copyright (c) 2007-2025 Roy Marples
+# All rights reserved
+
+# resolvectl subscriber for resolvconf
+
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above
+#       copyright notice, this list of conditions and the following
+#       disclaimer in the documentation and/or other materials provided
+#       with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# If we don't have resolvectl or systemd-resolved isn't running then
+# we can't do much.
+if ! [ -d /sys/class/net ] || \
+   ! type resolvectl >/dev/null 2>&1 || \
+   ! pidof systemd-resolved >/dev/null
+then
+	exit 0
+fi
+
+# resolved only accepts resolv.conf setup per physical interface
+# although resolvconf has always hinted that the named configuration
+# should be $interface.$protocol, this has never been a fixed requirement
+cd /sys/class/net
+for IFACE in *; do
+	if [ "$IFACE" = lo ]; then
+		# resolved doesn't work with lo
+		continue
+	fi
+
+	IFACES=
+	for IFACE_PROTO in $(resolvconf -i "$IFACE" "$IFACE.*" 2>/dev/null); do
+		# ens5 will work with ens5.dhcp and ens5.ra,
+		# but not ens5.5 or ens5.5.dhcp
+		if [ "${IFACE_PROTO%.*}" = "$IFACE" ]; then
+			IFACES="$IFACES${IFACES:+ }$IFACE_PROTO"
+		fi
+	done
+	if [ -z "$IFACES" ]; then
+		resolvectl revert "$IFACE"
+		continue
+	fi
+
+	# Set the default-route property first to avoid leakage
+	if [ "$(resolvconf -i $IFACES)" = "$(resolvconf -p $IFACES)" ]; then
+		resolvectl default-route "$IFACE" false
+	else
+		resolvectl default-route "$IFACE" true
+	fi
+
+	# Now set domain and dns
+	DOMAIN=$(resolvconf -l $IFACES 2>/dev/null | sed -n -e "s/domain //p" -e "s/search //p")
+	NS=$(resolvconf -l $IFACES 2>/dev/null | sed -n -e "s/nameserver //p")
+	if [ -n "$DOMAIN" ]; then
+		resolvectl domain "$IFACE" $DOMAIN
+	else
+		resolvectl domain "$IFACE" ""
+	fi
+	if [ -n "$NS" ]; then
+		resolvectl dns "$IFACE" $NS
+	else
+		resolvectl dns "$IFACE" ""
+	fi
+done
+
+# warn about resolv.conf with no matching interface
+FAILED=
+for IFACE_PROTO in $(resolvconf -i); do
+	IFACE="${IFACE_PROTO%.*}"
+	if ! [ -d "/sys/class/net/$IFACE" ] || [ "$IFACE" = lo ]; then
+		FAILED="$FAILED${FAILED:+ }$IFACE_PROTO"
+	fi
+done
+if [ -n "$FAILED" ]; then
+	echo "Could not apply resolv.conf to resolvectl: $FAILED" >&2
+fi

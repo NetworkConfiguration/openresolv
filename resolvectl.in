@@ -37,7 +37,10 @@ fi
 
 # resolved only accepts resolv.conf setup per physical interface
 # although resolvconf has always hinted that the named configuration
-# should be $interface.$protocol, this has never been a fixed requirement
+# should be $interface.$protocol, this has never been a fixed requirement.
+# Because resolved only accepts one configuration per interface we need
+# to try and merge the resolv.conf's together.
+# Luckily resolvconf makes this easy for us.
 cd /sys/class/net
 for IFACE in *; do
 	if [ "$IFACE" = lo ]; then
@@ -49,9 +52,18 @@ for IFACE in *; do
 	for IFACE_PROTO in $(resolvconf -i "$IFACE" "$IFACE.*" 2>/dev/null); do
 		# ens5 will work with ens5.dhcp and ens5.ra,
 		# but not ens5.5 or ens5.5.dhcp
-		if [ "${IFACE_PROTO%.*}" = "$IFACE" ]; then
-			IFACES="$IFACES${IFACES:+ }$IFACE_PROTO"
+		if [ "$IFACE_PROTO" != "$IFACE" ]; then
+			# Ensure that ens5.5.dhcp doesn't work for ens5
+			if [ "${IFACE_PROTO%.*}" != "$IFACE" ]; then
+				continue
+			fi
+			# Ensure that ens5.dhcp isn't a real interface
+			# as ens5.5 likely is and the .5 matches the .dhcp
+			if [ -d /sys/class/net/"$IFACE_PROTO" ]; then
+				continue
+			fi
 		fi
+		IFACES="$IFACES${IFACES:+ }$IFACE_PROTO"
 	done
 	if [ -z "$IFACES" ]; then
 		resolvectl revert "$IFACE"
@@ -84,7 +96,13 @@ done
 FAILED=
 for IFACE_PROTO in $(resolvconf -i); do
 	IFACE="${IFACE_PROTO%.*}"
-	if ! [ -d "/sys/class/net/$IFACE" ] || [ "$IFACE" = lo ]; then
+	if [ "$IFACE" = lo ]; then
+		# Don't warn about loopback interface as that is typically
+		# used to configure libc for a nameserver on it
+		continue
+	fi
+
+	if ! [ -d "/sys/class/net/$IFACE" ]; then
 		FAILED="$FAILED${FAILED:+ }$IFACE_PROTO"
 	fi
 done

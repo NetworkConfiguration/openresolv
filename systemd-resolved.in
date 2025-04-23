@@ -28,8 +28,8 @@
 
 [ -f "@SYSCONFDIR@"/resolvconf.conf ] || exit 0
 . "@SYSCONFDIR@/resolvconf.conf" || exit 1
-[ -z "systemd_resolved_conf" ] && exit 0
-[ -z "$RESOLVCONF" ] && eval "$(@SBINDIR@/resolvconf -v)"
+[ -n "$systemd_resolved_conf" ] || exit 0
+[ -n "$RESOLVCONF" ] || eval "$(@SBINDIR@/resolvconf -v)"
 NL="
 "
 

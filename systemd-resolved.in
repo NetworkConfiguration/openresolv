@@ -63,5 +63,8 @@ if [ ! -f "$systemd_resolved_conf" ] || \
 	[ "$(cat "$systemd_resolved_conf")" != "$(printf %s "$conf")" ]
 then
 	printf %s "$conf" >"$systemd_resolved_conf"
-	kill -HUP $(pidof systemd-resolved)
+	pid=$(pidof systemd-resolved)
+	if [ -n "$pid" ]; then
+		kill -HUP $pid
+	fi
 fi

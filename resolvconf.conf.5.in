@@ -343,6 +343,15 @@ Example recursor.conf:
 allow-from=127.0.0.0/8, ::1/128
 forward-zones-file=/etc/pdns/recursor-zones.conf
 .Ed
+.It Sy systemd_resolved_conf
+This file tells systemd-resolved about global name servers.
+.Pp
+Example resolvconf.conf for systemd-resolved:
+.Bd -compact -literal -offset indent
+name_servers=127.0.0.53
+resolv_conf_options="edns0 trust-ad"
+systemd_resolved_conf=/run/systemd/resolved.conf.d/60-resolvconf.conf
+.Ed
 .It Sy unbound_conf
 This file tells unbound about specific and global name servers.
 .It Sy unbound_insecure

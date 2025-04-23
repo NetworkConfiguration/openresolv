@@ -1194,7 +1194,11 @@ retval=0
 cd "$_PWD"
 for script in "$LIBEXECDIR"/*; do
 	if [ -f "$script" ]; then
-		eval script_enabled="\$${script##*/}"
+		script_var="${script##*/}"
+		while [ "${script_var%%-*}" != "$script_var" ]; do
+			script_var="${script_var%%-*}_${script_var#*-}"
+		done
+		eval script_enabled="\$$script_var"
 		case "${script_enabled:-YES}" in
 		[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1) ;;
 		*) continue;;

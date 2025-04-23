@@ -54,9 +54,9 @@ fi
 
 # Try to ensure that config dirs exist
 if command -v config_mkdirs >/dev/null 2>&1; then
-	config_mkdirs "$resolved_conf"
+	config_mkdirs "$systemd_resolved_conf"
 else
-	@SBINDIR@/resolvconf -D "$resolved_conf"
+	@SBINDIR@/resolvconf -D "$systemd_resolved_conf"
 fi
 
 if [ ! -f "$systemd_resolved_conf" ] || \

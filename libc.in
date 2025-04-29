@@ -29,7 +29,11 @@
 SYSCONFDIR=@SYSCONFDIR@
 LIBEXECDIR=@LIBEXECDIR@
 VARDIR=@VARDIR@
-IFACEDIR="$VARDIR/interfaces"
+KEYDIR="$VARDIR/keys"
+# Compat
+if [ ! -d "$KEYDIR" ] && [ -d "$VARDIR/interfaces" ]; then
+	KEYDIR="$VARDIR/interfaces"
+fi
 NL="
 "
 
@@ -129,7 +133,7 @@ case "${resolv_conf_passthrough:-NO}" in
 [Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1)
 	backup=false
 	newest=
-	for conf in "$IFACEDIR"/*; do
+	for conf in "$KEYDIR"/*; do
 		if [ -z "$newest" ] || [ "$conf" -nt "$newest" ]; then
 			newest="$conf"
 		fi

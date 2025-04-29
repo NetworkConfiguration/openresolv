@@ -109,7 +109,7 @@ warn()
 
 error_exit()
 {
-:x
+	echo "$*" >&2
 	exit 1
 }
 
@@ -157,25 +157,6 @@ usage()
 	[ -z "$1" ] && exit 0
 	echo
 	error_exit "$*"
-}
-
-# Strip any trailing dot from each name as a FQDN does not belong
-# in resolv.conf(5)
-# If you think otherwise, capture a DNS trace and you'll see libc
-# will strip it regardless.
-# This also solves setting up duplicate zones in our subscribers.
-# Also strip any comments denoted by #.
-resolv_strip()
-{
-	space=
-	for word; do
-		case "$word" in
-		\#*) break;;
-		esac
-		printf "%s%s" "$space${word%.}"
-		space=" "
-	done
-	printf "\n"
 }
 
 public_key() {
@@ -265,7 +246,7 @@ parse_resolv()
 	search=
 
 	while read -r line; do
-		stripped_line="$(resolv_strip ${line#* })"
+		value="${line#* }"
 		case "$line" in
 		"# resolv.conf from "*)
 			if ${new}; then
@@ -286,7 +267,7 @@ parse_resolv()
 		"nameserver "*)
 			islocal=false
 			for l in $local_nameservers; do
-				case "$stripped_line" in
+				case "$value" in
 				$l)
 					islocal=true
 					break
@@ -294,13 +275,13 @@ parse_resolv()
 				esac
 			done
 			if $islocal; then
-				echo "LOCALNAMESERVERS=\"\$LOCALNAMESERVERS $stripped_line\""
+				echo "LOCALNAMESERVERS=\"\$LOCALNAMESERVERS $value\""
 			else
-				ns="$ns$stripped_line "
+				ns="$value "
 			fi
 			;;
 		"domain "*)
-			search="$stripped_line"
+			search="$value"
 			if [ -z "$domain" ]; then
 				domain="$search"
 				if ! $nosearch; then
@@ -309,7 +290,7 @@ parse_resolv()
 			fi
 			;;
 		"search "*)
-			search="$stripped_line"
+			search="$value"
 			;;
 		*)
 			[ -n "$line" ] && continue
@@ -852,7 +833,37 @@ echo_append()
 	echo
 }
 
-replace()
+tolower() {
+	if command -v tr >/dev/null 2>&1; then
+		echo "$@" | tr "[:upper:]" "[:lower:]"
+	else
+		# There is no good way of doing this in shell :(
+		# The good news is that if the resolver is available
+		# then tr should be available too and this is only needed
+		# to ensure forward zones are not duplicated by case there.
+		# If tr is not available when interfaces when things
+		# start to interact with resolvconf and you use a resolver
+		# othe than libc then it's recommended to issue a
+		# `resolvconf -u` when /usr/bin is mounted just to be sure.
+		echo "$@"
+	fi
+}
+
+# Strip any trailing dot from each name as a FQDN does not belong
+# in resolv.conf(5).
+# While DNS is not case sensitive, our labels for building the zones
+# are, so ensure it's lower case.
+process_domain()
+{
+	space=
+	for word; do
+		printf "%s%s" "$(tolower "$space${word%.}")"
+		space=" "
+	done
+	printf "\n"
+}
+
+process_resolv()
 {
 	while read -r keyword value; do
 		for r in $replace; do
@@ -887,6 +898,18 @@ replace()
 			done
 			val="$val${val:+ }$sub"
 		done
+		case "$keyword" in
+		\#)
+			case "$val" in
+			"resolv.conf from "*) ;;
+			*) continue;;
+			esac
+			;;
+		\#*) continue;;
+		esac
+		case "$keyword" in
+		domain|search) val="$(process_domain $val)";;
+		esac
 		printf "%s %s\n" "$keyword" "$val"
 	done
 }
@@ -904,7 +927,7 @@ make_vars()
 		eval "$(echo_prepend | parse_resolv)"
 	fi
 	if [ -z "$VFLAG" ]; then
-		eval "$(list_resolv -L "$@" | replace | parse_resolv)"
+		eval "$(list_resolv -L "$@" | process_resolv | parse_resolv)"
 	fi
 	if [ -n "${name_servers_append}${search_domains_append}" ]; then
 		eval "$(echo_append | parse_resolv)"
@@ -1024,7 +1047,7 @@ if [ "$cmd" = l ]; then
 fi
 # -L is the same as -l, but post-processed from our config
 if [ "$cmd" = L ]; then
-	list_resolv "-$cmd" "$args" | replace
+	list_resolv "-$cmd" "$args" | process_resolv
 	exit $?
 fi
 

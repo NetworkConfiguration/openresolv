@@ -857,7 +857,7 @@ process_domain()
 {
 	space=
 	for word; do
-		printf "%s%s" "$(tolower "$space${word%.}")"
+		printf "%s" "$(tolower "$space${word%.}")"
 		space=" "
 	done
 	printf "\n"

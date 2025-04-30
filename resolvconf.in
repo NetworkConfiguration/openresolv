@@ -834,19 +834,53 @@ echo_append()
 }
 
 tolower() {
-	if command -v tr >/dev/null 2>&1; then
-		echo "$@" | tr "[:upper:]" "[:lower:]"
-	else
-		# There is no good way of doing this in shell :(
-		# The good news is that if the resolver is available
-		# then tr should be available too and this is only needed
-		# to ensure forward zones are not duplicated by case there.
-		# If tr is not available when interfaces when things
-		# start to interact with resolvconf and you use a resolver
-		# othe than libc then it's recommended to issue a
-		# `resolvconf -u` when /usr/bin is mounted just to be sure.
-		echo "$@"
-	fi
+	# There is no good way of doing this portably in shell :(
+	# Luckily we are only doing this for domain names which we
+	# know have to be ASCII.
+	# Non ASCII domains *should* be translated to ASCII *before*
+	# we get to this stage.
+	# We could use echo "$@" | tr '[:upper:]' '[:lower:]' but
+	# tr is in /usr/bin and may not be available when data is fed
+	# to resolvconf.
+	# So it's the cost of a pipe + fork vs this slow loop
+	out=
+	for word; do
+		while [ -n "$word" ]; do
+			afterchar="${word#?}"
+			char="${word%%$afterchar}"
+			word="$afterchar"
+			case "$char" in
+			A) char=a;;
+			B) char=b;;
+			C) char=c;;
+			D) char=d;;
+			E) char=e;;
+			F) char=f;;
+			G) char=g;;
+			H) char=h;;
+			I) char=i;;
+			J) char=j;;
+			K) char=k;;
+			L) char=l;;
+			M) char=m;;
+			N) char=n;;
+			O) char=o;;
+			P) char=p;;
+			Q) char=q;;
+			R) char=r;;
+			S) char=s;;
+			T) char=t;;
+			U) char=u;;
+			V) char=v;;
+			W) char=w;;
+			X) char=x;;
+			Y) char=y;;
+			Z) char=z;;
+			esac
+			out="$out$char"
+		done
+	done
+	echo "$out"
 }
 
 # Strip any trailing dot from each name as a FQDN does not belong
@@ -857,7 +891,7 @@ process_domain()
 {
 	space=
 	for word; do
-		printf "%s" "$(tolower "$space${word%.}")"
+		printf %s "$(tolower "$space${word%.}")"
 		space=" "
 	done
 	printf "\n"

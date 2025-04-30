@@ -22,7 +22,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.Dd April 29, 2025
+.Dd April 30, 2025
 .Dt RESOLVCONF 8
 .Os
 .Sh NAME
@@ -361,6 +361,17 @@ Directory of subscribers which are run after the libc subscriber is run.
 State directory for
 .Nm .
 .El
+.Sh NOTES
+Domain labels are assumed to be in ASCII and are converted to lower case
+to avoid duplicate zones when given differing case from different sources.
+.Pp
+When running a local resolver other than libc, you will need to configure it
+to include files that
+.Nm
+will generate.
+You should consult
+.Xr resolvconf.conf 5
+for instructions on how to configure your resolver.
 .Sh SEE ALSO
 .Xr resolver 3 ,
 .Xr stdin 4 ,
@@ -376,14 +387,3 @@ resolvconf, as written by Thomas Hood.
 .Sh BUGS
 Please report them to
 .Lk http://roy.marples.name/projects/openresolv
-.Pp
-.Nm
-does not validate any of the files given to it.
-.Pp
-When running a local resolver other than libc, you will need to configure it
-to include files that
-.Nm
-will generate.
-You should consult
-.Xr resolvconf.conf 5
-for instructions on how to configure your resolver.

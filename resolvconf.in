@@ -336,7 +336,7 @@ dirname()
 {
 	OIFS="$IFS"
 	IFS=/
-	set -- $@
+	set -- "$@"
 	IFS="$OIFS"
 	if [ -n "$1" ]; then
 		printf %s .
@@ -567,7 +567,7 @@ list_keys() {
 	list=
 	retval=0
 	if [ "$list_cmd" = -i ] || [ "$list_cmd" = -l ]; then
-		for i in $*; do
+		for i in $@; do
 			if [ ! -f "$i" ]; then
 				if ! $force; then
 					echo "No resolv.conf for key $i" >&2
@@ -657,8 +657,9 @@ list_keys() {
 
 	retval=0
 	if [ "$1" != "*" ]; then
+		cd "$KEYDIR"
 		matched=
-		for i in $*; do
+		for i in $@; do
 			if ! [ -f "$i" ]; then
 				if ! $force; then
 					echo "No resolv.conf for key $i" >&2
@@ -681,7 +682,6 @@ list_keys() {
 
 	allowed=
 	for i in $(uniqify $list); do
-
 		if [ -n "$allow_keys" ]; then
 			x=false
 			for ii in $allow_keys; do
@@ -701,7 +701,6 @@ list_keys() {
 		if [ -n "$exclude" ] && match "$exclude" "$i"; then
 			continue
 		fi
-
 		allowed="$allowed${allowed:+ }$i"
 	done
 
@@ -719,7 +718,7 @@ list_keys() {
 
 list_resolv()
 {
-	keys="$(list_keys $@)"
+	keys="$(list_keys "$@")"
 	retval=$?
 	if [ "$retval" != 0 ]; then
 		return $retval
@@ -839,10 +838,17 @@ tolower() {
 	# know have to be ASCII.
 	# Non ASCII domains *should* be translated to ASCII *before*
 	# we get to this stage.
-	# We could use echo "$@" | tr '[:upper:]' '[:lower:]' but
+	# We could use echo "$*" | tr '[:upper:]' '[:lower:]' but
 	# tr is in /usr/bin and may not be available when data is fed
 	# to resolvconf.
 	# So it's the cost of a pipe + fork vs this slow loop
+	#
+	# Check if we have any uppper
+	case "$*" in
+	*[A-Z]*) ;;
+	*) echo "$*"; return;;
+	esac
+
 	for word; do
 		while [ -n "$word" ]; do
 			afterchar="${word#?}"
@@ -889,7 +895,7 @@ tolower() {
 # are, so ensure it's lower case.
 process_domain()
 {
-	for word in $(tolower $@); do
+	for word in $(tolower "$*"); do
 		printf "%s " "${word%.}"
 	done
 	printf "\n"

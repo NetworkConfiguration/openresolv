@@ -218,19 +218,11 @@ if [ -e "$resolv_conf" ]; then
 	[ "$(cat "$resolv_conf")" = "$(printf %s "$newconf")" ] && exit 0
 fi
 
-# Change is good.
 # If the old file does not have our signature, back it up.
-# If the new file just has our signature, restore the backup.
-if $backup; then
-	if [ "$newconf" = "$signature$NL" ]; then
-		if [ -e "$resolv_conf.bak" ]; then
-			newconf="$(cat "$resolv_conf.bak")$NL"
-		fi
-	elif [ -e "$resolv_conf" ]; then
-		read line <"$resolv_conf"
-		if [ "$line" != "$signature" ]; then
-			cp "$resolv_conf" "$resolv_conf.bak"
-		fi
+if $backup && [ -e "$resolv_conf" ] && [ ! -e "$resolv_conf.bak" ]; then
+	read line <"$resolv_conf"
+	if [ "$line" != "$signature" ]; then
+		cp "$resolv_conf" "$resolv_conf.bak"
 	fi
 fi
 

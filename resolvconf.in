@@ -104,12 +104,12 @@ fi
 
 warn()
 {
-	echo "$*" >&2
+	echo "$@" >&2
 }
 
 error_exit()
 {
-	echo "$*" >&2
+	echo "$@" >&2
 	exit 1
 }
 
@@ -156,7 +156,7 @@ usage()
 	EOF
 	[ -z "$1" ] && exit 0
 	echo
-	error_exit "$*"
+	error_exit "$@"
 }
 
 public_key() {
@@ -602,7 +602,7 @@ list_keys() {
 		done
 		cd "$KEYDIR"
 		if [ -n "$list" ]; then
-			for i in $*; do
+			for i in $@; do
 				# list will be one item due to the above
 				if [ -f "$i" ] && [ "$i" = "$list" ]; then
 					echo "$i"
@@ -735,7 +735,7 @@ list_private()
 	if [ -z "$1" ]; then
 		set -- "*"
 	fi
-	for i in $*; do
+	for i in $@; do
 		if private_key "$i"; then
 		KEYS="${KEYS}${KEYS:+ }$i"
 		fi
@@ -753,7 +753,7 @@ list_nosearch()
 	if [ -z "$1" ]; then
 		set -- "*"
 	fi
-	for i in $*; do
+	for i in $@; do
 		if nosearch_key "$i"; then
 			KEYS="${KEYS}${KEYS:+ }$i"
 		fi
@@ -770,7 +770,7 @@ list_exclusive()
 	if [ -z "$1" ]; then
 		set -- "*"
 	fi
-	for i in $*; do
+	for i in $@; do
 		if exclusive_key "$i"; then
 			KEYS="${KEYS}${KEYS:+ }$i"
 		fi
@@ -838,22 +838,27 @@ tolower() {
 	# know have to be ASCII.
 	# Non ASCII domains *should* be translated to ASCII *before*
 	# we get to this stage.
-	# We could use echo "$*" | tr '[:upper:]' '[:lower:]' but
+	# We could use echo "$@" | tr '[:upper:]' '[:lower:]' but
 	# tr is in /usr/bin and may not be available when data is fed
 	# to resolvconf.
 	# So it's the cost of a pipe + fork vs this slow loop
 	#
-	# Check if we have any uppper
-	case "$*" in
-	*[A-Z]*) ;;
-	*) echo "$*"; return;;
-	esac
-
 	for word; do
+		# Check if we have any upper to avoid looping per char
+		case "$word" in
+			*[A-Z]*) ;;
+			*) printf "%s " "$word"; continue;;
+		esac
+
 		while [ -n "$word" ]; do
+			# Remove everything except the first character
 			afterchar="${word#?}"
+			# Remove the afterchar to get the first character
 			char="${word%%$afterchar}"
+			# Assign afterchar back to word for looping
 			word="$afterchar"
+
+			# Now enforce lowercase a-z
 			case "$char" in
 			A) char=a;;
 			B) char=b;;
@@ -895,7 +900,7 @@ tolower() {
 # are, so ensure it's lower case.
 process_domain()
 {
-	for word in $(tolower "$*"); do
+	for word in $(tolower "$@"); do
 		printf "%s " "${word%.}"
 	done
 	printf "\n"
@@ -1044,7 +1049,9 @@ while getopts a:C:c:Dd:fhIiLlm:pRruvVx OPT; do
 	esac
 done
 shift $(($OPTIND - 1))
-args="$key${key:+ }$*"
+if [ -n "$key" ]; then
+	set -- "$key" "$@"
+fi
 
 if [ -z "$cmd" ]; then
        	if [ "$IF_PRIVATE" = 1 ]; then
@@ -1080,26 +1087,26 @@ fi
 
 # -l lists our resolv files, optionally for a specific key
 if [ "$cmd" = l ]; then
-	list_resolv "-$cmd" "$args"
+	list_resolv "-$cmd" "$@"
 	exit $?
 fi
 # -L is the same as -l, but post-processed from our config
 if [ "$cmd" = L ]; then
-	list_resolv "-$cmd" "$args" | process_resolv
+	list_resolv "-$cmd" "$@" | process_resolv
 	exit $?
 fi
 
 if [ "$cmd" = p ]; then
 	if [ "$IF_NOSEARCH" = 1 ]; then
-		list_nosearch "$args"
+		list_nosearch "$@"
 	else
-		list_private "$args"
+		list_private "$@"
 	fi
 	exit $?
 fi
 
 if [ "$cmd" = x ]; then
-	list_exclusive "$args"
+	list_exclusive "$@"
 	exit $?
 fi
 
@@ -1107,7 +1114,6 @@ fi
 if [ "$cmd" = r ] || [ "$cmd" = R ]; then
 	detect_init || exit 1
 	if [ "$cmd" = r ]; then
-		set -- $args
 		eval "$RESTARTCMD"
 	else
 		echo "$RESTARTCMD" |
@@ -1118,7 +1124,7 @@ fi
 
 # Not normally needed, but subscribers should be able to run independently
 if [ "$cmd" = v ] || [ -n "$VFLAG" ]; then
-	make_vars "$args"
+	make_vars "$@"
 	exit $?
 fi
 
@@ -1177,7 +1183,7 @@ if [ ! -d "$KEYDIR" ]; then
 		# Provide the same error messages as below
 		if ! ${force}; then
 			cd "$KEYDIR"
-			for i in $args; do
+			for i in $@; do
 				warn "No resolv.conf for key $i"
 			done
 		fi
@@ -1368,7 +1374,7 @@ d)
 	# Delete any existing information about the key
 	cd "$KEYDIR"
 	changed=false
-	for i in $args; do
+	for i in $@; do
 		if [ -e "$i" ]; then
 			changed=true
 		elif ! ${force}; then
@@ -1392,7 +1398,7 @@ C)
 	[ ! -d "$DEPRECATEDDIR" ] && mkdir "$DEPRECATEDDIR"
 	cd "$DEPRECATEDDIR"
 	changed=false
-	for i in $args; do
+	for i in $@; do
 		if [ ! -e "$i" ]; then
 			changed=true
 			echo " " >"$i" || exit $?
@@ -1407,7 +1413,7 @@ c)
 	if [ -d "$DEPRECATEDDIR" ]; then
 		cd "$DEPRECATEDDIR"
 		changed=false
-		for i in $args; do
+		for i in $@; do
 			if [ -e "$i" ]; then
 				changed=true
 				rm "$i" || exit $?

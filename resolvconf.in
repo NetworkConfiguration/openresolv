@@ -277,7 +277,7 @@ parse_resolv()
 			if $islocal; then
 				echo "LOCALNAMESERVERS=\"\$LOCALNAMESERVERS $value\""
 			else
-				ns="$value "
+				ns="$ns${ns:+ }$value"
 			fi
 			;;
 		"domain "*)

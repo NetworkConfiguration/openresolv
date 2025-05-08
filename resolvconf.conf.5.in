@@ -22,7 +22,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.Dd April 29, 2025
+.Dd May 8, 2025
 .Dt RESOLVCONF.CONF 5
 .Os
 .Sh NAME
@@ -76,17 +76,18 @@ For example given this configuration:
 .Bd -compact -literal -offset indent
 exclude="search/foo*/nameserver/1.2.3.4 search/bar.org"
 .Ed
+.Pp
 Then any resolv.conf with both a search option starting with foo with a nameserver of 1.2.3.4
 OR a search option of bar.org would be excluded.
 .It Sy key_order
 These keys will always be processed first.
-If unset, defaults to the following:-
+If unset, defaults to the following:
 .Bd -compact -literal -offset indent
 lo lo[0-9]*
 .Ed
 .It Sy dynamic_order
 These keys will be processed next, unless they have a metric.
-If unset, defaults to the following:-
+If unset, defaults to the following:
 .Bd -compact -literal -offset indent
 tap[0-9]* tun[0-9]* vpn vpn[0-9]* wg[0-9]* ppp[0-9]* ippp[0-9]*
 .Ed
@@ -96,7 +97,7 @@ This is handy when 3rd party integrations force the
 .Nm resolvconf -x
 option and you want to disable it easily.
 .It Sy local_nameservers
-If unset, defaults to the following:-
+If unset, defaults to the following:
 .Bd -compact -literal -offset indent
 127.* 0.0.0.0 255.255.255.255 ::1
 .Ed
@@ -152,18 +153,21 @@ search foo.org dead.beef
 nameserver 1.2.3.4
 nameserver 2.3.4.5
 .Ed
+.Pp
 and this configuration:
 .Bd -compact -literal -offset indent
 replace="search/foo*/bar.com"
 replace="$replace nameserver/1.2.3.4/5.6.7.8"
 replace="$replace nameserver/2.3.4.5/"
 .Ed
+.Pp
 you would get this resolv.conf instead:
 .Bd -compact -literal -offset indent
 domain foo.org
 search bar.com
 nameserver 5.6.7.8
 .Ed
+.Pp
 .It Sy replace_sub
 Works the same way as
 .Sy replace
@@ -179,6 +183,7 @@ domain foo.org
 search bar.com dead.beef
 nameserver 5.6.7.8
 .Ed
+.Pp
 .It Sy state_dir
 Override the default state directory of
 .Pa @VARDIR@ .
@@ -189,7 +194,7 @@ is in use unless the old directory is copied to the new one.
 .Sh LIBC OPTIONS
 The following variables affect
 .Xr resolv.conf 5
-directly:-
+directly:
 .Bl -tag -width indent
 .It Sy resolv_conf
 Defaults to

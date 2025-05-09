@@ -592,7 +592,7 @@ list_keys() {
 			if [ -f "$i" ]; then
 				cd "$KEYDIR"
 				for ii in $inclusive_keys; do
-					if [ -f "$ii" ] && [ "${i#* }" == "$ii" ]; then
+					if [ -f "$ii" ] && [ "${i#* }" = "$ii" ]; then
 						continue 2
 					fi
 				done

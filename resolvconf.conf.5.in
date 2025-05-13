@@ -361,14 +361,24 @@ Example recursor.conf:
 allow-from=127.0.0.0/8, ::1/128
 forward-zones-file=/etc/pdns/recursor-zones.conf
 .Ed
+.It Sy systemd_resolved
+When set to YES, global DNS will be written to the
+.Sy systemd_resolved_conf
+configuration file and DNS delegates will be written to the
+.Sy systemd_delegate_dir
+directory.
 .It Sy systemd_resolved_conf
-This file tells systemd-resolved about global name servers.
+Defaults to
+.Pa /run/systemd/resolved.conf.d/60-resolvconf.conf .
+.It Sy systemd_delegate_dir
+Defaults to
+.Pa /run/systemd/dns-delegate.d .
 .Pp
 Example resolvconf.conf for systemd-resolved:
 .Bd -literal -compact -offset indent
 name_servers=127.0.0.53
 resolv_conf_options="edns0 trust-ad"
-systemd_resolved_conf=/run/systemd/resolved.conf.d/60-resolvconf.conf
+systemd_resolved=YES
 .Ed
 .It Sy unbound_conf
 This file tells unbound about specific and global name servers.

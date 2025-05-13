@@ -154,7 +154,7 @@ it should then call
 with
 .Fl d Ar key
 arguments to clean up the
-.Pa resol.conf
+.Pa resolv.conf
 it added previously.
 For systems that support the concept of persisting configuration when
 the source is suspended,

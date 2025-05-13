@@ -569,7 +569,7 @@ list_keys() {
 	if [ "$list_cmd" = -i ] || [ "$list_cmd" = -l ]; then
 		for i in $@; do
 			if [ ! -f "$i" ]; then
-				if ! $force; then
+				if ! $force && [ "$i" != "*" ]; then
 					echo "No resolv.conf for key $i" >&2
 				fi
 				retval=2

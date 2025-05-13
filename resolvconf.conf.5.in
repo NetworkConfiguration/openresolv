@@ -361,6 +361,29 @@ Example recursor.conf:
 allow-from=127.0.0.0/8, ::1/128
 forward-zones-file=/etc/pdns/recursor-zones.conf
 .Ed
+.It Sy resolvectl
+When set to YES,
+.Xr resolvectl 1
+will be used to write per interface entries from
+.Xr resolvconf 8
+to
+.Xr systemd-resolved 8 .
+A warning is emitted for any entry that cannot be matched to an
+interface.
+.Pp
+This subscriber should only be used if your systemd-resolved does
+not support DNS delegates and you need private or non searchable
+.Xr resolvconf 8
+entries, or you're really beholden to seeing DNS setup per interface via
+.Xr resolvectl 1 .
+The systemd-resolved subscriber documented below is the better option.
+.Pp
+Example resolvconf.conf for resolvectl:
+.Bd -literal -compact -offset indent
+# Keep /etc/resolv.conf as systemd-resolved wants it
+libc=NO
+resolvectl=YES
+.Ed
 .It Sy systemd_resolved
 When set to YES, global DNS will be written to the
 .Sy systemd_resolved_conf
@@ -450,6 +473,14 @@ Location of the unbound pidfile.
 .Sh BUGS
 Each distribution is a special snowflake and likes to name the same thing
 differently, namely the named service script.
+.Pp
+Swapping between resolvectl and systemd-resolved subscribers at runtime
+is not supported.
+A reboot is recommended so that stale data is removed.
+While you could run them both at the same time, only using one is the
+recommended approach.
+.Pp
+systemd-resolved does not support the concept of a deprecated entry.
 .Pp
 Please report them to
 .Lk https://roy.marples.name/projects/openresolv

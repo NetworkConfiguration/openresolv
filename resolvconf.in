@@ -336,7 +336,7 @@ dirname()
 {
 	OIFS="$IFS"
 	IFS=/
-	set -- "$@"
+	set -- $@
 	IFS="$OIFS"
 	if [ -n "$1" ]; then
 		printf %s .

@@ -68,7 +68,18 @@ header="${header}[Delegate]$NL"
 for d in $DOMAINS; do
 	dn="${d%%:*}"
 	ns="${d#*:}"
-	dconf="${header}Domains=~$dn$NL"
+	dconf="${header}Domains="
+	search=false
+	for sd in $SEARCH; do
+		if [ "$sd" = "$dn" ]; then
+			search=true
+			break
+		fi
+	done
+	if ! $search; then
+		dconf="${dconf}~"
+	fi
+	dconf="${dconf}$dn$NL"
 	dconf="${dconf}DNS="
 	while [ -n "$ns" ]; do
 		dconf="$dconf${ns%%,*} "

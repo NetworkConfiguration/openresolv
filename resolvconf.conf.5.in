@@ -376,8 +376,8 @@ Defaults to
 .Pp
 Example resolvconf.conf for systemd-resolved:
 .Bd -literal -compact -offset indent
-name_servers=127.0.0.53
-resolv_conf_options="edns0 trust-ad"
+# Keep /etc/resolv.conf as systemd-resolved wants it
+libc=NO
 systemd_resolved=YES
 .Ed
 .It Sy unbound_conf

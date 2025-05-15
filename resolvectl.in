@@ -54,7 +54,7 @@ fi
 # Luckily resolvconf makes this easy for us.
 
 # Returns a list of resolvconf entries for a real interface
-function get_resolvconf_interfaces() {
+get_resolvconf_interfaces() {
 	IFACE="$1"
 	[ -d /sys/class/net/"$IFACE" ] || return 1
 
@@ -79,7 +79,7 @@ function get_resolvconf_interfaces() {
 }
 
 # For the given interface, apply a list of resolvconf entries
-function apply_resolvconf() {
+apply_resolvconf() {
 	IFACE="$1"
 	shift
 

@@ -1356,7 +1356,7 @@ a)
 
 	if $changedfile; then
 		printf "%s\n" "$resolv" >"$KEYDIR/$key" || exit $?
-	elif ! $changed; then
+	elif ! $changed && [ ! -e "$VARDIR"/error ]; then
 		exit 0
 	fi
 	unset changed changedfile oldmetric newmetric x oldexcl
@@ -1377,7 +1377,7 @@ d)
 			"$EXCLUSIVEDIR/"*" $i" || exit $?
 	done
 
-	if ! $changed; then
+	if ! $changed && [ ! -e "$VARDIR"/error ]; then
 		# Set the return code based on the forced flag
 		$force
 		exit $?
@@ -1396,7 +1396,9 @@ C)
 			echo " " >"$i" || exit $?
 		fi
 	done
-	$changed || exit 0
+	if ! $changed && [ ! -e "$VARDIR"/error ]; then
+		exit 0
+	fi
 	unset changed i
 	;;
 
@@ -1411,7 +1413,9 @@ c)
 				rm "$i" || exit $?
 			fi
 		done
-		$changed || exit 0
+		if ! $changed && [ ! -e "$VARDIR"/error ]; then
+			exit 0
+		fi
 		unset changed i
 	fi
 	;;
@@ -1463,4 +1467,9 @@ for script in "$LIBEXECDIR"/*; do
 		retval=$(($retval + $?))
 	fi
 done
+if [ "$retval" = 0 ]; then
+	rm -f "$VARDIR"/error
+else
+	echo "$retval" >"$VARDIR"/error
+fi
 exit $retval

@@ -22,7 +22,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.Dd June 24, 2025
+.Dd June 26, 2025
 .Dt RESOLVCONF 8
 .Os
 .Sh NAME
@@ -78,6 +78,14 @@ instead of the filesystem.
 then updates
 .Pa /etc/resolv.conf
 as it thinks best.
+If
+.Pa /etc/resolv.conf
+already exists and the top line does not match the expected signature,
+then
+.Nm
+will refuse to update it unless the
+.Fl u
+update command is given.
 When a local resolver other than libc is installed, such as
 .Xr dnsmasq 8
 or
@@ -109,20 +117,6 @@ However, this is not a fixed requirement,
 will work with any key name and it should be treated as an opaque value
 outside of
 .Nm .
-.Pp
-.Nm
-assumes it has a job to do.
-In some situations
-.Nm
-needs to act as a deterrent to writing to
-.Pa /etc/resolv.conf .
-Where this file cannot be made immutable or you just need to toggle this
-behaviour,
-.Nm
-can be disabled by adding
-.Sy resolvconf Ns = Ns NO
-to
-.Xr resolvconf.conf 5 .
 .Pp
 .Nm
 can mark a

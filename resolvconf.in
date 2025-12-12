@@ -1054,7 +1054,7 @@ if [ -n "$key" ]; then
 fi
 
 if [ -z "$cmd" ]; then
-       	if [ "$IF_PRIVATE" = 1 ]; then
+	if [ "$IF_PRIVATE" = 1 ]; then
 		cmd=p
 	elif [ "$IF_EXCLUSIVE" = 1 ]; then
 		cmd=x

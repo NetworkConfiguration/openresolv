@@ -259,7 +259,7 @@ quote()
 
 # Parse resolv.conf's and make variables
 # for domain name servers, search name servers and global nameservers
-# Important! Each printf here should use the about quote function
+# Important! Each printf here should use the above quote function
 # to ensure that user input is quoted for eval.
 parse_resolv()
 {

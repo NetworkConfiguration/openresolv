@@ -475,6 +475,12 @@ detect_init()
 			fi'
 	elif [ -d /etc/dinit.d ] && command -v dinitctl >/dev/null 2>&1; then
 		RESTARTCMD='dinitctl --quiet restart --ignore-unstarted $1'
+	elif [ -d /etc/nitro ] && command -v nitroctl >/dev/null 2>&1; then
+		RESTARTCMD='
+			if nitroctl pidof $1 >/dev/null 2>&1
+			then
+				nitroctl restart $1
+			fi'
 	else
 		for x in /etc/init.d/rc.d /etc/rc.d /etc/init.d; do
 			[ -d $x ] || continue

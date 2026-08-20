@@ -50,6 +50,8 @@ name_server_blacklist="0.0.0.0"
 
 # Poor mans cat
 # /usr might not be available
+# This adds a newline at the end of input if non present so other
+# while read loops that process the result don't need the [ -n "$line" ] check.
 cat()
 {
 	OIFS="$IFS"

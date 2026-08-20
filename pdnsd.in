@@ -54,7 +54,7 @@ remove_markers()
 				case "$line" in
 				"$m1"*) in_marker=1;;
 				"$m2"*) in_marker=0;;
-				*) [ $in_marker = 0 ] && echo "$line";;
+				*) [ $in_marker = 0 ] && printf '%s\n' "$line";;
 				esac
 			done < "$x"
 		done

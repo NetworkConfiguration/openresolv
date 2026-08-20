@@ -55,14 +55,14 @@ key_get_value()
 	if [ $# -eq 0 ]; then
 		while read -r line || [ -n "$line" ]; do
 			case "$line" in
-			"$key"*) echo "${line##$key}";;
+			"$key"*) printf '%s\n' "${line##$key}";;
 			esac
 		done
 	else
 		for x do
 			while read -r line || [ -n "$line" ]; do
 				case "$line" in
-				"$key"*) echo "${line##$key}";;
+				"$key"*) printf '%s\n' "${line##$key}";;
 				esac
 			done < "$x"
 		done
@@ -79,7 +79,7 @@ keys_remove()
 			esac
 			$found && break
 		done
-		$found || echo "$line"
+		$found || printf '%s\n' "$line"
 	done
 }
 

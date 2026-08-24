@@ -481,6 +481,13 @@ detect_init()
 			then
 				nitroctl restart $1
 			fi'
+	elif [ -x /run/current-system/profile/bin/herd ]; then
+		# Guix System
+		RESTARTCMD='
+			if /run/current-system/profile/bin/herd eval root "(unless (lookup-running '\''$1) (error))" >/dev/null 2>&1
+			then
+				/run/current-system/profile/bin/herd restart $1
+			fi'
 	else
 		for x in /etc/init.d/rc.d /etc/rc.d /etc/init.d; do
 			[ -d $x ] || continue

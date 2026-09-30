@@ -221,7 +221,6 @@ case "${resolv_conf_passthrough:-NO}" in
 esac
 
 # Check if the file has actually changed or not
-# '-s' instead of '-e' to only protect non-empty files
 if [ -s "$resolv_conf" ]; then
 	if [ "$CMD" != u ] && \
 	    [ "$(cat "$resolv_conf")" = "$(printf %s "$newconf")" ]
